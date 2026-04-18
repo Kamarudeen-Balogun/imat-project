@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Light Theme Colors */
+    --bg: #ffffff;
+    --bg2: #f8fafc;
+    --bg3: #e2e8f0;
+    --borderDark: #cbd5e1;
+    --borderLit: #94a3b8;
+    --textDefault: #0f172a;
+    --text2: #334155;
+    --text3: #64748b;
+    --accent: #f5a623;
+    --accent2: #e8891a;
+    --primary: #2563eb;
+    --primaryDim: #dbeafe;
+    --success: #16a34a;
+    --successDim: #dcfce7;
+    --danger: #dc2626;
+    --dangerDim: #fee2e2;
+    --warning: #d97706;
+    --warningDim: #fef3c7;
+  }
+
+  .dark {
+    /* Dark Theme Colors */
+    --bg: #0f1117;
+    --bg2: #161b25;
+    --bg3: #1e2535;
+    --borderDark: #2a3347;
+    --borderLit: #3a4a65;
+    --textDefault: #d0daea;
+    --text2: #7a8aaa;
+    --text3: #4a5a7a;
+    --accent: #f5a623;
+    --accent2: #e8891a;
+    --primary: #4a9eff;
+    --primaryDim: #1a2e4a;
+    --success: #3ec97a;
+    --successDim: #1a4a30;
+    --danger: #ff5a5a;
+    --dangerDim: #2a1515;
+    --warning: #f5a623;
+    --warningDim: #3a2810;
+  }
+
+  body {
+    background-color: var(--bg);
+    color: var(--textDefault);
+    min-height: 100vh;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
