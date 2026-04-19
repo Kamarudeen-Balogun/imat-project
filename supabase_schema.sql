@@ -7,7 +7,7 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- 1. CAMPUS ZONES (Pre-seeded)
-CREATE TABLE campus_zones (
+CREATE TABLE IF NOT EXISTS campus_zones (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   name TEXT NOT NULL UNIQUE,
   description TEXT,
@@ -29,7 +29,7 @@ ON CONFLICT (name) DO NOTHING;
 
 
 -- 2. USERS
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   email TEXT NOT NULL UNIQUE,
   full_name TEXT NOT NULL,
@@ -38,6 +38,7 @@ CREATE TABLE users (
   cgpa NUMERIC(3,2),
   role TEXT NOT NULL DEFAULT 'applicant' CHECK (role IN ('applicant', 'field_officer', 'documentation_officer', 'advocacy_officer', 'technical_officer', 'president', 'vice_president', 'faculty_advisor', 'works_dept', 'admin')),
   status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'inactive', 'graduated')),
+  notifications_enabled BOOLEAN NOT NULL DEFAULT false,
   zone_id UUID REFERENCES campus_zones(id),
   joined_at TIMESTAMPTZ DEFAULT now(),
   created_at TIMESTAMPTZ DEFAULT now()
@@ -45,7 +46,7 @@ CREATE TABLE users (
 
 
 -- 3. INTAKE CYCLES
-CREATE TABLE intake_cycles (
+CREATE TABLE IF NOT EXISTS intake_cycles (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   name TEXT NOT NULL,
   open_date TIMESTAMPTZ NOT NULL,
@@ -58,7 +59,7 @@ CREATE TABLE intake_cycles (
 
 
 -- 4. APPLICATIONS
-CREATE TABLE applications (
+CREATE TABLE IF NOT EXISTS applications (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   cycle_id UUID REFERENCES intake_cycles(id) ON DELETE CASCADE,
   applicant_name TEXT NOT NULL,
@@ -80,7 +81,7 @@ CREATE TABLE applications (
 
 
 -- 5. DEFECTS
-CREATE TABLE defects (
+CREATE TABLE IF NOT EXISTS defects (
   id TEXT PRIMARY KEY DEFAULT 'DEF-' || UPPER(SUBSTR(MD5(RANDOM()::TEXT), 1, 6)),
   title TEXT NOT NULL,
   description TEXT NOT NULL,
@@ -101,7 +102,7 @@ CREATE TABLE defects (
 
 
 -- 6. SEVERITY CRITERIA (Reference table)
-CREATE TABLE severity_criteria (
+CREATE TABLE IF NOT EXISTS severity_criteria (
   severity_level INTEGER PRIMARY KEY,
   label TEXT NOT NULL,
   description TEXT NOT NULL,
@@ -119,7 +120,7 @@ ON CONFLICT (severity_level) DO NOTHING;
 
 
 -- 7. DEFECT HISTORY
-CREATE TABLE defect_history (
+CREATE TABLE IF NOT EXISTS defect_history (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   defect_id TEXT REFERENCES defects(id) ON DELETE CASCADE,
   old_status TEXT,
@@ -138,13 +139,14 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
+DROP TRIGGER IF EXISTS update_defects_updated_at ON defects;
 CREATE TRIGGER update_defects_updated_at
 BEFORE UPDATE ON defects
 FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
 
 
 -- 8. ASSESSMENTS
-CREATE TABLE assessments (
+CREATE TABLE IF NOT EXISTS assessments (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   defect_id TEXT REFERENCES defects(id) ON DELETE CASCADE NOT NULL,
   officer_id UUID REFERENCES users(id) NOT NULL,
@@ -158,7 +160,7 @@ CREATE TABLE assessments (
 
 
 -- 9. REPORTS
-CREATE TABLE reports (
+CREATE TABLE IF NOT EXISTS reports (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   title TEXT NOT NULL,
   period_start DATE NOT NULL,
@@ -174,18 +176,35 @@ CREATE TABLE reports (
 
 
 -- 10. ANNOUNCEMENTS
-CREATE TABLE announcements (
+CREATE TABLE IF NOT EXISTS announcements (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  slug TEXT,
   title TEXT NOT NULL,
   body TEXT NOT NULL,
+  image_url TEXT,
   author_id UUID REFERENCES users(id),
   visibility TEXT DEFAULT 'members_only' CHECK (visibility IN ('public', 'members_only')),
-  published_at TIMESTAMPTZ DEFAULT now()
+  published_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  updated_by UUID REFERENCES users(id) ON DELETE SET NULL
 );
+
+CREATE UNIQUE INDEX IF NOT EXISTS announcements_slug_key ON announcements(slug) WHERE slug IS NOT NULL;
+
+ALTER TABLE announcements
+ADD COLUMN IF NOT EXISTS image_url TEXT;
+
+ALTER TABLE announcements
+ADD COLUMN IF NOT EXISTS slug TEXT;
+
+DROP TRIGGER IF EXISTS update_announcements_updated_at ON announcements;
+CREATE TRIGGER update_announcements_updated_at
+BEFORE UPDATE ON announcements
+FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
 
 
 -- 11. VOLUNTEER LOGS
-CREATE TABLE volunteer_logs (
+CREATE TABLE IF NOT EXISTS volunteer_logs (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   member_id UUID REFERENCES users(id) ON DELETE CASCADE,
   activity_date DATE NOT NULL,
@@ -198,7 +217,7 @@ CREATE TABLE volunteer_logs (
 
 
 -- 12. WIKI PAGES
-CREATE TABLE wiki_pages (
+CREATE TABLE IF NOT EXISTS wiki_pages (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   title TEXT NOT NULL,
   slug TEXT UNIQUE NOT NULL,
@@ -210,7 +229,78 @@ CREATE TABLE wiki_pages (
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
+-- 13. ACTIVITY LOGS (automatic operational timeline)
+CREATE TABLE IF NOT EXISTS activity_logs (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  event_type TEXT NOT NULL,
+  entity_type TEXT NOT NULL,
+  entity_id TEXT,
+  title TEXT NOT NULL,
+  details JSONB DEFAULT '{}'::jsonb,
+  is_relevant BOOLEAN NOT NULL DEFAULT false,
+  actor_id UUID REFERENCES users(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- 14. NOTIFICATIONS (in-app delivery feed)
+CREATE TABLE IF NOT EXISTS notifications (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  recipient_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_by UUID REFERENCES users(id) ON DELETE SET NULL,
+  announcement_id UUID REFERENCES announcements(id) ON DELETE CASCADE,
+  type TEXT NOT NULL CHECK (type IN ('news_update', 'system')),
+  title TEXT NOT NULL,
+  body TEXT NOT NULL,
+  href TEXT NOT NULL,
+  is_read BOOLEAN NOT NULL DEFAULT false,
+  read_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS notifications_recipient_created_at_idx ON notifications(recipient_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS notifications_recipient_is_read_idx ON notifications(recipient_id, is_read);
+
+CREATE OR REPLACE FUNCTION prune_activity_logs()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  DELETE FROM activity_logs
+  WHERE is_relevant = false
+    AND created_at < now() - interval '2 days';
+
+  RETURN NULL;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION cleanup_activity_logs()
+RETURNS INTEGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  deleted_rows INTEGER;
+BEGIN
+  DELETE FROM activity_logs
+  WHERE is_relevant = false
+    AND created_at < now() - interval '2 days';
+
+  GET DIAGNOSTICS deleted_rows = ROW_COUNT;
+  RETURN deleted_rows;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS prune_activity_logs_after_write ON activity_logs;
+CREATE TRIGGER prune_activity_logs_after_write
+AFTER INSERT OR UPDATE ON activity_logs
+FOR EACH STATEMENT
+EXECUTE PROCEDURE prune_activity_logs();
+
 -- Trigger for wiki_pages.updated_at
+DROP TRIGGER IF EXISTS update_wiki_pages_updated_at ON wiki_pages;
 CREATE TRIGGER update_wiki_pages_updated_at
 BEFORE UPDATE ON wiki_pages
 FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
@@ -230,8 +320,13 @@ ALTER TABLE reports ENABLE ROW LEVEL SECURITY;
 ALTER TABLE announcements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE volunteer_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE wiki_pages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE activity_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE applications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE intake_cycles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE wiki_pages FORCE ROW LEVEL SECURITY;
+ALTER TABLE activity_logs FORCE ROW LEVEL SECURITY;
+ALTER TABLE notifications FORCE ROW LEVEL SECURITY;
 
 -- Utility Function: Get current user's role
 CREATE OR REPLACE FUNCTION get_my_role()
@@ -240,33 +335,113 @@ RETURNS TEXT LANGUAGE SQL STABLE SECURITY DEFINER AS $$
 $$;
 
 -- Allow public read access to essential reference tables
+DROP POLICY IF EXISTS "Public read access to campus_zones" ON campus_zones;
+DROP POLICY IF EXISTS "Public read access to severity_criteria" ON severity_criteria;
 CREATE POLICY "Public read access to campus_zones" ON campus_zones FOR SELECT USING (true);
 CREATE POLICY "Public read access to severity_criteria" ON severity_criteria FOR SELECT USING (true);
 
 -- Defects: Public can report, public can see (anonymous basic details)
+DROP POLICY IF EXISTS "Public can view defects" ON defects;
+DROP POLICY IF EXISTS "Public can insert defects" ON defects;
+DROP POLICY IF EXISTS "Members can update defects" ON defects;
 CREATE POLICY "Public can view defects" ON defects FOR SELECT USING (true);
 CREATE POLICY "Public can insert defects" ON defects FOR INSERT WITH CHECK (true);
 CREATE POLICY "Members can update defects" ON defects FOR UPDATE USING (auth.uid() IS NOT NULL);
 
 -- Applications: Applicants can insert and read their own. Admins/Technical Officers can do everything.
+DROP POLICY IF EXISTS "Applicants can read own application" ON applications;
+DROP POLICY IF EXISTS "Anyone can submit application" ON applications;
+DROP POLICY IF EXISTS "Admins read all applications" ON applications;
+DROP POLICY IF EXISTS "Admins update applications" ON applications;
 CREATE POLICY "Applicants can read own application" ON applications FOR SELECT USING (email IN (SELECT email FROM auth.users WHERE id = auth.uid()));
 CREATE POLICY "Anyone can submit application" ON applications FOR INSERT WITH CHECK (true);
 CREATE POLICY "Admins read all applications" ON applications FOR SELECT USING (get_my_role() IN ('technical_officer', 'president', 'admin'));
 CREATE POLICY "Admins update applications" ON applications FOR UPDATE USING (get_my_role() IN ('technical_officer', 'president', 'admin'));
 
 -- Users: Read profiles based on role. Full list visible to members.
+DROP POLICY IF EXISTS "Anyone can read active members" ON users;
+DROP POLICY IF EXISTS "Users can edit their own profile" ON users;
 CREATE POLICY "Anyone can read active members" ON users FOR SELECT USING (status = 'active');
 CREATE POLICY "Users can edit their own profile" ON users FOR UPDATE USING (id = auth.uid());
 
 -- Assessments: Field Officers can create/read for their zone; others read all
+DROP POLICY IF EXISTS "Members can view assessments" ON assessments;
+DROP POLICY IF EXISTS "Field officers can insert assessments" ON assessments;
 CREATE POLICY "Members can view assessments" ON assessments FOR SELECT USING (auth.uid() IS NOT NULL);
 CREATE POLICY "Field officers can insert assessments" ON assessments FOR INSERT WITH CHECK (auth.uid() = officer_id);
 
 -- Reports: Published reports public. All reports visible to members.
+DROP POLICY IF EXISTS "Public view published reports" ON reports;
+DROP POLICY IF EXISTS "Members view all reports" ON reports;
+DROP POLICY IF EXISTS "Members can insert reports" ON reports;
 CREATE POLICY "Public view published reports" ON reports FOR SELECT USING (status = 'published');
 CREATE POLICY "Members view all reports" ON reports FOR SELECT USING (auth.uid() IS NOT NULL);
 CREATE POLICY "Members can insert reports" ON reports FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
 
--- Announcements: Public if marked public. Members view all.
+-- Announcements: Public if marked public. Members view all. Admins/President/Advocacy can insert.
+DROP POLICY IF EXISTS "Public view public announcements" ON announcements;
+DROP POLICY IF EXISTS "Members view all announcements" ON announcements;
+DROP POLICY IF EXISTS "Authorized members can insert announcements" ON announcements;
+DROP POLICY IF EXISTS "Authorized members can update announcements" ON announcements;
 CREATE POLICY "Public view public announcements" ON announcements FOR SELECT USING (visibility = 'public');
 CREATE POLICY "Members view all announcements" ON announcements FOR SELECT USING (auth.uid() IS NOT NULL);
+CREATE POLICY "Authorized members can insert announcements" ON announcements FOR INSERT WITH CHECK (
+  get_my_role() IN ('advocacy_officer', 'president', 'admin')
+);
+CREATE POLICY "Authorized members can update announcements" ON announcements FOR UPDATE USING (
+  get_my_role() IN ('advocacy_officer', 'president', 'admin')
+);
+CREATE POLICY "Authorized members can delete announcements" ON announcements FOR DELETE USING (
+  get_my_role() IN ('president', 'admin')
+);
+
+-- Notifications: members can read their own feed; news publishers can fan out to opted-in users.
+DROP POLICY IF EXISTS "Users can view own notifications" ON notifications;
+DROP POLICY IF EXISTS "Users can insert news notifications" ON notifications;
+DROP POLICY IF EXISTS "Users can update own notifications" ON notifications;
+CREATE POLICY "Users can view own notifications" ON notifications FOR SELECT USING (auth.uid() = recipient_id);
+CREATE POLICY "Users can insert news notifications" ON notifications FOR INSERT WITH CHECK (
+  get_my_role() IN ('advocacy_officer', 'president', 'admin')
+  AND type = 'news_update'
+  AND recipient_id IN (
+    SELECT id FROM users WHERE notifications_enabled = true AND status = 'active'
+  )
+);
+CREATE POLICY "Users can update own notifications" ON notifications FOR UPDATE USING (auth.uid() = recipient_id) WITH CHECK (auth.uid() = recipient_id);
+
+-- Wiki pages: members can read; documentation/president/admin can write.
+DROP POLICY IF EXISTS "Members can view wiki pages" ON wiki_pages;
+DROP POLICY IF EXISTS "Authorized members can insert wiki pages" ON wiki_pages;
+DROP POLICY IF EXISTS "Authorized members can update wiki pages" ON wiki_pages;
+CREATE POLICY "Members can view wiki pages" ON wiki_pages FOR SELECT USING (auth.uid() IS NOT NULL);
+CREATE POLICY "Authorized members can insert wiki pages" ON wiki_pages FOR INSERT WITH CHECK (
+  get_my_role() IN ('documentation_officer', 'president', 'admin')
+);
+CREATE POLICY "Authorized members can update wiki pages" ON wiki_pages FOR UPDATE USING (
+  get_my_role() IN ('documentation_officer', 'president', 'admin')
+);
+CREATE POLICY "Authorized members can delete wiki pages" ON wiki_pages FOR DELETE USING (
+  get_my_role() IN ('president', 'admin')
+);
+
+-- Activity logs: members read; authenticated users can write their own events.
+DROP POLICY IF EXISTS "Members can view activity logs" ON activity_logs;
+DROP POLICY IF EXISTS "Members can insert own activity logs" ON activity_logs;
+CREATE POLICY "Members can view activity logs" ON activity_logs FOR SELECT USING (auth.uid() IS NOT NULL);
+CREATE POLICY "Members can insert own activity logs" ON activity_logs FOR INSERT WITH CHECK (
+  auth.uid() = actor_id
+  AND get_my_role() IN (
+    'field_officer',
+    'documentation_officer',
+    'advocacy_officer',
+    'technical_officer',
+    'president',
+    'vice_president',
+    'faculty_advisor',
+    'works_dept',
+    'admin'
+  )
+);
+CREATE POLICY "Admins can delete activity logs" ON activity_logs FOR DELETE USING (
+  get_my_role() = 'admin'
+);
