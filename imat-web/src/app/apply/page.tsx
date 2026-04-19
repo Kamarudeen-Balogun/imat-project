@@ -97,7 +97,7 @@ export default function ApplyPage() {
 
   if (submitSuccess) {
     return (
-      <div className="max-w-xl mx-auto px-6 py-32 text-center">
+      <div className="max-w-xl mx-auto px-4 sm:px-6 py-24 sm:py-32 text-center">
         <CheckCircle2 size={64} className="text-success mx-auto mb-6" />
         <h1 className="text-3xl font-bold text-textDefault mb-4">Application Submitted!</h1>
         <p className="text-text2 mb-8">
@@ -111,14 +111,14 @@ export default function ApplyPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-6 py-20 min-h-screen">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-14 sm:py-20 min-h-screen">
       <Link href="/" className="inline-flex items-center gap-2 text-text3 hover:text-primary transition-colors text-sm font-mono mb-12">
         <ArrowLeft size={16} /> Back to Home
       </Link>
 
       <div className="text-center mb-12">
         <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-textDefault mb-4 uppercase">Membership Registration</h1>
-        <p className="text-xl text-primary font-bold mb-2">Infrastructure Maintenance Awareness Team (IMAT-FUTA)</p>
+        <p className="text-lg sm:text-xl text-primary font-bold mb-2">Infrastructure Maintenance Awareness Team (IMAT-FUTA)</p>
         <p className="text-text3 italic">&quot;Building a Culture of Care for Campus Infrastructure&quot;</p>
       </div>
 

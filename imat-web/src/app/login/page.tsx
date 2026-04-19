@@ -5,13 +5,11 @@ import { ArrowLeft, Lock } from "lucide-react";
 import Link from "next/link";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import { toast } from "react-hot-toast";
-import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
   const supabase = createSupabaseClient();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -28,9 +26,13 @@ export default function LoginPage() {
         throw error;
       }
 
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) {
+        throw new Error("Login succeeded but the session was not established.");
+      }
+
       toast.success("Login successful!");
-      router.push("/dashboard");
-      router.refresh(); // Refresh to trigger middleware/auth state changes
+      window.location.replace("/dashboard");
     } catch (error) {
       console.error("Login failed:", (error as Error).message);
       toast.error((error as Error).message || "Invalid login credentials. Please try again.");
@@ -88,7 +90,7 @@ export default function LoginPage() {
             disabled={isLoading} 
             className="w-full py-4 bg-primary hover:bg-blue-500 text-white font-bold rounded-lg transition-colors flex items-center justify-center gap-2"
           >
-            {isLoading ? <span className="animate-pulse">Authenticating...</span> : "Access Backend Dashboard"}
+            {isLoading ? <span className="animate-pulse">Authenticating...</span> : "Member Login"}
           </button>
         </form>
 

@@ -66,14 +66,14 @@ export default function ReportPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-6 py-20 min-h-screen">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-14 sm:py-20 min-h-screen">
       <Link href="/" className="inline-flex items-center gap-2 text-text3 hover:text-primary transition-colors text-sm font-mono mb-12">
         <ArrowLeft size={16} /> Back to Home
       </Link>
 
       <div className="text-center mb-12">
         <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-textDefault mb-4">Report an Issue</h1>
-        <p className="text-xl text-text2 max-w-2xl mx-auto">
+        <p className="text-base sm:text-lg md:text-xl text-text2 max-w-2xl mx-auto">
           Help maintain a safe and functioning campus. Found a defect? Log it here anonymously, and our Field Officers will assess it.
         </p>
       </div>
@@ -95,7 +95,7 @@ export default function ReportPage() {
              <h2 className="text-xl font-bold text-textDefault">What did you find?</h2>
           </div>
           
-          <div className="space-y-6 pl-11">
+          <div className="space-y-6 pl-0 sm:pl-11">
             <div>
               <label className="block font-bold text-textDefault mb-2">Short Title <span className="text-danger">*</span></label>
               <input name="title" type="text" maxLength={80} placeholder="e.g. Massive pothole near ETF building" required className="w-full p-3 bg-bg border border-borderDark rounded-lg focus:border-primary focus:outline-none text-textDefault" />
@@ -153,7 +153,7 @@ export default function ReportPage() {
              <h2 className="text-xl font-bold text-textDefault">Where is it located?</h2>
           </div>
 
-          <div className="space-y-6 pl-11">
+          <div className="space-y-6 pl-0 sm:pl-11">
             <div className="grid md:grid-cols-2 gap-6">
               <div>
                 <label className="block font-bold text-textDefault mb-2">Campus Zone</label>
@@ -186,7 +186,7 @@ export default function ReportPage() {
              <h2 className="text-xl font-bold text-textDefault">Photographic Evidence</h2>
           </div>
           
-          <div className="pl-11">
+          <div className="pl-0 sm:pl-11">
              <div className="border border-borderDark border-dashed rounded-xl p-8 text-center bg-bg flex flex-col items-center justify-center">
                <UploadCloud className="text-text3 mb-4" size={32} />
                <h3 className="font-bold text-textDefault mb-2">Upload Photo (Optional)</h3>

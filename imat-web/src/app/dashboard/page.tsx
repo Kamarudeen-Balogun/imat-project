@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { createSupabaseClient } from "@/lib/supabase/client";
-import { AlertTriangle, Clock, MapPin, CheckCircle, FileText, Megaphone } from "lucide-react";
+import { AlertTriangle, Clock, MapPin, CheckCircle, FileText, Megaphone, BookOpen, Activity } from "lucide-react";
 import Link from "next/link";
+import { canEditContent } from "@/lib/access";
 
 export default function DashboardPage() {
   const [role, setRole] = useState("admin");
@@ -97,6 +98,38 @@ export default function DashboardPage() {
                  </p>
               </Link>
             )}
+
+              <Link href="/dashboard/wiki" className="group block bg-bg border border-borderDark hover:border-green-400 rounded-xl p-6 transition-colors shadow-lg">
+                <div className="flex items-center gap-3 mb-3 text-green-400">
+                  <BookOpen size={20} />
+                  <strong className="text-lg">Knowledge Base</strong>
+                </div>
+                <p className="text-sm text-text2 leading-relaxed">
+                  Read or maintain project runbooks, decisions, and operational notes.
+                </p>
+              </Link>
+
+
+            {canEditContent(role) && (
+              <Link href="/dashboard/news" className="group block bg-bg border border-borderDark hover:border-primary rounded-xl p-6 transition-colors shadow-lg">
+                 <div className="flex items-center gap-3 mb-3 text-primary">
+                    <Megaphone size={20} />
+                    <strong className="text-lg">Manage Newsroom</strong>
+                 </div>
+                 <p className="text-sm text-text2 leading-relaxed">
+                   Update, publish, or remove broadcasts and keep notification feeds in sync.
+                 </p>
+              </Link>
+            )}
+              <Link href="/dashboard/activity" className="group block bg-bg border border-borderDark hover:border-amber-400 rounded-xl p-6 transition-colors shadow-lg">
+                <div className="flex items-center gap-3 mb-3 text-amber-400">
+                  <Activity size={20} />
+                  <strong className="text-lg">Activity Timeline</strong>
+                </div>
+                <p className="text-sm text-text2 leading-relaxed">
+                  Inspect the automated history of system actions across the platform.
+                </p>
+              </Link>
 
          </div>
       </div>

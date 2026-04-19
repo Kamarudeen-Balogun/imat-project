@@ -19,24 +19,24 @@ export default function Home() {
   return (
     <div className="flex flex-col w-full">
       {/* HERO SECTION */}
-      <section className="relative overflow-hidden w-full min-h-[80vh] flex items-center justify-center">
+      <section className="relative overflow-hidden w-full min-h-[78vh] md:min-h-[80vh] flex items-center justify-center">
         {/* Subtle geometric animated background */}
         <div className="absolute inset-0 bg-bg z-0" />
         <div className="absolute w-[600px] h-[600px] bg-primary/20 blur-[100px] rounded-full top-[-100px] right-[-100px] opacity-30 animate-pulse" />
         <div className="absolute w-[400px] h-[400px] bg-accent/20 blur-[80px] rounded-full bottom-0 left-[-50px] opacity-20" />
         
-        <div className="relative z-10 max-w-4xl mx-auto px-6 text-center pt-20">
+        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 text-center pt-16 md:pt-20">
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
             <span className="font-mono text-accent text-sm tracking-widest uppercase mb-6 inline-block">Infrastructure Maintenance Awareness Team</span>
-            <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-textDefault mb-6">
+            <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold tracking-tight text-textDefault mb-6 leading-tight">
               Building a <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-success">Culture of Care</span><br />
               for FUTA Infrastructure
             </h1>
-            <p className="text-xl text-text2 max-w-2xl mx-auto mb-10 leading-relaxed font-light">
+            <p className="text-base sm:text-lg md:text-xl text-text2 max-w-2xl mx-auto mb-10 leading-relaxed font-light">
               Bridging the gap between students and university management through systematic monitoring, 
               advocacy, and volunteer engineering support.
             </p>
@@ -54,8 +54,8 @@ export default function Home() {
       </section>
 
       {/* IMPACT COUNTER */}
-      <section className="py-20 border-y border-borderDark bg-bg2 relative z-10">
-        <div className="max-w-6xl mx-auto px-6">
+      <section className="py-16 md:py-20 border-y border-borderDark bg-bg2 relative z-10">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="text-center mb-12">
             <h2 className="text-sm font-mono text-text3 tracking-widest uppercase">Our Impact in Numbers</h2>
           </div>
@@ -80,8 +80,8 @@ export default function Home() {
       </section>
 
       {/* EVIDENCE GALLERY (Preview) */}
-      <section className="py-32 relative z-10 bg-bg">
-        <div className="max-w-6xl mx-auto px-6">
+      <section className="py-20 md:py-32 relative z-10 bg-bg">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="flex flex-col md:flex-row items-end justify-between mb-12">
             <div>
               <h2 className="text-3xl md:text-4xl font-bold text-textDefault mb-4">Evidence Gallery</h2>
@@ -110,17 +110,23 @@ export default function Home() {
           {/* Evidence Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
-              { src: "/images/Blocked drain grate.jpg", title: "Blocked drain grate", category: "Drainage", severity: 4 },
-              { src: "/images/Crack concrete walkway.jpg", title: "Crack concrete walkway", category: "Walkways", severity: 2 },
-              { src: "/images/Cracked road surface.jpg", title: "Cracked road surface", category: "Roads", severity: 3 },
-              { src: "/images/Damaged interlocking drainage.jpg", title: "Damaged interlocking drainage", category: "Drainage", severity: 3 },
-              { src: "/images/Eroded corridor walkway.jpg", title: "Eroded corridor walkway", category: "Walkways", severity: 4 },
-              { src: "/images/Overgrown culvert.jpg", title: "Overgrown culvert", category: "Drainage", severity: 3 }
+              { src: "/images/Blocked drain grate.webp", title: "Blocked drain grate", category: "Drainage", severity: 4 },
+              { src: "/images/Crack concrete walkway.webp", title: "Crack concrete walkway", category: "Walkways", severity: 2 },
+              { src: "/images/Cracked road surface.webp", title: "Cracked road surface", category: "Roads", severity: 3 },
+              { src: "/images/Damaged interlocking drainage.webp", title: "Damaged interlocking drainage", category: "Drainage", severity: 3 },
+              { src: "/images/Eroded corridor walkway.webp", title: "Eroded corridor walkway", category: "Walkways", severity: 4 },
+              { src: "/images/Overgrown culvert.webp", title: "Overgrown culvert", category: "Drainage", severity: 3 }
             ].filter(defect => filter === "All" || defect.category === filter)
              .map((defect, i) => (
               <div key={i} className="group cursor-pointer rounded-xl border border-borderDark overflow-hidden bg-bg2 hover:border-primary/50 transition-colors flex flex-col">
                 <div className="h-48 bg-bg3 relative overflow-hidden">
-                  <Image src={defect.src} alt={defect.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <Image
+                    src={defect.src}
+                    alt={defect.title}
+                    fill
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
                 </div>
                 <div className="p-5 flex-grow flex flex-col justify-between">
                   <div>
@@ -147,8 +153,8 @@ export default function Home() {
       </section>
 
       {/* ORG TEASER */}
-      <section className="py-32 bg-bg2 border-t border-borderDark relative z-10">
-        <div className="max-w-6xl mx-auto px-6 text-center">
+      <section className="py-20 md:py-32 bg-bg2 border-t border-borderDark relative z-10">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-textDefault mb-6">Who runs IMAT?</h2>
           <p className="text-lg text-text2 max-w-2xl mx-auto mb-16">
             A dedicated team of Civil Engineering students (200L–500L) overseen by a Faculty Advisor. 

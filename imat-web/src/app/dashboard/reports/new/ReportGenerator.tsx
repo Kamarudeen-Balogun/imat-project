@@ -8,6 +8,17 @@ import { PDFViewer, PDFDownloadLink } from "@react-pdf/renderer";
 import { ReportDocument } from "@/components/pdf/ReportDocument";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import { logActivityEvent } from "@/lib/activity/logEvent";
+
+function isMobileLikeDevice() {
+  if (typeof navigator === "undefined") return false;
+
+  const mobileUserAgent = /Android|iPhone|iPad|iPod|IEMobile|Mobile/i.test(navigator.userAgent);
+  const hasTouch = navigator.maxTouchPoints > 1;
+  const isTouchMac = navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1;
+
+  return mobileUserAgent || hasTouch || isTouchMac;
+}
 
 type DbDefect = {
   id: string;
@@ -44,6 +55,7 @@ export default function ReportGenerator() {
   const router = useRouter();
   const [defects, setDefects] = useState<Defect[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
   
   const [title, setTitle] = useState("Q1 2026 INFRASTRUCTURE ASSESSMENT REPORT");
   const [periodStart, setPeriodStart] = useState("");
@@ -54,6 +66,13 @@ export default function ReportGenerator() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
+    const updateDeviceState = () => {
+      setIsMobile(isMobileLikeDevice());
+    };
+
+    updateDeviceState();
+    window.addEventListener("resize", updateDeviceState);
+
     const initData = async () => {
       const supabase = createSupabaseClient();
       
@@ -87,6 +106,8 @@ export default function ReportGenerator() {
     };
 
     initData();
+
+    return () => window.removeEventListener("resize", updateDeviceState);
   }, []);
 
   const saveReportToDatabase = async () => {
@@ -97,19 +118,33 @@ export default function ReportGenerator() {
     setSaving(true);
     const supabase = createSupabaseClient();
     
-    const { error } = await supabase.from("reports").insert({
+     const { data: insertedReport, error } = await supabase.from("reports").insert({
        title,
        period_start: periodStart,
        period_end: periodEnd,
        authored_by: userId,
        status: 'published',
        defects_included: defects.map(d => d.id)
-    });
+     }).select("id").single();
 
     if (error) {
       toast.error("Failed to save report to database.");
       console.error(error);
     } else {
+      await logActivityEvent(supabase, {
+        eventType: "report_published",
+        entityType: "report",
+        entityId: insertedReport?.id ?? null,
+        title: `Published report: ${title}`,
+        actorId: userId,
+        details: {
+          periodStart,
+          periodEnd,
+          includedDefects: defects.length,
+        },
+        isRelevant: true,
+      });
+
       toast.success("Report Master File saved successfully.");
       router.push("/dashboard/reports");
     }
@@ -200,24 +235,40 @@ export default function ReportGenerator() {
          </div>
 
          {/* PDF Live Preview Window */}
-         <div className="lg:col-span-3 bg-bg2 border border-borderDark rounded-xl overflow-hidden shadow-2xl h-[500px] md:h-[800px] flex flex-col">
+         <div className="lg:col-span-3 bg-bg2 border border-borderDark rounded-xl overflow-hidden shadow-2xl min-h-[420px] md:h-[800px] flex flex-col">
             <div className="p-3 bg-bg border-b border-borderDark flex items-center justify-between">
               <div className="text-xs font-mono text-text3 flex items-center gap-2">
                  <div className="w-2 h-2 rounded-full bg-success animate-pulse"></div> Live Preview Engine
               </div>
             </div>
-            
-            <div className="flex-grow bg-[#525659]">
-              <PDFViewer width="100%" height="100%" className="border-none">
-                <ReportDocument 
-                   title={title} 
-                   periodStart={periodStart} 
-                   periodEnd={periodEnd} 
-                   authorName={authorName} 
-                   defects={defects} 
-                />
-              </PDFViewer>
-            </div>
+
+            {isMobile ? (
+              <div className="flex-grow bg-bg flex items-center justify-center p-6 text-center">
+                <div className="max-w-md space-y-4">
+                  <div className="text-sm font-bold text-textDefault">Live preview is not reliable on mobile browsers.</div>
+                  <p className="text-sm text-text2">Use the download button to open the generated PDF, or switch to desktop for inline preview.</p>
+                  <PDFDownloadLink
+                    document={<ReportDocument title={title} periodStart={periodStart} periodEnd={periodEnd} authorName={authorName} defects={defects} />}
+                    fileName={`IMAT_Report_${periodEnd}.pdf`}
+                    className="inline-flex w-full justify-center px-4 py-3 bg-primary hover:bg-blue-500 text-white font-bold text-sm rounded-lg transition-colors"
+                  >
+                    {({ loading }) => (loading ? <span>Preparing PDF...</span> : <span>Download PDF File</span>)}
+                  </PDFDownloadLink>
+                </div>
+              </div>
+            ) : (
+              <div className="flex-grow bg-[#525659]">
+                <PDFViewer width="100%" height="100%" className="border-none">
+                  <ReportDocument 
+                     title={title} 
+                     periodStart={periodStart} 
+                     periodEnd={periodEnd} 
+                     authorName={authorName} 
+                     defects={defects} 
+                  />
+                </PDFViewer>
+              </div>
+            )}
          </div>
 
       </div>

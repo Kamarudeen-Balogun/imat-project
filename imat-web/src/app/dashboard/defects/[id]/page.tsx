@@ -7,6 +7,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "react-hot-toast";
+import { logActivityEvent } from "@/lib/activity/logEvent";
 
 type DetailedDefect = {
   id: string;
@@ -64,6 +65,7 @@ export default function DefectDetailsPage({ params }: { params: { id: string } }
     if (!defect) return;
     setUpdating(true);
     const supabase = createSupabaseClient();
+    const previousStatus = defect.status;
     
     // Check if transition is valid or required
     if (defect.status === newStatus) {
@@ -81,6 +83,22 @@ export default function DefectDetailsPage({ params }: { params: { id: string } }
        console.error("Error updating status:", error);
        toast.error("Failed to update status. Check logs.");
     } else {
+       const { data: { session } } = await supabase.auth.getSession();
+       if (session?.user?.id) {
+         await logActivityEvent(supabase, {
+           eventType: "defect_status_updated",
+           entityType: "defect",
+           entityId: defect.id,
+           title: `Updated defect ${defect.id} status to ${newStatus}`,
+           actorId: session.user.id,
+           details: {
+             oldStatus: previousStatus,
+             newStatus,
+           },
+           isRelevant: true,
+         });
+       }
+
        setDefect({ ...defect, status: newStatus });
        toast.success(`Defect updated to ${newStatus.replace(/_/g, ' ')}!`);
     }

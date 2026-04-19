@@ -66,7 +66,7 @@ export default function IssuesTrackerPage() {
   );
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-16 min-h-screen flex flex-col">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-16 min-h-screen flex flex-col">
       <Link href="/" className="inline-flex items-center gap-2 text-text3 hover:text-primary transition-colors text-sm font-mono mb-8">
         <ArrowLeft size={16} /> Back to Home
       </Link>

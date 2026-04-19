@@ -51,11 +51,35 @@
     background-color: var(--bg);
     color: var(--textDefault);
     min-height: 100vh;
+    overflow-x: hidden;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  * {
+    min-width: 0;
+  }
+
+  img:not([data-nimg]) {
+    max-width: 100%;
+    width: auto;
+    height: auto;
+  }
+
+  video,
+  canvas,
+  svg {
+    max-width: 100%;
+    height: auto;
   }
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+
+  .page-gutter {
+    @apply px-4 sm:px-6;
   }
 }

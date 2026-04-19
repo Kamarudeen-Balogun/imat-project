@@ -1,0 +1,85 @@
+import Link from "next/link";
+import { ArrowLeft, BookOpen, Clock3 } from "lucide-react";
+import { createSupabaseClient } from "@/lib/supabase/server";
+import { formatDistanceToNow } from "date-fns";
+
+export const dynamic = "force-dynamic";
+
+type WikiPage = {
+  id: string;
+  title: string;
+  slug: string;
+  category: string;
+  updated_at: string;
+  author: { full_name: string } | null;
+};
+
+export default async function WikiIndexPage() {
+  const supabase = await createSupabaseClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  let canWrite = false;
+  if (user?.id) {
+    const { data: profile } = await supabase
+      .from("users")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+
+    canWrite = ["documentation_officer", "president", "admin"].includes(profile?.role ?? "");
+  }
+
+  const { data, error } = await supabase
+    .from("wiki_pages")
+    .select("id, title, slug, category, updated_at, author:users!wiki_pages_author_id_fkey(full_name)")
+    .order("updated_at", { ascending: false });
+
+  const pages = (data ?? []) as unknown as WikiPage[];
+
+  return (
+    <div className="max-w-6xl mx-auto animate-in fade-in duration-500">
+      <Link href="/dashboard" className="inline-flex items-center gap-2 text-text3 hover:text-primary transition-colors text-sm font-mono mb-8">
+        <ArrowLeft size={16} /> Back to Dashboard
+      </Link>
+
+      <div className="mb-8 flex flex-col gap-3">
+        <div className="inline-flex items-center gap-2 text-primary font-mono text-sm uppercase tracking-wider bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/20 w-fit">
+          <BookOpen size={16} /> Knowledge Base
+        </div>
+        <h1 className="text-2xl md:text-3xl font-bold text-textDefault">Operational wiki and internal guides</h1>
+        <p className="text-text2 max-w-2xl">Reference notes, procedures, and internal knowledge pages for IMAT members.</p>
+        {canWrite && (
+          <div>
+            <Link href="/dashboard/wiki/new" className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary hover:bg-blue-500 text-white font-semibold text-sm transition-colors">
+              Create Page
+            </Link>
+          </div>
+        )}
+      </div>
+
+      {error || pages.length === 0 ? (
+        <div className="border border-borderDark border-dashed rounded-2xl bg-bg2 p-12 text-center">
+          <BookOpen size={40} className="mx-auto text-text3 mb-4" />
+          <h3 className="text-lg font-bold text-textDefault mb-2">No wiki pages yet</h3>
+          <p className="text-text3 text-sm">Add entries to the wiki_pages table to populate the knowledge base.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          {pages.map((page) => (
+            <Link key={page.id} href={`/dashboard/wiki/${page.slug}`} className="group rounded-2xl border border-borderDark bg-bg2 p-6 hover:border-primary transition-colors shadow-lg shadow-black/5">
+              <div className="text-xs font-mono uppercase tracking-wider text-text3 mb-3">{page.category}</div>
+              <h2 className="text-xl font-bold text-textDefault group-hover:text-primary transition-colors mb-3 line-clamp-2">{page.title}</h2>
+              <div className="flex items-center justify-between gap-4 text-xs text-text3 font-mono mt-6 pt-4 border-t border-borderDark">
+                <span className="flex items-center gap-2"><Clock3 size={14} /> {formatDistanceToNow(new Date(page.updated_at), { addSuffix: true })}</span>
+                <span>{page.author?.full_name ?? "IMAT"}</span>
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

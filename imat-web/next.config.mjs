@@ -1,10 +1,18 @@
-import withPWA from 'next-pwa';
-
 /** @type {import('next').NextConfig} */
+const allowedDevOrigins = (process.env.NEXT_ALLOWED_DEV_ORIGINS || "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
 const nextConfig = {
+  // Allow phone-on-LAN origin to access dev HMR resources
+  // Next expects hostnames here, not full http:// URLs.
+  allowedDevOrigins,
+
   // ── Image Optimization ───────────────────────────────────────────────────────
   images: {
     formats: ['image/avif', 'image/webp'],   // Serve AVIF first, WebP fallback
+    qualities: [75, 80],
     minimumCacheTTL: 60 * 60 * 24 * 30,     // Cache images 30 days
     remotePatterns: [
       { protocol: 'https', hostname: 'res.cloudinary.com' },
@@ -52,20 +60,14 @@ const nextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
               "img-src 'self' data: blob: https://res.cloudinary.com",
-              "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
+              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.cloudinary.com https://res.cloudinary.com",
               "worker-src 'self' blob:",
-              "frame-src 'none'",
+              // react-pdf PDFViewer renders preview via a blob iframe.
+              "frame-src 'self' blob:",
               "object-src 'none'",
               "base-uri 'self'",
             ].join('; '),
           },
-        ],
-      },
-      // Long-cache for static assets
-      {
-        source: '/_next/static/(.*)',
-        headers: [
-          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
         ],
       },
       // Cache images
@@ -79,40 +81,4 @@ const nextConfig = {
   },
 };
 
-export default withPWA({
-  dest: 'public',
-  register: true,
-  skipWaiting: true,
-  disable: process.env.NODE_ENV === 'development',
-  buildExcludes: [/middleware-manifest\.json$/],
-  runtimeCaching: [
-    {
-      urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,
-      handler: 'NetworkFirst',
-      options: {
-        cacheName: 'supabase-api',
-        networkTimeoutSeconds: 5,
-        expiration: { maxEntries: 50, maxAgeSeconds: 60 * 60 * 24 },
-        cacheableResponse: { statuses: [0, 200] },
-      },
-    },
-    {
-      urlPattern: /^https:\/\/res\.cloudinary\.com\/.*/i,
-      handler: 'CacheFirst',
-      options: {
-        cacheName: 'cloudinary-images',
-        expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 * 30 },
-        cacheableResponse: { statuses: [0, 200] },
-      },
-    },
-    {
-      urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com\/.*/i,
-      handler: 'CacheFirst',
-      options: {
-        cacheName: 'google-fonts',
-        expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 365 },
-        cacheableResponse: { statuses: [0, 200] },
-      },
-    },
-  ],
-})(nextConfig);
+export default nextConfig;

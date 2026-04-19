@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createSupabaseClient } from "@/lib/supabase/client";
+import { logActivityEvent } from "@/lib/activity/logEvent";
 import { toast } from "react-hot-toast";
 import { UploadCloud, MapPin, X, ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -196,6 +197,21 @@ export default function NewAssessmentPage() {
 
       if (assessmentError) throw assessmentError;
 
+      await logActivityEvent(supabase, {
+        eventType: "defect_created",
+        entityType: "defect",
+        entityId: defect.id,
+        title: `Created defect ${defect.id}: ${title}`,
+        actorId: userId,
+        details: {
+          category,
+          defectType,
+          severity: parseInt(severity),
+          campusZoneId,
+        },
+        isRelevant: true,
+      });
+
       toast.success("Field assessment logged successfully!");
       router.push("/dashboard");
     } catch (err) {
@@ -226,7 +242,7 @@ export default function NewAssessmentPage() {
         {/* Core Details */}
         <section className="space-y-6 border-b border-borderDark pb-8">
           <div>
-            <label className="block text-sm font-bold text-textDefault mb-2 uppercase tracking-wide font-mono text-xs">Defect General Title</label>
+            <label className="block font-bold text-textDefault mb-2 uppercase tracking-wide font-mono text-xs">Defect General Title</label>
             <input 
               required
               type="text" 
@@ -240,7 +256,7 @@ export default function NewAssessmentPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-bold text-textDefault mb-2 uppercase tracking-wide font-mono text-xs">Campus Zone</label>
+              <label className="block font-bold text-textDefault mb-2 uppercase tracking-wide font-mono text-xs">Campus Zone</label>
               <select 
                 required
                 className="w-full p-4 bg-bg border border-borderDark rounded-lg focus:border-primary focus:outline-none text-textDefault transition-colors appearance-none"
@@ -252,7 +268,7 @@ export default function NewAssessmentPage() {
             </div>
             
             <div>
-               <label className="block text-sm font-bold text-textDefault mb-2 uppercase tracking-wide font-mono text-xs">Precise Location (GPS)</label>
+               <label className="block font-bold text-textDefault mb-2 uppercase tracking-wide font-mono text-xs">Precise Location (GPS)</label>
                <button 
                 type="button"
                 onClick={getLocation}
@@ -269,7 +285,7 @@ export default function NewAssessmentPage() {
         <section className="space-y-6 border-b border-borderDark pb-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
-              <label className="block text-sm font-bold text-textDefault mb-2 uppercase tracking-wide font-mono text-xs">Category</label>
+              <label className="block font-bold text-textDefault mb-2 uppercase tracking-wide font-mono text-xs">Category</label>
               <select 
                 className="w-full p-4 bg-bg border border-borderDark rounded-lg focus:border-primary focus:outline-none text-textDefault transition-colors appearance-none"
                 value={category}
@@ -280,7 +296,7 @@ export default function NewAssessmentPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-textDefault mb-2 uppercase tracking-wide font-mono text-xs">Specific Type</label>
+              <label className="block font-bold text-textDefault mb-2 uppercase tracking-wide font-mono text-xs">Specific Type</label>
               <select 
                 className="w-full p-4 bg-bg border border-borderDark rounded-lg focus:border-primary focus:outline-none text-textDefault transition-colors appearance-none"
                 value={defectType}
@@ -291,7 +307,7 @@ export default function NewAssessmentPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-textDefault mb-2 uppercase tracking-wide font-mono text-xs">Affected Area (m²)</label>
+              <label className="block font-bold text-textDefault mb-2 uppercase tracking-wide font-mono text-xs">Affected Area (m²)</label>
               <input 
                 type="number" 
                 step="0.1"
@@ -305,7 +321,7 @@ export default function NewAssessmentPage() {
           </div>
 
           <div>
-             <label className="block border-l-4 border-warning pl-3 text-sm font-bold text-textDefault mb-2 uppercase tracking-wide font-mono text-xs">
+             <label className="block border-l-4 border-warning pl-3 font-bold text-textDefault mb-2 uppercase tracking-wide font-mono text-xs">
                 Structural Severity Level (1-5)
              </label>
              <input 
@@ -325,7 +341,7 @@ export default function NewAssessmentPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-bold text-textDefault mb-2 uppercase tracking-wide font-mono text-xs">Engineering Field Notes & Recommendations</label>
+            <label className="block font-bold text-textDefault mb-2 uppercase tracking-wide font-mono text-xs">Engineering Field Notes & Recommendations</label>
             <textarea 
               required
               rows={4}
@@ -340,7 +356,7 @@ export default function NewAssessmentPage() {
         {/* Evidence Upload */}
         <section className="space-y-6">
            <div>
-              <label className="block text-sm font-bold text-textDefault mb-2 uppercase tracking-wide font-mono text-xs">Photographic Evidence (Max 4)</label>
+              <label className="block font-bold text-textDefault mb-2 uppercase tracking-wide font-mono text-xs">Photographic Evidence (Max 4)</label>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                  {photoPreviews.map((preview, idx) => (
                     <div key={idx} className="relative aspect-square rounded-lg border border-borderDark overflow-hidden bg-bg">

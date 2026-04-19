@@ -56,21 +56,27 @@ export default function EvidencePage() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {[
-          { src: "/images/Blocked drain grate.jpg", title: "Blocked drain grate", category: "Drainage", severity: 4 },
-          { src: "/images/Blocked drainage.jpg", title: "Blocked drainage", category: "Drainage", severity: 3 },
-          { src: "/images/Crack concrete walkway.jpg", title: "Crack concrete walkway", category: "Walkways", severity: 2 },
-          { src: "/images/Cracked road surface.jpg", title: "Cracked road surface", category: "Roads", severity: 3 },
-          { src: "/images/Damaged interlocking drainage.jpg", title: "Damaged interlocking drainage", category: "Drainage", severity: 4 },
-          { src: "/images/Eroded corridor walkway.jpg", title: "Eroded corridor walkway", category: "Walkways", severity: 4 },
-          { src: "/images/Eroded paved area.jpg", title: "Eroded paved area", category: "Walkways", severity: 3 },
-          { src: "/images/Overgrown culvert.jpg", title: "Overgrown culvert", category: "Drainage", severity: 3 }
+          { src: "/images/Blocked drain grate.webp", title: "Blocked drain grate", category: "Drainage", severity: 4 },
+          { src: "/images/Blocked drainage.webp", title: "Blocked drainage", category: "Drainage", severity: 3 },
+          { src: "/images/Crack concrete walkway.webp", title: "Crack concrete walkway", category: "Walkways", severity: 2 },
+          { src: "/images/Cracked road surface.webp", title: "Cracked road surface", category: "Roads", severity: 3 },
+          { src: "/images/Damaged interlocking drainage.webp", title: "Damaged interlocking drainage", category: "Drainage", severity: 4 },
+          { src: "/images/Eroded corridor walkway.webp", title: "Eroded corridor walkway", category: "Walkways", severity: 4 },
+          { src: "/images/Eroded paved area.webp", title: "Eroded paved area", category: "Walkways", severity: 3 },
+          { src: "/images/Overgrown culvert.webp", title: "Overgrown culvert", category: "Drainage", severity: 3 }
         ]
         .filter(d => categoryFilter === "All" || d.category === categoryFilter)
         .filter(d => severityFilter === "All" || d.severity.toString() === severityFilter.charAt(0))
         .map((defect, i) => (
           <div key={i} className="group cursor-pointer rounded-xl border border-borderDark overflow-hidden bg-bg2 hover:border-primary/50 transition-colors flex flex-col">
             <div className="h-40 bg-bg3 relative overflow-hidden">
-              <Image src={defect.src} alt={defect.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+              <Image
+                src={defect.src}
+                alt={defect.title}
+                fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 25vw"
+                className="object-cover group-hover:scale-105 transition-transform duration-500"
+              />
             </div>
             <div className="p-4 flex flex-col flex-grow">
               <div className="flex items-start justify-between gap-4 mb-2">
