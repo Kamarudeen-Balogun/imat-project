@@ -4,6 +4,8 @@ import { ArrowLeft, ArrowRight, Calendar, Edit3, Megaphone, Plus } from "lucide-
 import { format } from "date-fns";
 import { createSupabaseClient } from "@/lib/supabase/server";
 import { canEditContent } from "@/lib/access";
+import Image from "next/image";
+import DeleteAnnouncementButton from "./DeleteAnnouncementButton";
 
 export const dynamic = "force-dynamic";
 
@@ -14,9 +16,75 @@ type AnnouncementRow = {
   visibility: "public" | "members_only";
   published_at: string;
   updated_at: string;
+  image_url: string | null;
   author: { full_name: string | null } | null;
-  updater: { full_name: string | null } | null;
 };
+
+async function toggleAnnouncementVisibility(formData: FormData) {
+  "use server";
+
+  const announcementId = String(formData.get("announcement_id") ?? "").trim();
+  const visibility = String(formData.get("visibility") ?? "").trim();
+
+  if (!announcementId || !["public", "members_only"].includes(visibility)) {
+    return;
+  }
+
+  const supabase = await createSupabaseClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const { data: profile } = await supabase
+    .from("users")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  if (!canEditContent(profile?.role)) {
+    redirect("/dashboard");
+  }
+
+  await supabase
+    .from("announcements")
+    .update({ visibility, updated_at: new Date().toISOString() })
+    .eq("id", announcementId);
+
+  redirect("/dashboard/news");
+}
+
+async function deleteAnnouncement(formData: FormData) {
+  "use server";
+
+  const announcementId = String(formData.get("announcement_id") ?? "").trim();
+  if (!announcementId) return;
+
+  const supabase = await createSupabaseClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const { data: profile } = await supabase
+    .from("users")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  if (!canEditContent(profile?.role)) {
+    redirect("/dashboard");
+  }
+
+  await supabase.from("announcements").delete().eq("id", announcementId);
+  redirect("/dashboard/news");
+}
 
 export default async function DashboardNewsPage() {
   const supabase = await createSupabaseClient();
@@ -41,7 +109,7 @@ export default async function DashboardNewsPage() {
 
   const { data } = await supabase
     .from("announcements")
-    .select("id, slug, title, visibility, published_at, updated_at, author:users!announcements_author_id_fkey(full_name), updater:users!announcements_updated_by_fkey(full_name)")
+    .select("id, slug, title, visibility, published_at, updated_at, image_url, author:users!announcements_author_id_fkey(full_name)")
     .order("published_at", { ascending: false });
 
   const announcements = (data ?? []) as unknown as AnnouncementRow[];
@@ -80,9 +148,20 @@ export default async function DashboardNewsPage() {
                   </div>
                   <h2 className="text-xl font-bold text-textDefault">{item.title}</h2>
                 </div>
-                <span className="rounded-full bg-bg px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-text3 border border-borderDark">
-                  {item.slug ?? item.id.slice(0, 8)}
-                </span>
+                <div className="w-16 h-16 rounded-xl border border-borderDark overflow-hidden bg-bg shrink-0">
+                  {item.image_url ? (
+                    <Image
+                      src={item.image_url}
+                      alt={item.title}
+                      width={64}
+                      height={64}
+                      unoptimized
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-text3 text-[10px] font-mono">NO IMG</div>
+                  )}
+                </div>
               </div>
 
               <div className="flex flex-wrap items-center gap-4 text-xs font-mono text-text3 border-t border-borderDark pt-4 mt-4">
@@ -94,8 +173,37 @@ export default async function DashboardNewsPage() {
                 By {item.author?.full_name ?? "IMAT Official"}
               </div>
 
-              <div className="mt-3 text-xs text-text3">
-                Last edited by {item.updater?.full_name ?? item.author?.full_name ?? "IMAT Official"}
+              <div className="mt-4 flex flex-wrap gap-2">
+                <form action={toggleAnnouncementVisibility}>
+                  <input type="hidden" name="announcement_id" value={item.id} />
+                  <input type="hidden" name="visibility" value="public" />
+                  <button
+                    type="submit"
+                    className={`inline-flex items-center rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                      item.visibility === "public"
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-borderDark text-text3 hover:border-primary/40 hover:text-primary"
+                    }`}
+                    disabled={item.visibility === "public"}
+                  >
+                    Set Public
+                  </button>
+                </form>
+                <form action={toggleAnnouncementVisibility}>
+                  <input type="hidden" name="announcement_id" value={item.id} />
+                  <input type="hidden" name="visibility" value="members_only" />
+                  <button
+                    type="submit"
+                    className={`inline-flex items-center rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                      item.visibility === "members_only"
+                        ? "border-warning bg-warning/10 text-warning"
+                        : "border-borderDark text-text3 hover:border-warning/40 hover:text-warning"
+                    }`}
+                    disabled={item.visibility === "members_only"}
+                  >
+                    Set Internal
+                  </button>
+                </form>
               </div>
 
               <div className="mt-6 flex flex-wrap gap-3">
@@ -105,6 +213,11 @@ export default async function DashboardNewsPage() {
                 <Link href={`/newsroom/${item.slug ?? item.id}`} className="inline-flex items-center gap-2 rounded-lg border border-borderDark px-4 py-2 text-sm font-semibold text-text3 hover:border-text3 hover:text-textDefault transition-colors">
                   View public page <ArrowRight size={16} />
                 </Link>
+                <DeleteAnnouncementButton
+                  announcementId={item.id}
+                  title={item.title}
+                  deleteAction={deleteAnnouncement}
+                />
               </div>
             </article>
           ))}

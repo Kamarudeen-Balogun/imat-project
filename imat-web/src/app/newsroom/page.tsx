@@ -19,6 +19,7 @@ type Announcement = {
   slug: string | null;
   title: string;
   body: string;
+  visibility: "public" | "members_only";
   published_at: string;
   image_url: string | null;
   author: { full_name: string } | null;
@@ -37,11 +38,14 @@ export default async function NewsroomPage() {
     role = profile?.role ?? null;
   }
   
-  const { data, error } = await supabase
+  const announcementQuery = supabase
     .from("announcements")
-    .select("id, slug, title, body, published_at, image_url, author:users!announcements_author_id_fkey(full_name)")
-    .eq("visibility", "public")
+    .select("id, slug, title, body, visibility, published_at, image_url, author:users!announcements_author_id_fkey(full_name)")
     .order("published_at", { ascending: false });
+
+  const { data, error } = user
+    ? await announcementQuery.in("visibility", ["public", "members_only"])
+    : await announcementQuery.eq("visibility", "public");
 
   const newsItems = (data ?? []) as unknown as Announcement[];
 
@@ -102,6 +106,7 @@ export default async function NewsroomPage() {
                         src={item.image_url}
                         alt={item.title}
                         fill
+                        unoptimized
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                         className="object-cover transition-transform duration-500 group-hover:scale-105"
                       />
@@ -120,6 +125,12 @@ export default async function NewsroomPage() {
                     <h3 className="text-xl font-bold text-textDefault mb-4 group-hover:text-primary transition-colors line-clamp-3">
                       {item.title}
                     </h3>
+
+                    {item.visibility === "members_only" && (
+                      <div className="mb-4 inline-flex items-center rounded-full border border-warning/40 bg-warning/10 px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-warning w-fit">
+                        Members Only
+                      </div>
+                    )}
 
                     <p className="text-sm text-text2 line-clamp-3 mb-8 flex-grow">
                       {item.body}

@@ -35,7 +35,8 @@ function extractText(node: unknown): string[] {
   return lines;
 }
 
-export default async function WikiPageDetail({ params }: { params: { slug: string } }) {
+export default async function WikiPageDetail({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
   const supabase = await createSupabaseClient();
 
   const {
@@ -56,7 +57,7 @@ export default async function WikiPageDetail({ params }: { params: { slug: strin
   const { data, error } = await supabase
     .from("wiki_pages")
     .select("id, title, slug, category, updated_at, content_tiptap_json, author:users!wiki_pages_author_id_fkey(full_name)")
-    .eq("slug", params.slug)
+    .eq("slug", slug)
     .single();
 
   if (error || !data) notFound();

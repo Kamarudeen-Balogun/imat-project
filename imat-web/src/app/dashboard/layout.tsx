@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { LayoutDashboard, Users, Map, BookOpen, LogOut, Loader2, FileText, BarChart2, Megaphone, Activity, Menu, X } from "lucide-react";
 import Image from "next/image";
-import imatLogo from "@/imat.png";
 import { toast } from "react-hot-toast";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { AnimatePresence, motion } from "framer-motion";
@@ -92,7 +91,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <aside className="hidden md:flex w-64 bg-bg2 border-r border-borderDark flex-col">
          <div className="p-6 border-b border-borderDark flex items-center gap-3">
             <Image
-              src={imatLogo}
+              src="/imatlogo.png"
               alt="IMAT"
               width={32}
               height={32}

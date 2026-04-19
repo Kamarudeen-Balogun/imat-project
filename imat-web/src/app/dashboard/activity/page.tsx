@@ -1,7 +1,9 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { createSupabaseClient } from "@/lib/supabase/server";
-import { Activity, ArrowLeft, Clock3 } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
+import { Activity, ArrowLeft } from "lucide-react";
+import { canModerateActivity } from "@/lib/access";
+import ActivityTimelineClient from "./ActivityTimelineClient";
 
 export const dynamic = "force-dynamic";
 
@@ -16,8 +18,53 @@ type ActivityLog = {
   actor: { full_name: string | null; email: string | null } | null;
 };
 
+async function deleteActivityLog(formData: FormData) {
+  "use server";
+
+  const id = String(formData.get("id") ?? "").trim();
+  if (!id) return;
+
+  const supabase = await createSupabaseClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const { data: profile } = await supabase
+    .from("users")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  if (!canModerateActivity(profile?.role)) {
+    redirect("/dashboard");
+  }
+
+  await supabase.from("activity_logs").delete().eq("id", id);
+  redirect("/dashboard/activity");
+}
+
 export default async function ActivityPage() {
   const supabase = await createSupabaseClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const { data: profile } = await supabase
+    .from("users")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  const canModerate = canModerateActivity(profile?.role);
 
   const { data } = await supabase
     .from("activity_logs")
@@ -46,30 +93,11 @@ export default async function ActivityPage() {
           No activity recorded yet.
         </div>
       ) : (
-        <div className="space-y-4">
-          {logs.map((log) => (
-            <div key={log.id} className="rounded-xl border border-borderDark bg-bg2 p-5">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <h2 className="text-base font-semibold text-textDefault">{log.title}</h2>
-                <span className="text-xs font-mono text-text3 inline-flex items-center gap-1">
-                  <Clock3 size={12} /> {formatDistanceToNow(new Date(log.created_at), { addSuffix: true })}
-                </span>
-              </div>
-
-              <div className="mt-3 flex flex-wrap items-center gap-2 text-xs font-mono">
-                <span className="px-2 py-1 rounded bg-bg border border-borderDark text-text3 uppercase">{log.event_type}</span>
-                <span className="px-2 py-1 rounded bg-bg border border-borderDark text-text3 uppercase">{log.entity_type}</span>
-                {log.entity_id && (
-                  <span className="px-2 py-1 rounded bg-bg border border-borderDark text-text3">{log.entity_id}</span>
-                )}
-              </div>
-
-              <div className="mt-3 text-sm text-text2">
-                By {log.actor?.full_name || log.actor?.email || "Unknown user"}
-              </div>
-            </div>
-          ))}
-        </div>
+        <ActivityTimelineClient
+          logs={logs}
+          canModerate={canModerate}
+          deleteActivityLog={deleteActivityLog}
+        />
       )}
     </div>
   );

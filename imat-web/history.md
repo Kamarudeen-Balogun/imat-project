@@ -130,6 +130,30 @@ This is the living implementation history for the IMAT web platform.
 - Documented the main public and dashboard areas, the actual run instructions, and the Supabase schema prerequisite.
 - Kept the README aligned with the current role model, mobile PDF behavior, and dev-server workflow.
 
+### 14) Data Sync, Reporting Reliability, And Public Form Resilience
+
+- Replaced hardcoded homepage/dashboard counters with a shared live stats API + hook.
+- Added refresh-safe public report draft persistence and manual clear-form action.
+- Added GPS coordinate capture in public reporting and persisted `location_lat`/`location_lng` through queue/API/database insert flow.
+- Improved service-worker sync registration handling for safer offline/public upload retries.
+
+### 15) Newsroom Stability, Routing, And Manager UX
+
+- Resolved newsroom detail 404 regressions by hardening slug/detail resolution and Next.js dynamic route handling.
+- Standardized compact/canonical newsroom URLs and applied slug backfill support for legacy content.
+- Removed brittle newsroom dependencies on missing optional columns in runtime queries.
+- Updated newsroom listing behavior so signed-in users can see both public and members-only items.
+- Improved newsroom manager cards with thumbnails, direct visibility toggles, and direct delete controls.
+- Added styled custom delete confirmation flows to avoid accidental destructive actions.
+
+### 16) Activity Moderation Tightening And Schema Consolidation
+
+- Added admin-only delete control to the activity timeline with explicit confirmation modal.
+- Removed activity-log edit capability to preserve stricter operational history integrity.
+- Added/adjusted activity-log RLS policy coverage in `supabase_schema.sql` to match app behavior.
+- Merged newsroom schema compatibility patching into `supabase_schema.sql` so setup can be run from one canonical schema file.
+- Revalidated builds after each pass; current build state is successful.
+
 ## Operational Notes
 
 - Current image strategy uses WebP for optimized public assets.

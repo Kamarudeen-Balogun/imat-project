@@ -8,6 +8,7 @@ import Image from "next/image";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "react-hot-toast";
 import { logActivityEvent } from "@/lib/activity/logEvent";
+import { useParams } from "next/navigation";
 
 type DetailedDefect = {
   id: string;
@@ -27,13 +28,20 @@ type DetailedDefect = {
   reporter: { full_name: string } | null;
 };
 
-export default function DefectDetailsPage({ params }: { params: { id: string } }) {
+export default function DefectDetailsPage() {
+  const params = useParams<{ id: string }>();
+  const defectId = params.id;
   const [defect, setDefect] = useState<DetailedDefect | null>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
     const fetchDefectDetails = async () => {
+      if (!defectId) {
+        setLoading(false);
+        return;
+      }
+
       const supabase = createSupabaseClient();
       const { data, error } = await supabase
         .from("defects")
@@ -43,7 +51,7 @@ export default function DefectDetailsPage({ params }: { params: { id: string } }
           assignee:users!defects_assigned_to_fkey(full_name, role),
           reporter:users!defects_reported_by_fkey(full_name)
         `)
-        .eq("id", params.id)
+        .eq("id", defectId)
         .single();
 
       if (data && !error) {
@@ -55,7 +63,7 @@ export default function DefectDetailsPage({ params }: { params: { id: string } }
     };
 
     fetchDefectDetails();
-  }, [params.id]);
+  }, [defectId]);
 
   if (loading) {
     return <div className="p-12 text-center text-text3 font-mono">Decrypting structural data logs...</div>;

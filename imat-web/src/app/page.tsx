@@ -4,17 +4,19 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { ArrowRight, AlertTriangle, Users, FileCheck, ShieldCheck } from "lucide-react";
 import Image from "next/image";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useSiteStats } from "@/hooks/useSiteStats";
 
 export default function Home() {
   const [filter, setFilter] = useState("All");
-  
-  const stats = [
-    { label: "Defects Reported", value: 142, icon: AlertTriangle },
-    { label: "Assessments Completed", value: 98, icon: FileCheck },
-    { label: "Issues Resolved", value: 45, icon: ShieldCheck },
-    { label: "Active Members", value: 24, icon: Users },
-  ];
+  const { stats, loading } = useSiteStats(60000);
+
+  const cards = useMemo(() => ([
+    { label: "Defects Reported", value: stats.reported, icon: AlertTriangle },
+    { label: "Assessments Completed", value: stats.assessmentsCompleted, icon: FileCheck },
+    { label: "Issues Resolved", value: stats.resolved, icon: ShieldCheck },
+    { label: "Active Members", value: stats.activeMembers, icon: Users },
+  ]), [stats]);
 
   return (
     <div className="flex flex-col w-full">
@@ -25,15 +27,15 @@ export default function Home() {
         <div className="absolute w-[600px] h-[600px] bg-primary/20 blur-[100px] rounded-full top-[-100px] right-[-100px] opacity-30 animate-pulse" />
         <div className="absolute w-[400px] h-[400px] bg-accent/20 blur-[80px] rounded-full bottom-0 left-[-50px] opacity-20" />
         
-        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 text-center pt-16 md:pt-20">
+        <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 text-center pt-16 md:pt-20">
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
             <span className="font-mono text-accent text-sm tracking-widest uppercase mb-6 inline-block">Infrastructure Maintenance Awareness Team</span>
-            <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold tracking-tight text-textDefault mb-6 leading-tight">
-              Building a <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-success">Culture of Care</span><br />
+            <h1 className="text-balance text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-textDefault mb-6 leading-[0.95] max-w-5xl mx-auto">
+              Building a <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-success whitespace-nowrap">Culture of Care</span><br />
               for FUTA Infrastructure
             </h1>
             <p className="text-base sm:text-lg md:text-xl text-text2 max-w-2xl mx-auto mb-10 leading-relaxed font-light">
@@ -60,7 +62,7 @@ export default function Home() {
             <h2 className="text-sm font-mono text-text3 tracking-widest uppercase">Our Impact in Numbers</h2>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-12">
-            {stats.map((stat, i) => (
+            {cards.map((stat, i) => (
               <motion.div 
                 key={stat.label}
                 initial={{ opacity: 0, y: 20 }}
@@ -70,8 +72,9 @@ export default function Home() {
                 className="flex flex-col items-center text-center p-6 border border-borderDark rounded-xl bg-bg hover:border-borderLit transition-colors"
               >
                 <stat.icon className="w-8 h-8 text-primary mb-4 opacity-80" />
-                {/* Note: Animate counter would go here, using static value for now until data is hooked up */}
-                <span className="text-4xl md:text-5xl font-mono font-bold text-textDefault mb-2">{stat.value}</span>
+                <span className="text-4xl md:text-5xl font-mono font-bold text-textDefault mb-2">
+                  {loading ? "--" : stat.value}
+                </span>
                 <span className="text-sm text-text2">{stat.label}</span>
               </motion.div>
             ))}

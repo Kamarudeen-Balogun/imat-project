@@ -5,10 +5,11 @@ import { createSupabaseClient } from "@/lib/supabase/client";
 import { AlertTriangle, Clock, MapPin, CheckCircle, FileText, Megaphone, BookOpen, Activity } from "lucide-react";
 import Link from "next/link";
 import { canEditContent } from "@/lib/access";
+import { useSiteStats } from "@/hooks/useSiteStats";
 
 export default function DashboardPage() {
   const [role, setRole] = useState("admin");
-  const [stats, setStats] = useState({ reported: 0, assessed: 0, resolved: 0 });
+  const { stats, loading } = useSiteStats(15000);
   
   useEffect(() => {
     const fetchUserAndStats = async () => {
@@ -19,18 +20,6 @@ export default function DashboardPage() {
         const { data } = await supabase.from("users").select("role").eq("id", session.user.id).single();
         if (data) setRole(data.role);
       }
-
-      // Fetch global simple stats
-      const { data: defects } = await supabase.from("defects").select("status");
-      if (defects) {
-        let r = 0, a = 0, res = 0;
-        defects.forEach(d => {
-          if (d.status === "reported") r++;
-          if (d.status === "assessed" || d.status === "escalated" || d.status === "acknowledged_by_works") a++;
-          if (d.status === "resolved") res++;
-        });
-        setStats({ reported: r, assessed: a, resolved: res });
-      }
     };
     fetchUserAndStats();
   }, []);
@@ -39,23 +28,25 @@ export default function DashboardPage() {
     <div className="space-y-8 animate-in fade-in duration-500">
       
       {/* GLOBAL STATS */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-         <div className="bg-bg2 border border-borderDark rounded-xl p-6 flex flex-col items-center text-center">
-            <div className="w-12 h-12 bg-blue-500/10 text-blue-500 rounded-full flex items-center justify-center mb-4"><Clock size={24}/></div>
-            <div className="text-3xl font-bold text-textDefault mb-1">{stats.reported}</div>
-            <div className="text-sm text-text3 font-mono uppercase tracking-wider">New Reports</div>
+      <div className="overflow-x-auto md:overflow-visible">
+      <div className="grid grid-cols-3 gap-2 sm:gap-4 md:gap-6 min-w-[360px] md:min-w-0">
+        <div className="bg-bg2 border border-borderDark rounded-lg md:rounded-xl p-3 sm:p-4 md:p-6 flex flex-col items-center text-center">
+          <div className="w-8 h-8 md:w-12 md:h-12 bg-blue-500/10 text-blue-500 rounded-full flex items-center justify-center mb-2 md:mb-4"><Clock size={16} className="md:hidden" /><Clock size={24} className="hidden md:block" /></div>
+          <div className="text-2xl md:text-3xl font-bold text-textDefault mb-1">{loading ? "--" : stats.reported}</div>
+          <div className="text-[10px] sm:text-xs md:text-sm text-text3 font-mono uppercase tracking-wider leading-tight">New Reports</div>
          </div>
-         <div className="bg-bg2 border border-borderDark rounded-xl p-6 flex flex-col items-center text-center border-b-2 border-b-warning">
-            <div className="w-12 h-12 bg-warning/10 text-warning rounded-full flex items-center justify-center mb-4"><AlertTriangle size={24}/></div>
-            <div className="text-3xl font-bold text-textDefault mb-1">{stats.assessed}</div>
-            <div className="text-sm text-text3 font-mono uppercase tracking-wider">Under Assessment</div>
+        <div className="bg-bg2 border border-borderDark rounded-lg md:rounded-xl p-3 sm:p-4 md:p-6 flex flex-col items-center text-center border-b-2 border-b-warning">
+          <div className="w-8 h-8 md:w-12 md:h-12 bg-warning/10 text-warning rounded-full flex items-center justify-center mb-2 md:mb-4"><AlertTriangle size={16} className="md:hidden" /><AlertTriangle size={24} className="hidden md:block" /></div>
+          <div className="text-2xl md:text-3xl font-bold text-textDefault mb-1">{loading ? "--" : stats.underAssessment}</div>
+          <div className="text-[10px] sm:text-xs md:text-sm text-text3 font-mono uppercase tracking-wider leading-tight">Under Assessment</div>
          </div>
-         <div className="bg-bg2 border border-borderDark rounded-xl p-6 flex flex-col items-center text-center border-b-2 border-b-success">
-            <div className="w-12 h-12 bg-success/10 text-success rounded-full flex items-center justify-center mb-4"><CheckCircle size={24}/></div>
-            <div className="text-3xl font-bold text-textDefault mb-1">{stats.resolved}</div>
-            <div className="text-sm text-text3 font-mono uppercase tracking-wider">Resolved Issues</div>
+        <div className="bg-bg2 border border-borderDark rounded-lg md:rounded-xl p-3 sm:p-4 md:p-6 flex flex-col items-center text-center border-b-2 border-b-success">
+          <div className="w-8 h-8 md:w-12 md:h-12 bg-success/10 text-success rounded-full flex items-center justify-center mb-2 md:mb-4"><CheckCircle size={16} className="md:hidden" /><CheckCircle size={24} className="hidden md:block" /></div>
+          <div className="text-2xl md:text-3xl font-bold text-textDefault mb-1">{loading ? "--" : stats.resolved}</div>
+          <div className="text-[10px] sm:text-xs md:text-sm text-text3 font-mono uppercase tracking-wider leading-tight">Resolved Issues</div>
          </div>
       </div>
+        </div>
 
       <div>
          <h2 className="text-xl font-bold text-textDefault mb-6 border-b border-borderDark pb-2">Quick Actions ({role.replace("_", " ")})</h2>

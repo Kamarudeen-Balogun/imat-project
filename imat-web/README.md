@@ -78,6 +78,18 @@ Run the SQL in [supabase_schema.sql](../supabase_schema.sql) in your Supabase SQ
 
 That schema defines the core tables, RLS policies, notifications, activity logs, announcements, wiki pages, and report-related records used by the platform.
 
+For existing projects, re-run the latest schema safely (it uses `IF NOT EXISTS`/`DROP POLICY IF EXISTS` patterns) so role policies stay aligned with current dashboard behavior.
+
+## Recent Updates
+
+- Replaced native browser confirms with styled confirmation modals for delete actions in newsroom management and activity moderation flows.
+- Added admin-only delete controls on the Activity Timeline and removed activity edit capability to keep the audit trail strict.
+- Fixed Next.js 16 dynamic route param handling on affected dashboard pages (`params` Promise handling), removing runtime route errors.
+- Added live site stats wiring (homepage + dashboard) via shared API/hook so counters reflect current database state.
+- Added public report draft persistence and clear-form control for safer mobile/public submissions.
+- Added GPS coordinate capture and persistence in the public defect reporting flow.
+- Consolidated newsroom schema compatibility updates into `supabase_schema.sql` for cleaner one-pass setup.
+
 ## Main Areas
 
 - Public site: homepage, about, evidence gallery, issue tracker, apply page, login, and newsroom.
@@ -90,3 +102,4 @@ That schema defines the core tables, RLS policies, notifications, activity logs,
 - The app uses WebP-optimized public images.
 - Mobile browsers are treated as a limited PDF-preview environment, so the safe path is download/open instead of inline preview.
 - The dev server uses a smarter host/port launcher that can fall back to the next available port if the requested one is busy.
+- Keep local debug artifacts (for example ad-hoc API test scripts and JSON dumps) out of commits to avoid noisy deploys.

@@ -100,6 +100,11 @@ CREATE TABLE IF NOT EXISTS defects (
   updated_at TIMESTAMPTZ DEFAULT now()
 );
 
+CREATE INDEX IF NOT EXISTS defects_created_at_idx ON defects(created_at DESC);
+CREATE INDEX IF NOT EXISTS defects_status_created_at_idx ON defects(status, created_at DESC);
+CREATE INDEX IF NOT EXISTS defects_category_created_at_idx ON defects(category, created_at DESC);
+CREATE INDEX IF NOT EXISTS defects_campus_zone_created_at_idx ON defects(campus_zone_id, created_at DESC);
+
 
 -- 6. SEVERITY CRITERIA (Reference table)
 CREATE TABLE IF NOT EXISTS severity_criteria (
@@ -174,6 +179,8 @@ CREATE TABLE IF NOT EXISTS reports (
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
+CREATE INDEX IF NOT EXISTS reports_status_created_at_idx ON reports(status, created_at DESC);
+
 
 -- 10. ANNOUNCEMENTS
 CREATE TABLE IF NOT EXISTS announcements (
@@ -189,6 +196,9 @@ CREATE TABLE IF NOT EXISTS announcements (
   updated_by UUID REFERENCES users(id) ON DELETE SET NULL
 );
 
+CREATE INDEX IF NOT EXISTS announcements_published_at_idx ON announcements(published_at DESC);
+CREATE INDEX IF NOT EXISTS announcements_visibility_published_at_idx ON announcements(visibility, published_at DESC);
+
 CREATE UNIQUE INDEX IF NOT EXISTS announcements_slug_key ON announcements(slug) WHERE slug IS NOT NULL;
 
 ALTER TABLE announcements
@@ -196,6 +206,31 @@ ADD COLUMN IF NOT EXISTS image_url TEXT;
 
 ALTER TABLE announcements
 ADD COLUMN IF NOT EXISTS slug TEXT;
+
+ALTER TABLE announcements
+ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT now();
+
+ALTER TABLE announcements
+ADD COLUMN IF NOT EXISTS updated_by UUID;
+
+UPDATE announcements
+SET updated_at = now()
+WHERE updated_at IS NULL;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'announcements_updated_by_fkey'
+  ) THEN
+    ALTER TABLE announcements
+    ADD CONSTRAINT announcements_updated_by_fkey
+    FOREIGN KEY (updated_by)
+    REFERENCES users(id)
+    ON DELETE SET NULL;
+  END IF;
+END $$;
 
 DROP TRIGGER IF EXISTS update_announcements_updated_at ON announcements;
 CREATE TRIGGER update_announcements_updated_at
@@ -241,6 +276,8 @@ CREATE TABLE IF NOT EXISTS activity_logs (
   actor_id UUID REFERENCES users(id) ON DELETE SET NULL,
   created_at TIMESTAMPTZ DEFAULT now()
 );
+
+CREATE INDEX IF NOT EXISTS activity_logs_created_at_idx ON activity_logs(created_at DESC);
 
 -- 14. NOTIFICATIONS (in-app delivery feed)
 CREATE TABLE IF NOT EXISTS notifications (
@@ -364,11 +401,29 @@ DROP POLICY IF EXISTS "Users can edit their own profile" ON users;
 CREATE POLICY "Anyone can read active members" ON users FOR SELECT USING (status = 'active');
 CREATE POLICY "Users can edit their own profile" ON users FOR UPDATE USING (id = auth.uid());
 
+-- Intake cycles: public can view active cycles; authorized roles can manage cycles.
+DROP POLICY IF EXISTS "Public can view active intake cycles" ON intake_cycles;
+DROP POLICY IF EXISTS "Authorized members can manage intake cycles" ON intake_cycles;
+CREATE POLICY "Public can view active intake cycles" ON intake_cycles FOR SELECT USING (is_active = true OR auth.uid() IS NOT NULL);
+CREATE POLICY "Authorized members can manage intake cycles" ON intake_cycles FOR ALL USING (
+  get_my_role() IN ('technical_officer', 'president', 'admin')
+) WITH CHECK (
+  get_my_role() IN ('technical_officer', 'president', 'admin')
+);
+
 -- Assessments: Field Officers can create/read for their zone; others read all
 DROP POLICY IF EXISTS "Members can view assessments" ON assessments;
 DROP POLICY IF EXISTS "Field officers can insert assessments" ON assessments;
 CREATE POLICY "Members can view assessments" ON assessments FOR SELECT USING (auth.uid() IS NOT NULL);
 CREATE POLICY "Field officers can insert assessments" ON assessments FOR INSERT WITH CHECK (auth.uid() = officer_id);
+
+-- Defect history: members can view; authenticated actors can append their own status changes.
+DROP POLICY IF EXISTS "Members can view defect history" ON defect_history;
+DROP POLICY IF EXISTS "Members can insert defect history" ON defect_history;
+CREATE POLICY "Members can view defect history" ON defect_history FOR SELECT USING (auth.uid() IS NOT NULL);
+CREATE POLICY "Members can insert defect history" ON defect_history FOR INSERT WITH CHECK (
+  auth.uid() = changed_by
+);
 
 -- Reports: Published reports public. All reports visible to members.
 DROP POLICY IF EXISTS "Public view published reports" ON reports;
@@ -378,11 +433,28 @@ CREATE POLICY "Public view published reports" ON reports FOR SELECT USING (statu
 CREATE POLICY "Members view all reports" ON reports FOR SELECT USING (auth.uid() IS NOT NULL);
 CREATE POLICY "Members can insert reports" ON reports FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
 
+-- Volunteer logs: members can view and write own logs; admins can view all.
+DROP POLICY IF EXISTS "Members can view volunteer logs" ON volunteer_logs;
+DROP POLICY IF EXISTS "Members can insert own volunteer logs" ON volunteer_logs;
+DROP POLICY IF EXISTS "Members can update own volunteer logs" ON volunteer_logs;
+CREATE POLICY "Members can view volunteer logs" ON volunteer_logs FOR SELECT USING (
+  auth.uid() = member_id OR get_my_role() = 'admin'
+);
+CREATE POLICY "Members can insert own volunteer logs" ON volunteer_logs FOR INSERT WITH CHECK (
+  auth.uid() = member_id
+);
+CREATE POLICY "Members can update own volunteer logs" ON volunteer_logs FOR UPDATE USING (
+  auth.uid() = member_id OR get_my_role() = 'admin'
+) WITH CHECK (
+  auth.uid() = member_id OR get_my_role() = 'admin'
+);
+
 -- Announcements: Public if marked public. Members view all. Admins/President/Advocacy can insert.
 DROP POLICY IF EXISTS "Public view public announcements" ON announcements;
 DROP POLICY IF EXISTS "Members view all announcements" ON announcements;
 DROP POLICY IF EXISTS "Authorized members can insert announcements" ON announcements;
 DROP POLICY IF EXISTS "Authorized members can update announcements" ON announcements;
+DROP POLICY IF EXISTS "Authorized members can delete announcements" ON announcements;
 CREATE POLICY "Public view public announcements" ON announcements FOR SELECT USING (visibility = 'public');
 CREATE POLICY "Members view all announcements" ON announcements FOR SELECT USING (auth.uid() IS NOT NULL);
 CREATE POLICY "Authorized members can insert announcements" ON announcements FOR INSERT WITH CHECK (
@@ -413,6 +485,7 @@ CREATE POLICY "Users can update own notifications" ON notifications FOR UPDATE U
 DROP POLICY IF EXISTS "Members can view wiki pages" ON wiki_pages;
 DROP POLICY IF EXISTS "Authorized members can insert wiki pages" ON wiki_pages;
 DROP POLICY IF EXISTS "Authorized members can update wiki pages" ON wiki_pages;
+DROP POLICY IF EXISTS "Authorized members can delete wiki pages" ON wiki_pages;
 CREATE POLICY "Members can view wiki pages" ON wiki_pages FOR SELECT USING (auth.uid() IS NOT NULL);
 CREATE POLICY "Authorized members can insert wiki pages" ON wiki_pages FOR INSERT WITH CHECK (
   get_my_role() IN ('documentation_officer', 'president', 'admin')
@@ -427,6 +500,8 @@ CREATE POLICY "Authorized members can delete wiki pages" ON wiki_pages FOR DELET
 -- Activity logs: members read; authenticated users can write their own events.
 DROP POLICY IF EXISTS "Members can view activity logs" ON activity_logs;
 DROP POLICY IF EXISTS "Members can insert own activity logs" ON activity_logs;
+DROP POLICY IF EXISTS "Admins can update activity logs" ON activity_logs;
+DROP POLICY IF EXISTS "Admins can delete activity logs" ON activity_logs;
 CREATE POLICY "Members can view activity logs" ON activity_logs FOR SELECT USING (auth.uid() IS NOT NULL);
 CREATE POLICY "Members can insert own activity logs" ON activity_logs FOR INSERT WITH CHECK (
   auth.uid() = actor_id

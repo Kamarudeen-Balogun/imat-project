@@ -7,7 +7,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import { usePathname } from "next/navigation";
 
 import Image from "next/image";
-import imatLogo from "@/imat.png";
 import { useTheme } from "@/components/ThemeProvider";
 import { createSupabaseClient } from "@/lib/supabase/client";
 
@@ -48,7 +47,7 @@ export function Navbar() {
         <div className="flex items-center min-w-0">
           <Link href="/" className="font-mono text-xl font-bold tracking-tight text-textDefault flex items-center gap-2 min-w-0">
             <Image
-              src={imatLogo}
+              src="/imatlogo.png"
               alt="IMAT Logo"
               width={32}
               height={32}

@@ -15,13 +15,12 @@ type Announcement = {
   published_at: string;
   updated_at: string;
   author: { full_name: string | null } | null;
-  updater: { full_name: string | null } | null;
 };
 
 async function loadAnnouncement(supabase: Awaited<ReturnType<typeof createSupabaseClient>>, idOrSlug: string) {
   const bySlug = await supabase
     .from("announcements")
-    .select("id, slug, title, body, image_url, visibility, published_at, updated_at, author:users!announcements_author_id_fkey(full_name), updater:users!announcements_updated_by_fkey(full_name)")
+    .select("id, slug, title, body, image_url, visibility, published_at, updated_at, author:users!announcements_author_id_fkey(full_name)")
     .eq("slug", idOrSlug)
     .maybeSingle();
 
@@ -29,14 +28,15 @@ async function loadAnnouncement(supabase: Awaited<ReturnType<typeof createSupaba
 
   const byId = await supabase
     .from("announcements")
-    .select("id, slug, title, body, image_url, visibility, published_at, updated_at, author:users!announcements_author_id_fkey(full_name), updater:users!announcements_updated_by_fkey(full_name)")
+    .select("id, slug, title, body, image_url, visibility, published_at, updated_at, author:users!announcements_author_id_fkey(full_name)")
     .eq("id", idOrSlug)
     .maybeSingle();
 
   return (byId.data ?? null) as Announcement | null;
 }
 
-export default async function EditNewsPage({ params }: { params: { id: string } }) {
+export default async function EditNewsPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const supabase = await createSupabaseClient();
 
   const {
@@ -55,7 +55,7 @@ export default async function EditNewsPage({ params }: { params: { id: string } 
     redirect("/dashboard");
   }
 
-  const announcement = await loadAnnouncement(supabase, params.id);
+  const announcement = await loadAnnouncement(supabase, id);
 
   if (!announcement) notFound();
 

@@ -17,6 +17,11 @@ const ibmPlexMono = localFont({
 export const metadata: Metadata = {
   title: "IMAT · Infrastructure Maintenance Awareness Team",
   description: "FUTA Civil Engineering Infrastructure Maintenance Awareness Team",
+  icons: {
+    icon: "/imatlogo.png",
+    shortcut: "/imatlogo.png",
+    apple: "/imatlogo.png",
+  },
 };
 
 export const viewport: Viewport = {
