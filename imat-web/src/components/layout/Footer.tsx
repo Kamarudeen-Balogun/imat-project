@@ -32,7 +32,7 @@ export function Footer() {
       </div>
       <div className="max-w-6xl mx-auto px-4 sm:px-6 mt-12 pt-8 border-t border-borderDark flex flex-col md:flex-row justify-between items-center text-xs text-text3 gap-2 text-center md:text-left">
         <p suppressHydrationWarning>&copy; {new Date().getFullYear()} IMAT FUTA. All rights reserved.</p>
-        <p>Built with 🧡 by: codeflowx1@gmail.com</p>
+        <p>Built with care by codeflowx1@gmail.com</p>
       </div>
     </footer>
   );
