@@ -1,6 +1,6 @@
 -- ========================================================
 -- IMAT Database Schema & Setup
--- Execute this entirely in your Supabase SQL Editor
+-- Execute this entirely in your Supabase SQL Editor..
 -- ========================================================
 
 -- Enable required extensions
