@@ -33,6 +33,7 @@ CREATE TABLE IF NOT EXISTS users (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   email TEXT NOT NULL UNIQUE,
   full_name TEXT NOT NULL,
+  avatar_url TEXT,
   matric_no TEXT,
   level INTEGER,
   cgpa NUMERIC(3,2),
@@ -43,6 +44,9 @@ CREATE TABLE IF NOT EXISTS users (
   joined_at TIMESTAMPTZ DEFAULT now(),
   created_at TIMESTAMPTZ DEFAULT now()
 );
+
+ALTER TABLE users
+ADD COLUMN IF NOT EXISTS avatar_url TEXT;
 
 
 -- 3. INTAKE CYCLES
@@ -238,6 +242,63 @@ BEFORE UPDATE ON announcements
 FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
 
 
+-- 11. EVIDENCE GALLERY
+CREATE TABLE IF NOT EXISTS evidence_gallery (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  title TEXT NOT NULL,
+  description TEXT NOT NULL,
+  category TEXT NOT NULL,
+  before_image_url TEXT NOT NULL,
+  after_image_url TEXT,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  is_active BOOLEAN NOT NULL DEFAULT true,
+  created_by UUID REFERENCES users(id) ON DELETE SET NULL,
+  updated_by UUID REFERENCES users(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS evidence_gallery_sort_order_idx ON evidence_gallery(sort_order ASC, created_at DESC);
+CREATE INDEX IF NOT EXISTS evidence_gallery_category_idx ON evidence_gallery(category);
+
+ALTER TABLE evidence_gallery
+ALTER COLUMN sort_order DROP NOT NULL;
+
+ALTER TABLE evidence_gallery
+ALTER COLUMN sort_order DROP DEFAULT;
+
+CREATE OR REPLACE FUNCTION set_evidence_gallery_sort_order()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  IF NEW.sort_order IS NULL THEN
+    SELECT COALESCE(MAX(sort_order), 0) + 1 INTO NEW.sort_order
+    FROM evidence_gallery;
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS set_evidence_gallery_sort_order_before_insert ON evidence_gallery;
+CREATE TRIGGER set_evidence_gallery_sort_order_before_insert
+BEFORE INSERT ON evidence_gallery
+FOR EACH ROW EXECUTE PROCEDURE set_evidence_gallery_sort_order();
+
+DROP TRIGGER IF EXISTS update_evidence_gallery_updated_at ON evidence_gallery;
+CREATE TRIGGER update_evidence_gallery_updated_at
+BEFORE UPDATE ON evidence_gallery
+FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
+
+INSERT INTO evidence_gallery (title, description, category, before_image_url, after_image_url, sort_order)
+VALUES
+  ('Blocked Drain Grate', 'Drainage obstruction recorded near the walk path. The before image shows the blocked grate, while the after slot can be updated once the fix is verified.', 'Drainage', '/images/Blocked drain grate.webp', NULL, 1),
+  ('Cracked Concrete Walkway', 'Surface cracking along the walkway approaching the academic block.', 'Walkways', '/images/Crack concrete walkway.webp', NULL, 2),
+  ('Damaged Interlocking Drainage', 'Broken interlocking drain segment requiring attention and follow-up.', 'Drainage', '/images/Damaged interlocking drainage.webp', NULL, 3)
+ON CONFLICT DO NOTHING;
+
+
 -- 11. VOLUNTEER LOGS
 CREATE TABLE IF NOT EXISTS volunteer_logs (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -355,6 +416,7 @@ ALTER TABLE defect_history ENABLE ROW LEVEL SECURITY;
 ALTER TABLE assessments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE reports ENABLE ROW LEVEL SECURITY;
 ALTER TABLE announcements ENABLE ROW LEVEL SECURITY;
+ALTER TABLE evidence_gallery ENABLE ROW LEVEL SECURITY;
 ALTER TABLE volunteer_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE wiki_pages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE activity_logs ENABLE ROW LEVEL SECURITY;
@@ -384,6 +446,23 @@ DROP POLICY IF EXISTS "Members can update defects" ON defects;
 CREATE POLICY "Public can view defects" ON defects FOR SELECT USING (true);
 CREATE POLICY "Public can insert defects" ON defects FOR INSERT WITH CHECK (true);
 CREATE POLICY "Members can update defects" ON defects FOR UPDATE USING (auth.uid() IS NOT NULL);
+
+DROP POLICY IF EXISTS "Public can view evidence gallery" ON evidence_gallery;
+DROP POLICY IF EXISTS "Evidence gallery editors can manage evidence" ON evidence_gallery;
+CREATE POLICY "Public can view evidence gallery" ON evidence_gallery FOR SELECT USING (is_active = true);
+CREATE POLICY "Evidence gallery editors can manage evidence" ON evidence_gallery FOR ALL USING (
+  EXISTS (
+    SELECT 1 FROM users
+    WHERE users.id = auth.uid()
+      AND users.role IN ('documentation_officer', 'admin')
+  )
+) WITH CHECK (
+  EXISTS (
+    SELECT 1 FROM users
+    WHERE users.id = auth.uid()
+      AND users.role IN ('documentation_officer', 'admin')
+  )
+);
 
 -- Applications: Applicants can insert and read their own. Admins/Technical Officers can do everything.
 DROP POLICY IF EXISTS "Applicants can read own application" ON applications;

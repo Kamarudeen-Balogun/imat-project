@@ -75,6 +75,25 @@
 }
 
 @layer utilities {
+  @keyframes role-marquee {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+
+  .animate-role-marquee {
+    animation: role-marquee 20s linear infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-role-marquee {
+      animation: none;
+    }
+  }
+
   .text-balance {
     text-wrap: balance;
   }

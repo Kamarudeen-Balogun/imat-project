@@ -154,6 +154,33 @@ This is the living implementation history for the IMAT web platform.
 - Merged newsroom schema compatibility patching into `supabase_schema.sql` so setup can be run from one canonical schema file.
 - Revalidated builds after each pass; current build state is successful.
 
+### 17) Members, Roles, And Profile Management Expansion
+
+- Introduced a shared role hierarchy module for consistent ordering and labeling across homepage/member-facing views.
+- Updated role hierarchy so `admin` is top-priority and role ordering remains stable even when some leadership roles are missing.
+- Reworked member presentation on homepage and members directory with clearer avatars, stronger card hierarchy, and responsive role-first sorting.
+- Added richer profile management under the dashboard:
+  - editable full name
+  - editable academic level (200L-500L)
+  - avatar upload/remove with Cloudinary
+  - joined/status summary display
+
+### 18) Newsroom Notification UX And Delivery Reliability
+
+- Strengthened in-browser newsroom notifications with realtime Supabase channel subscription for immediate delivery.
+- Kept polling fallback to improve reliability when realtime events are delayed.
+- Added a collapsible notification history panel in the newsroom so members can scan recent alerts without searching long page text.
+
+### 19) Evidence Gallery 2.0 (Before/After + Editorial Workflow)
+
+- Replaced static evidence cards with database-backed before/after gallery items from `evidence_gallery`.
+- Added a dedicated dashboard Evidence Gallery Manager accessible to `admin` and `documentation_officer` roles.
+- Enabled editing of gallery title, description, category, before/after images, active visibility, and ordering.
+- Added optional automatic sort ordering:
+  - new records auto-append when sort order is blank
+  - manual order still supported to pin priority items at top/homepage preview
+- Improved mobile experience by reducing homepage evidence preview length and using horizontal card flow with side-by-side media comparison.
+
 ## Operational Notes
 
 - Current image strategy uses WebP for optimized public assets.

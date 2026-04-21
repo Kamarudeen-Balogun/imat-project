@@ -2,6 +2,7 @@ export const contentEditorRoles = ["advocacy_officer", "president", "admin"] as 
 export const contentDeleterRoles = ["president", "admin"] as const;
 export const wikiEditorRoles = ["documentation_officer", "president", "admin"] as const;
 export const wikiDeleterRoles = ["president", "admin"] as const;
+export const evidenceGalleryEditorRoles = ["documentation_officer", "admin"] as const;
 export const activityModeratorRoles = ["admin"] as const;
 
 function hasRole(role: string | null | undefined, allowedRoles: readonly string[]) {
@@ -18,6 +19,10 @@ export function canDeleteContent(role: string | null | undefined) {
 
 export function canEditWiki(role: string | null | undefined) {
   return hasRole(role, wikiEditorRoles);
+}
+
+export function canEditEvidenceGallery(role: string | null | undefined) {
+  return hasRole(role, evidenceGalleryEditorRoles);
 }
 
 export function canDeleteWiki(role: string | null | undefined) {

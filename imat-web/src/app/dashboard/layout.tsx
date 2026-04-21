@@ -4,18 +4,19 @@ import { useEffect, useState } from "react";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { LayoutDashboard, Users, Map, BookOpen, LogOut, Loader2, FileText, BarChart2, Megaphone, Activity, Menu, X } from "lucide-react";
+import { LayoutDashboard, Users, Map, BookOpen, LogOut, Loader2, FileText, BarChart2, Megaphone, Activity, Menu, X, User } from "lucide-react";
 import Image from "next/image";
 import { toast } from "react-hot-toast";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { AnimatePresence, motion } from "framer-motion";
-import { canEditContent } from "@/lib/access";
+import { canEditContent, canEditEvidenceGallery } from "@/lib/access";
 
 type UserProfile = {
   id: string;
   email: string;
   full_name: string;
   role: string;
+  avatar_url?: string | null;
 };
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -74,13 +75,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     );
   }
 
+  const initials = (profile?.full_name || profile?.email || "M").slice(0, 1).toUpperCase();
+
   const navItems = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, classes: "bg-primary/10 text-primary font-bold" },
     { href: "/dashboard/defects", label: "Defect Masterlist", icon: Map, classes: "text-text2 hover:text-textDefault hover:bg-bg3" },
     { href: "/dashboard/reports", label: "Engineering Reports", icon: FileText, classes: "text-text2 hover:text-textDefault hover:bg-bg3" },
     { href: "/portal/analytics", label: "Analytics", icon: BarChart2, classes: "text-text2 hover:text-textDefault hover:bg-bg3" },
     ...(canEditContent(profile?.role) ? [{ href: "/dashboard/news", label: "Newsroom Manager", icon: Megaphone, classes: "text-text2 hover:text-textDefault hover:bg-bg3" }] : []),
+    ...(canEditEvidenceGallery(profile?.role) ? [{ href: "/dashboard/evidence", label: "Evidence Gallery", icon: FileText, classes: "text-text2 hover:text-textDefault hover:bg-bg3" }] : []),
     { href: "/dashboard/directory", label: "Member Directory", icon: Users, classes: "text-text2 hover:text-textDefault hover:bg-bg3" },
+    { href: "/dashboard/profile", label: "My Profile", icon: User, classes: "text-text2 hover:text-textDefault hover:bg-bg3" },
     { href: "/dashboard/wiki", label: "Knowledge Base", icon: BookOpen, classes: "text-text2 hover:text-textDefault hover:bg-bg3" },
     { href: "/dashboard/activity", label: "Activity Timeline", icon: Activity, classes: "text-text2 hover:text-textDefault hover:bg-bg3" },
   ];
@@ -144,7 +149,23 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </button>
               <h1 className="text-xs sm:text-sm font-mono text-text3 truncate">Welcome back, <strong className="text-textDefault">{profile?.full_name}</strong></h1>
             </div>
-            <Link href="/" className="text-xs text-text2 hover:text-primary transition-colors underline">View Public Site</Link>
+            <div className="flex items-center gap-3">
+              <Link href="/dashboard/profile" className="hidden sm:flex h-9 w-9 items-center justify-center rounded-full border border-borderDark overflow-hidden bg-gradient-to-br from-primary/20 to-accent/20 text-sm font-bold text-textDefault">
+                {profile?.avatar_url ? (
+                  <Image
+                    src={profile.avatar_url}
+                    alt={profile?.full_name || "Profile"}
+                    width={36}
+                    height={36}
+                    unoptimized
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  initials
+                )}
+              </Link>
+              <Link href="/" className="text-xs text-text2 hover:text-primary transition-colors underline">View Public Site</Link>
+            </div>
         </header>
         <AnimatePresence>
           {menuOpen && (

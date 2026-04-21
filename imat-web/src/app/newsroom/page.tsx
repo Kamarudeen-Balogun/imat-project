@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowLeft, ArrowRight, Megaphone, Calendar } from "lucide-react";
 import Image from "next/image";
 import NewsroomNotificationSettings from "./NewsroomNotificationSettings";
+import NotificationsHistoryPanel from "./NotificationsHistoryPanel";
 import { canEditContent } from "@/lib/access";
 
 export const metadata = {
@@ -149,6 +150,9 @@ export default async function NewsroomPage() {
           </div>
         )}
       </div>
+
+      {/* Notifications History Panel */}
+      <NotificationsHistoryPanel />
     </div>
   );
 }

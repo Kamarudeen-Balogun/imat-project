@@ -50,7 +50,20 @@ Not every logged-in user will have a staff role. Users without a staff position 
 npm install
 ```
 
-2. Add your environment variables in `.env.local`.
+2. Create `.env.local` and fill in your environment variables.
+
+Required keys include:
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`
+- `NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET_PHOTOS`
+- `NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET_ANNOUNCEMENTS`
+- `NEXT_PUBLIC_VAPID_PUBLIC_KEY`
+- `VAPID_PRIVATE_KEY`
+- `VAPID_SUBJECT`
+
+You can also keep optional keys (such as Redis and service role keys) in the same file if enabled in your deployment setup.
 
 3. Run the development server:
 
@@ -80,8 +93,31 @@ That schema defines the core tables, RLS policies, notifications, activity logs,
 
 For existing projects, re-run the latest schema safely (it uses `IF NOT EXISTS`/`DROP POLICY IF EXISTS` patterns) so role policies stay aligned with current dashboard behavior.
 
+If you are enabling profile pictures and push subscriptions on an existing project, ensure your database has these updates:
+
+```sql
+ALTER TABLE public.users
+ADD COLUMN IF NOT EXISTS avatar_url text;
+
+CREATE TABLE IF NOT EXISTS public.push_subscriptions (
+	id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+	user_id uuid NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+	endpoint text NOT NULL UNIQUE,
+	p256dh text NOT NULL,
+	auth text NOT NULL,
+	created_at timestamptz DEFAULT now()
+);
+```
+
 ## Recent Updates
 
+- Added a full before/after Evidence Gallery system backed by Supabase (`evidence_gallery`) with responsive side-by-side comparison cards.
+- Added Evidence Gallery Manager in the dashboard for `admin` and `documentation_officer` roles to edit titles, descriptions, categories, before/after images, active state, and ordering.
+- Updated homepage evidence preview to use live gallery data and shorter mobile-first card flow.
+- Added optional/automatic `sort_order` behavior for evidence items while keeping manual ordering for pin-to-top control.
+- Added richer profile management page with editable name, editable level (200L-500L), avatar upload/remove, and member metadata summary.
+- Added collapsible newsroom notification history panel for signed-in members.
+- Added shared role hierarchy utility and animated role presentation improvements in homepage organizational teaser.
 - Replaced native browser confirms with styled confirmation modals for delete actions in newsroom management and activity moderation flows.
 - Added admin-only delete controls on the Activity Timeline and removed activity edit capability to keep the audit trail strict.
 - Fixed Next.js 16 dynamic route param handling on affected dashboard pages (`params` Promise handling), removing runtime route errors.

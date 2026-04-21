@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import { Search, Mail, Shield, User, GraduationCap } from "lucide-react";
+import Image from "next/image";
 
 type Member = {
   id: string;
@@ -11,6 +12,20 @@ type Member = {
   role: string;
   level: number;
   joined_at: string;
+  avatar_url: string | null;
+};
+
+const ROLE_LABELS: Record<string, string> = {
+  admin: "Admin",
+  president: "President",
+  vice_president: "Vice President",
+  documentation_officer: "Documentation Officer",
+  field_officer: "Field Officer",
+  advocacy_officer: "Advocacy Officer",
+  technical_officer: "Technical Officer",
+  faculty_advisor: "Faculty Advisor",
+  works_dept: "Works Dept Liaison",
+  applicant: "Applicant",
 };
 
 export default function MemberDirectoryPage() {
@@ -45,12 +60,12 @@ export default function MemberDirectoryPage() {
 
   const getRoleBadge = (role: string) => {
     if (role === 'admin' || role === 'president' || role === 'vice_president') {
-      return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-danger/10 text-danger text-[10px] font-bold uppercase tracking-wider border border-danger/20"><Shield size={10}/> {role.replace('_', ' ')}</span>;
+      return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-danger/10 text-danger text-[10px] font-bold uppercase tracking-wider border border-danger/20"><Shield size={10}/> {ROLE_LABELS[role] ?? role.replace('_', ' ')}</span>;
     }
     if (role === 'technical_officer' || role === 'documentation_officer') {
-      return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-blue-500/10 text-blue-400 text-[10px] font-bold uppercase tracking-wider border border-blue-500/20"><User size={10}/> {role.replace('_', ' ')}</span>;
+      return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-blue-500/10 text-blue-400 text-[10px] font-bold uppercase tracking-wider border border-blue-500/20"><User size={10}/> {ROLE_LABELS[role] ?? role.replace('_', ' ')}</span>;
     }
-    return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-bg3 text-text2 text-[10px] font-bold uppercase tracking-wider border border-borderDark">{role.replace('_', ' ')}</span>;
+    return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-bg3 text-text2 text-[10px] font-bold uppercase tracking-wider border border-borderDark">{ROLE_LABELS[role] ?? role.replace('_', ' ')}</span>;
   };
 
   return (
@@ -90,8 +105,19 @@ export default function MemberDirectoryPage() {
                       {getRoleBadge(member.role)}
                     </div>
                   </div>
-                  <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-lg font-mono uppercase border border-primary/20">
-                     {member.full_name.charAt(0)}
+                  <div className="w-10 h-10 rounded-full text-primary flex items-center justify-center font-bold text-lg font-mono uppercase border border-primary/20 overflow-hidden bg-gradient-to-br from-primary/20 to-accent/10">
+                     {member.avatar_url ? (
+                       <Image
+                         src={member.avatar_url}
+                         alt={member.full_name}
+                         width={40}
+                         height={40}
+                         unoptimized
+                         className="w-full h-full object-cover"
+                       />
+                     ) : (
+                       member.full_name.charAt(0)
+                     )}
                   </div>
                </div>
 

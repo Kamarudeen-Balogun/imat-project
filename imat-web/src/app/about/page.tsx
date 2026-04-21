@@ -66,35 +66,30 @@ export default function AboutPage() {
 
       <h2 className="text-2xl font-bold text-textDefault mb-8">Organizational Structure</h2>
       <div className="bg-bg2 border border-borderDark rounded-xl p-8 mb-8">
-        <div className="flex flex-col items-center">
-          <div className="w-48 text-center p-4 border border-primary/50 bg-primary/10 rounded-lg mb-8 relative">
+        <div className="flex flex-col items-center gap-5 mb-10">
+          <div className="w-full max-w-sm text-center p-4 border border-primary/50 bg-primary/10 rounded-lg">
             <h3 className="font-bold text-textDefault">Faculty Advisor</h3>
-            <p className="text-xs text-text2 mt-1">Civil Engineering Lecturer</p>
-            <div className="absolute h-8 w-px bg-borderDark bottom-[-32px] left-1/2 -translate-x-1/2"></div>
+            <p className="text-xs text-text2 mt-1">Academic and strategic oversight</p>
           </div>
-          
-          <div className="w-56 text-center p-4 border border-borderLit bg-bg rounded-lg mb-12 relative">
-            <h3 className="font-bold text-textDefault">President / Team Lead</h3>
-            <p className="text-xs text-text2 mt-1">500L Student</p>
-            <div className="absolute h-12 w-px bg-borderDark bottom-[-48px] left-1/2 -translate-x-1/2"></div>
-            {/* Horizontal branch line */}
-            <div className="absolute h-px w-[80%] md:w-[600px] bg-borderDark bottom-[-48px] left-[10%] md:left-1/2 md:-translate-x-1/2 hidden md:block"></div>
+          <div className="w-full max-w-sm text-center p-4 border border-borderLit bg-bg rounded-lg">
+            <h3 className="font-bold text-textDefault">President & Vice President</h3>
+            <p className="text-xs text-text2 mt-1">Executive leadership and coordination</p>
           </div>
+        </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 w-full relative pt-4">
-            <div className="text-center p-4 border border-borderDark rounded-lg hover:border-text3 transition-colors bg-bg">
-              <h4 className="font-semibold text-textDefault text-sm">Documentation Officer</h4>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
+          {[
+            "Documentation Officer",
+            "Field Officer",
+            "Advocacy Officer",
+            "Technical Officer",
+            "Works Dept Liaison",
+            "Admin",
+          ].map((role) => (
+            <div key={role} className="text-center p-4 border border-borderDark rounded-lg hover:border-text3 transition-colors bg-bg">
+              <h4 className="font-semibold text-textDefault text-sm">{role}</h4>
             </div>
-            <div className="text-center p-4 border border-borderDark rounded-lg hover:border-text3 transition-colors bg-bg">
-              <h4 className="font-semibold text-textDefault text-sm">Field Assessment Officer</h4>
-            </div>
-            <div className="text-center p-4 border border-borderDark rounded-lg hover:border-text3 transition-colors bg-bg">
-              <h4 className="font-semibold text-textDefault text-sm">Advocacy & Outreach</h4>
-            </div>
-            <div className="text-center p-4 border border-borderDark rounded-lg hover:border-text3 transition-colors bg-bg">
-              <h4 className="font-semibold text-textDefault text-sm">Technical Officer</h4>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
     </div>

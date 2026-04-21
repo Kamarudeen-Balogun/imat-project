@@ -70,22 +70,6 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  // Additional role gate for /portal access
-  if (isPortalRoute && user) {
-    const { data: profile } = await supabase
-      .from('users')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-
-    const allowedPortalRoles = ['works_dept', 'faculty_advisor', 'president', 'vice_president', 'admin']
-
-    if (!profile || !allowedPortalRoles.includes(profile.role)) {
-      const dashboardUrl = new URL('/dashboard', request.url)
-      return NextResponse.redirect(dashboardUrl)
-    }
-  }
-
   const shouldCleanupActivityLogs = isDashboardRoute || isPortalRoute || request.nextUrl.pathname.startsWith('/newsroom')
 
   if (shouldCleanupActivityLogs) {

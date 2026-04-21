@@ -18,6 +18,7 @@ export default function BrowserNewsNotifier() {
     let recipientId: string | null = null;
     let cancelled = false;
     let intervalId: ReturnType<typeof setInterval> | null = null;
+    let channel: ReturnType<typeof supabase.channel> | null = null;
 
     const markRead = async (id: string) => {
       if (!recipientId) return;
@@ -47,6 +48,12 @@ export default function BrowserNewsNotifier() {
       };
     };
 
+    const maybeNotify = (item: NotificationRow) => {
+      if (seenIdsRef.current.has(item.id)) return;
+      seenIdsRef.current.add(item.id);
+      notify(item);
+    };
+
     const poll = async () => {
       if (!recipientId || cancelled) return;
 
@@ -62,9 +69,7 @@ export default function BrowserNewsNotifier() {
 
       const ordered = [...(data as NotificationRow[])].reverse();
       ordered.forEach((item) => {
-        if (seenIdsRef.current.has(item.id)) return;
-        seenIdsRef.current.add(item.id);
-        notify(item);
+        maybeNotify(item);
       });
     };
 
@@ -73,14 +78,28 @@ export default function BrowserNewsNotifier() {
       if (!data.session || cancelled) return;
       recipientId = data.session.user.id;
 
-      const { data: unreadAtBoot } = await supabase
-        .from("notifications")
-        .select("id")
-        .eq("recipient_id", recipientId)
-        .eq("is_read", false)
-        .limit(30);
-
-      (unreadAtBoot ?? []).forEach((row: { id: string }) => seenIdsRef.current.add(row.id));
+      channel = supabase
+        .channel(`browser-news-notifier-${recipientId}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "notifications",
+            filter: `recipient_id=eq.${recipientId}`,
+          },
+          (payload) => {
+            const next = payload.new as Partial<NotificationRow>;
+            if (!next.id || !next.href) return;
+            maybeNotify({
+              id: next.id,
+              title: next.title ?? "News update",
+              body: next.body ?? "",
+              href: next.href,
+            });
+          }
+        )
+        .subscribe();
 
       await poll();
       intervalId = setInterval(poll, 12000);
@@ -91,6 +110,9 @@ export default function BrowserNewsNotifier() {
     return () => {
       cancelled = true;
       if (intervalId) clearInterval(intervalId);
+      if (channel) {
+        void supabase.removeChannel(channel);
+      }
     };
   }, []);
 
