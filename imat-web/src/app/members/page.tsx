@@ -49,7 +49,7 @@ export default function MembersPage() {
   }, [members, search]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-14 md:py-20 min-h-screen">
+    <div className="mx-auto min-h-screen max-w-7xl px-4 py-14 sm:px-6 md:py-20">
       <Link href="/" className="inline-flex items-center gap-2 text-text3 hover:text-primary transition-colors text-sm font-mono mb-10">
         <ArrowLeft size={16} /> Back to Home
       </Link>
@@ -59,7 +59,7 @@ export default function MembersPage() {
         Meet the active officers and members currently running infrastructure monitoring and advocacy across campus.
       </p>
 
-      <div className="mb-8 rounded-2xl border border-borderDark bg-bg2 px-4 py-3 flex items-center gap-3">
+      <div className="glass-panel mb-8 flex items-center gap-3 rounded-2xl px-4 py-3">
         <Search size={18} className="text-text3" />
         <input
           value={search}
@@ -72,11 +72,11 @@ export default function MembersPage() {
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {Array.from({ length: 6 }).map((_, index) => (
-            <div key={index} className="h-44 rounded-2xl border border-borderDark bg-bg2 animate-pulse" />
+            <div key={index} className="h-44 rounded-2xl border border-borderDark bg-surface animate-pulse" />
           ))}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="rounded-2xl border border-borderDark border-dashed bg-bg2 p-8 text-center text-text3">
+        <div className="rounded-2xl border border-borderDark border-dashed bg-surface p-8 text-center text-text3">
           No members matched your search.
         </div>
       ) : (
@@ -84,7 +84,7 @@ export default function MembersPage() {
           {filtered.map((member) => {
             const initials = (member.full_name || "M").slice(0, 1).toUpperCase();
             return (
-              <article key={member.id} className="rounded-2xl border border-borderDark bg-gradient-to-b from-bg2 to-bg p-5 hover:border-primary/40 hover:-translate-y-0.5 transition-all">
+              <article key={member.id} className="glass-panel rounded-2xl p-5 transition-all hover:-translate-y-0.5 hover:border-primary/40">
                 <div className="flex items-center gap-4">
                   <div className="h-16 w-16 rounded-2xl border border-borderDark overflow-hidden bg-gradient-to-br from-primary/30 to-accent/20 flex items-center justify-center text-xl font-bold text-textDefault">
                     {member.avatar_url ? (

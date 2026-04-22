@@ -35,8 +35,8 @@ export default function BrowserNewsNotifier() {
 
       const browserNotification = new Notification(item.title || "News update", {
         body: item.body,
-        icon: "/imatlogo.png",
-        badge: "/imatlogo.png",
+        icon: "/images/imatlogo.png",
+        badge: "/images/imatlogo.png",
         tag: `news-${item.id}`,
       });
 

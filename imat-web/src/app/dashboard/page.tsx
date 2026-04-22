@@ -30,17 +30,17 @@ export default function DashboardPage() {
       {/* GLOBAL STATS */}
       <div className="overflow-x-auto md:overflow-visible">
       <div className="grid grid-cols-3 gap-2 sm:gap-4 md:gap-6 min-w-[360px] md:min-w-0">
-        <div className="bg-bg2 border border-borderDark rounded-lg md:rounded-xl p-3 sm:p-4 md:p-6 flex flex-col items-center text-center">
+        <div className="glass-panel rounded-lg p-3 text-center sm:p-4 md:rounded-xl md:p-6 flex flex-col items-center">
           <div className="w-8 h-8 md:w-12 md:h-12 bg-blue-500/10 text-blue-500 rounded-full flex items-center justify-center mb-2 md:mb-4"><Clock size={16} className="md:hidden" /><Clock size={24} className="hidden md:block" /></div>
           <div className="text-2xl md:text-3xl font-bold text-textDefault mb-1">{loading ? "--" : stats.reported}</div>
-          <div className="text-[10px] sm:text-xs md:text-sm text-text3 font-mono uppercase tracking-wider leading-tight">New Reports</div>
+          <div className="text-[10px] sm:text-xs md:text-sm text-text3 font-mono uppercase tracking-wider leading-tight">Defects Reported</div>
          </div>
-        <div className="bg-bg2 border border-borderDark rounded-lg md:rounded-xl p-3 sm:p-4 md:p-6 flex flex-col items-center text-center border-b-2 border-b-warning">
+        <div className="glass-panel rounded-lg p-3 text-center sm:p-4 md:rounded-xl md:p-6 flex flex-col items-center border-b-2 border-b-warning">
           <div className="w-8 h-8 md:w-12 md:h-12 bg-warning/10 text-warning rounded-full flex items-center justify-center mb-2 md:mb-4"><AlertTriangle size={16} className="md:hidden" /><AlertTriangle size={24} className="hidden md:block" /></div>
           <div className="text-2xl md:text-3xl font-bold text-textDefault mb-1">{loading ? "--" : stats.underAssessment}</div>
           <div className="text-[10px] sm:text-xs md:text-sm text-text3 font-mono uppercase tracking-wider leading-tight">Under Assessment</div>
          </div>
-        <div className="bg-bg2 border border-borderDark rounded-lg md:rounded-xl p-3 sm:p-4 md:p-6 flex flex-col items-center text-center border-b-2 border-b-success">
+        <div className="glass-panel rounded-lg p-3 text-center sm:p-4 md:rounded-xl md:p-6 flex flex-col items-center border-b-2 border-b-success">
           <div className="w-8 h-8 md:w-12 md:h-12 bg-success/10 text-success rounded-full flex items-center justify-center mb-2 md:mb-4"><CheckCircle size={16} className="md:hidden" /><CheckCircle size={24} className="hidden md:block" /></div>
           <div className="text-2xl md:text-3xl font-bold text-textDefault mb-1">{loading ? "--" : stats.resolved}</div>
           <div className="text-[10px] sm:text-xs md:text-sm text-text3 font-mono uppercase tracking-wider leading-tight">Resolved Issues</div>
@@ -55,7 +55,7 @@ export default function DashboardPage() {
             
             {/* Action Cards that depend on role */}
             {['field_officer', 'admin', 'technical_officer'].includes(role) && (
-              <Link href="/dashboard/defects/new" className="group block bg-bg border border-borderDark hover:border-primary rounded-xl p-6 transition-colors shadow-lg">
+              <Link href="/dashboard/defects/new" className="group glass-panel block rounded-xl p-6 transition-colors shadow-lg hover:border-primary">
                  <div className="flex items-center gap-3 mb-3 text-primary">
                     <MapPin size={20} />
                     <strong className="text-lg">Log New Field Assessment</strong>
@@ -67,7 +67,7 @@ export default function DashboardPage() {
             )}
 
             {['documentation_officer', 'admin'].includes(role) && (
-              <Link href="/dashboard/reports/new" className="group block bg-bg border border-borderDark hover:border-blue-400 rounded-xl p-6 transition-colors shadow-lg">
+              <Link href="/dashboard/reports/new" className="group glass-panel block rounded-xl p-6 transition-colors shadow-lg hover:border-blue-400">
                  <div className="flex items-center gap-3 mb-3 text-blue-400">
                     <FileText size={20} />
                     <strong className="text-lg">Generate Report</strong>
@@ -79,7 +79,7 @@ export default function DashboardPage() {
             )}
 
             {['advocacy_officer', 'president', 'admin'].includes(role) && (
-              <Link href="/dashboard/campaigns/new" className="group block bg-bg border border-borderDark hover:border-purple-400 rounded-xl p-6 transition-colors shadow-lg">
+              <Link href="/dashboard/campaigns/new" className="group glass-panel block rounded-xl p-6 transition-colors shadow-lg hover:border-purple-400">
                  <div className="flex items-center gap-3 mb-3 text-purple-400">
                     <Megaphone size={20} />
                     <strong className="text-lg">Broadcast Campaign</strong>
@@ -90,7 +90,7 @@ export default function DashboardPage() {
               </Link>
             )}
 
-              <Link href="/dashboard/wiki" className="group block bg-bg border border-borderDark hover:border-green-400 rounded-xl p-6 transition-colors shadow-lg">
+              <Link href="/dashboard/wiki" className="group glass-panel block rounded-xl p-6 transition-colors shadow-lg hover:border-green-400">
                 <div className="flex items-center gap-3 mb-3 text-green-400">
                   <BookOpen size={20} />
                   <strong className="text-lg">Knowledge Base</strong>
@@ -102,7 +102,7 @@ export default function DashboardPage() {
 
 
             {canEditContent(role) && (
-              <Link href="/dashboard/news" className="group block bg-bg border border-borderDark hover:border-primary rounded-xl p-6 transition-colors shadow-lg">
+              <Link href="/dashboard/news" className="group glass-panel block rounded-xl p-6 transition-colors shadow-lg hover:border-primary">
                  <div className="flex items-center gap-3 mb-3 text-primary">
                     <Megaphone size={20} />
                     <strong className="text-lg">Manage Newsroom</strong>
@@ -112,7 +112,7 @@ export default function DashboardPage() {
                  </p>
               </Link>
             )}
-              <Link href="/dashboard/activity" className="group block bg-bg border border-borderDark hover:border-amber-400 rounded-xl p-6 transition-colors shadow-lg">
+              <Link href="/dashboard/activity" className="group glass-panel block rounded-xl p-6 transition-colors shadow-lg hover:border-amber-400">
                 <div className="flex items-center gap-3 mb-3 text-amber-400">
                   <Activity size={20} />
                   <strong className="text-lg">Activity Timeline</strong>

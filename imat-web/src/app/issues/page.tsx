@@ -66,7 +66,7 @@ export default function IssuesTrackerPage() {
   );
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-16 min-h-screen flex flex-col">
+    <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-4 py-12 sm:px-6 sm:py-16">
       <Link href="/" className="inline-flex items-center gap-2 text-text3 hover:text-primary transition-colors text-sm font-mono mb-8">
         <ArrowLeft size={16} /> Back to Home
       </Link>
@@ -78,7 +78,7 @@ export default function IssuesTrackerPage() {
         </p>
       </div>
 
-      <div className="bg-bg2 border border-borderDark rounded-xl p-4 mb-8 flex items-center gap-3">
+      <div className="glass-panel mb-8 flex items-center gap-3 rounded-xl p-4">
          <Search size={20} className="text-text3" />
          <input 
            type="text" 
@@ -89,7 +89,7 @@ export default function IssuesTrackerPage() {
          />
       </div>
 
-      <div className="bg-bg2 border border-borderDark rounded-xl overflow-x-auto">
+      <div className="glass-panel overflow-x-auto rounded-xl">
         <table className="w-full text-left border-collapse min-w-[700px]">
           <thead>
             <tr className="bg-bg border-b border-borderDark font-mono text-xs uppercase text-text3 tracking-wider">

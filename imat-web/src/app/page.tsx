@@ -1,12 +1,11 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useInView, useReducedMotion, Variants } from "framer-motion";
 import Link from "next/link";
 import {
   ArrowRight,
   AlertTriangle,
   Users,
-  FileCheck,
   ShieldCheck,
   Crown,
   GraduationCap,
@@ -16,9 +15,10 @@ import {
   Wrench,
   Building2,
   User,
+  type LucideIcon,
 } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSiteStats } from "@/hooks/useSiteStats";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import { ROLE_LABELS, sortByRoleHierarchy, toRoleLabel } from "@/lib/roleHierarchy";
@@ -31,38 +31,95 @@ type MemberSpotlight = {
   avatar_url: string | null;
 };
 
-const fallbackEvidenceItems: EvidenceGalleryItem[] = [
-  {
-    id: "fallback-1",
-    title: "Blocked Drain Grate",
-    description: "Drainage obstruction recorded near the walk path. The after slot stays visible until a verified repair image is uploaded.",
-    category: "Drainage",
-    before_image_url: "/images/Blocked drain grate.webp",
-    after_image_url: null,
+const sectionReveal: Variants = {
+  hidden: { opacity: 0, y: 28 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.6, ease: "easeOut" },
   },
-  {
-    id: "fallback-2",
-    title: "Crack Concrete Walkway",
-    description: "A walkway surface defect used as a live comparison card for before and after reporting.",
-    category: "Walkways",
-    before_image_url: "/images/Crack concrete walkway.webp",
-    after_image_url: null,
-  },
-  {
-    id: "fallback-3",
-    title: "Damaged Interlocking Drainage",
-    description: "Damaged drainage joints that can be updated with an after photo once the repair is verified.",
-    category: "Drainage",
-    before_image_url: "/images/Damaged interlocking drainage.webp",
-    after_image_url: null,
-  },
-];
+};
+
+function AnimatedMetricCard({
+  label,
+  value,
+  icon: Icon,
+  loading,
+  delay,
+}: {
+  label: string;
+  value: number;
+  icon: LucideIcon;
+  loading: boolean;
+  delay: number;
+}) {
+  const cardRef = useRef<HTMLDivElement | null>(null);
+  const isInView = useInView(cardRef, { once: true, amount: 0.6 });
+  const prefersReducedMotion = useReducedMotion();
+  const [displayValue, setDisplayValue] = useState(0);
+
+  useEffect(() => {
+    if (loading) {
+      setDisplayValue(0);
+      return;
+    }
+
+    if (!isInView) {
+      return;
+    }
+
+    if (prefersReducedMotion) {
+      setDisplayValue(value);
+      return;
+    }
+
+    let frameId = 0;
+    const duration = 1800;
+    let startTime: number | null = null;
+
+    const step = (timestamp: number) => {
+      if (startTime === null) {
+        startTime = timestamp;
+      }
+
+      const progress = Math.min((timestamp - startTime) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setDisplayValue(Math.round(value * eased));
+
+      if (progress < 1) {
+        frameId = window.requestAnimationFrame(step);
+      }
+    };
+
+    frameId = window.requestAnimationFrame(step);
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+    };
+  }, [isInView, loading, prefersReducedMotion, value]);
+
+  return (
+    <motion.div
+      ref={cardRef}
+      variants={sectionReveal}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.45 }}
+      transition={{ delay }}
+      className="glass-panel rounded-2xl p-5"
+    >
+      <Icon className="mb-4 h-7 w-7 text-primary" />
+      <p className="text-3xl font-bold text-textDefault md:text-4xl">{loading ? "--" : displayValue}</p>
+      <p className="mt-2 text-xs uppercase tracking-[0.14em] text-text3">{label}</p>
+    </motion.div>
+  );
+}
 
 export default function Home() {
   const [filter, setFilter] = useState("All");
   const [spotlightMembers, setSpotlightMembers] = useState<MemberSpotlight[]>([]);
   const [membersLoading, setMembersLoading] = useState(true);
-  const [evidenceItems, setEvidenceItems] = useState<EvidenceGalleryItem[]>(fallbackEvidenceItems);
+  const [evidenceItems, setEvidenceItems] = useState<EvidenceGalleryItem[]>([]);
   const [evidenceLoading, setEvidenceLoading] = useState(true);
   const { stats, loading } = useSiteStats(60000);
 
@@ -78,7 +135,7 @@ export default function Home() {
         .limit(6);
 
       const rows = (data ?? []) as EvidenceGalleryItem[];
-      setEvidenceItems(rows.length > 0 ? rows : fallbackEvidenceItems);
+      setEvidenceItems(rows);
       setEvidenceLoading(false);
     };
 
@@ -103,7 +160,7 @@ export default function Home() {
 
   const cards = useMemo(() => ([
     { label: "Defects Reported", value: stats.reported, icon: AlertTriangle },
-    { label: "Assessments Completed", value: stats.assessmentsCompleted, icon: FileCheck },
+    { label: "Under Assessment", value: stats.underAssessment, icon: FileText },
     { label: "Issues Resolved", value: stats.resolved, icon: ShieldCheck },
     { label: "Active Members", value: stats.activeMembers, icon: Users },
   ]), [stats]);
@@ -147,103 +204,126 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col w-full">
-      {/* HERO SECTION */}
-      <section className="relative overflow-hidden w-full min-h-[78vh] md:min-h-[80vh] flex items-center justify-center">
-        {/* Subtle geometric animated background */}
-        <div className="absolute inset-0 bg-bg z-0" />
-        <div className="absolute w-[600px] h-[600px] bg-primary/20 blur-[100px] rounded-full top-[-100px] right-[-100px] opacity-30 animate-pulse" />
-        <div className="absolute w-[400px] h-[400px] bg-accent/20 blur-[80px] rounded-full bottom-0 left-[-50px] opacity-20" />
-        
-        <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 text-center pt-16 md:pt-20">
-          <motion.div 
+    <div className="flex w-full flex-col">
+      <section className="relative overflow-hidden pb-20 pt-20 md:pb-28 md:pt-24">
+        <div className="pointer-events-none absolute left-[8%] top-[6%] h-48 w-48 rounded-full bg-primary/30 blur-3xl" />
+        <div className="pointer-events-none absolute right-[8%] top-[16%] h-44 w-44 rounded-full bg-success/30 blur-3xl" />
+
+        <div className="relative mx-auto max-w-6xl px-4 sm:px-6">
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.55 }}
+            className="glass-panel relative overflow-hidden rounded-3xl p-6 sm:p-8 lg:p-10"
           >
-            <span className="font-mono text-accent text-sm tracking-widest uppercase mb-6 inline-block">Infrastructure Maintenance Awareness Team</span>
-            <h1 className="text-balance text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-textDefault mb-6 leading-[0.95] max-w-5xl mx-auto">
-              Building a <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-success whitespace-nowrap">Culture of Care</span><br />
-              for FUTA Infrastructure
-            </h1>
-            <p className="text-base sm:text-lg md:text-xl text-text2 max-w-2xl mx-auto mb-10 leading-relaxed font-light">
-              Bridging the gap between students and university management through systematic monitoring, 
-              advocacy, and volunteer engineering support.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link href="/apply" className="w-full sm:w-auto px-8 py-4 bg-primary hover:bg-blue-500 text-bg2 font-bold rounded-lg transition-transform hover:scale-105 active:scale-95 flex items-center justify-center gap-2">
-                Apply to Join <ArrowRight size={18} />
-              </Link>
-              <Link href="/report" className="w-full sm:w-auto px-8 py-4 bg-transparent border border-borderLit hover:border-textDefault hover:bg-bg2 text-textDefault font-medium rounded-lg transition-colors flex items-center justify-center">
-                Report an Issue
-              </Link>
+            <div className="relative z-10">
+              <div className="mb-2 inline-flex rounded-full border border-accent/50 bg-accent/10 px-3 py-1 text-[11px] font-mono uppercase tracking-[0.16em] text-accent">
+                IMAT = Infrastructure Maintenance Awareness Team
+              </div>
+              <div className="mb-6 inline-flex rounded-full border border-primary/45 bg-primary/10 px-3 py-1 text-[11px] font-mono uppercase tracking-[0.16em] text-primary">
+                FUTA Infrastructure Monitoring Network
+              </div>
+
+              <h1 className="text-balance max-w-4xl text-4xl font-bold leading-[0.95] text-textDefault sm:text-5xl lg:text-7xl">
+                Campus Problems,
+                <span className="block bg-gradient-to-r from-primary via-accent to-success bg-clip-text text-transparent">Engineered Responses.</span>
+              </h1>
+
+              <p className="mt-5 max-w-2xl text-base leading-relaxed text-text2 sm:text-lg">
+                IMAT unifies student reports, evidence validation, and engineering follow-through so every infrastructure issue can be tracked from first alert to verified fix.
+              </p>
+
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                <Link href="/report" className="inline-flex items-center justify-center gap-2 rounded-xl border border-primary/40 bg-primary px-6 py-3 text-sm font-bold text-bg transition-colors hover:bg-sky-400">
+                  Report an Issue
+                  <ArrowRight size={16} />
+                </Link>
+                <Link href="/apply" className="inline-flex items-center justify-center gap-2 rounded-xl border border-borderLit bg-bg2/70 px-6 py-3 text-sm font-semibold text-textDefault transition-colors hover:border-primary/45 hover:text-primary">
+                  Join the Team
+                </Link>
+              </div>
             </div>
+
           </motion.div>
         </div>
       </section>
 
-      {/* IMPACT COUNTER */}
-      <section className="py-16 md:py-20 border-y border-borderDark bg-bg2 relative z-10">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="text-center mb-12">
-            <h2 className="text-sm font-mono text-text3 tracking-widest uppercase">Our Impact in Numbers</h2>
+      <motion.section
+        variants={sectionReveal}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.22 }}
+        className="border-y border-borderDark/80 bg-bg2/65 py-16 md:py-20"
+      >
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <div className="mb-10 flex items-end justify-between gap-4">
+            <div>
+              <p className="mb-2 text-xs font-mono uppercase tracking-[0.18em] text-text3">Operational Coverage</p>
+              <h2 className="text-2xl font-bold text-textDefault sm:text-3xl">Live Infrastructure Metrics</h2>
+            </div>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-12">
+
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
             {cards.map((stat, i) => (
-              <motion.div 
+              <AnimatedMetricCard
                 key={stat.label}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1, duration: 0.5 }}
-                className="flex flex-col items-center text-center p-6 border border-borderDark rounded-xl bg-bg hover:border-borderLit transition-colors"
-              >
-                <stat.icon className="w-8 h-8 text-primary mb-4 opacity-80" />
-                <span className="text-4xl md:text-5xl font-mono font-bold text-textDefault mb-2">
-                  {loading ? "--" : stat.value}
-                </span>
-                <span className="text-sm text-text2">{stat.label}</span>
-              </motion.div>
+                label={stat.label}
+                value={stat.value}
+                icon={stat.icon}
+                loading={loading}
+                delay={i * 0.08}
+              />
             ))}
           </div>
         </div>
-      </section>
+      </motion.section>
 
-      {/* EVIDENCE GALLERY (Preview) */}
-      <section className="py-20 md:py-32 relative z-10 bg-bg">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="flex flex-col md:flex-row items-end justify-between mb-12">
+      <motion.section
+        variants={sectionReveal}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+        className="py-20 md:py-28"
+      >
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <div className="mb-8 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
-              <h2 className="text-3xl md:text-4xl font-bold text-textDefault mb-4">Evidence Gallery</h2>
-              <p className="text-text2 max-w-xl">
-                Documenting physical campus defects and tracking them to resolution. Our field officers assess and log issues continuously.
+              <p className="mb-2 text-xs font-mono uppercase tracking-[0.18em] text-text3">Field Intelligence</p>
+              <h2 className="text-3xl font-bold text-textDefault md:text-4xl">Evidence Gallery</h2>
+              <p className="mt-3 max-w-2xl text-sm leading-relaxed text-text2 md:text-base">
+                Verified media logs create traceability and help maintenance stakeholders prioritize urgent defects across campus.
               </p>
             </div>
-            <Link href="/evidence" className="text-primary hover:text-textDefault mt-4 md:mt-0 flex items-center gap-2 font-medium transition-colors">
-              View full tracker <ArrowRight size={16} />
+            <Link href="/evidence" className="inline-flex items-center gap-2 text-sm font-semibold text-primary transition-colors hover:text-textDefault">
+              Open Full Evidence Board <ArrowRight size={15} />
             </Link>
           </div>
 
-          {/* Filters */}
-          <div className="flex flex-wrap gap-2 mb-8">
-            {["All", "Drainage", "Roads", "Walkways", "Structures"].map(c => (
-              <button 
-                key={c}
-                onClick={() => setFilter(c)}
-                className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-colors ${filter === c ? 'bg-primary text-bg2 border-primary' : 'bg-bg2 text-text2 border-borderDark hover:border-text3'}`}
+          <div className="mb-7 flex flex-wrap gap-2">
+            {["All", "Drainage", "Roads", "Walkways", "Structures"].map((category) => (
+              <button
+                key={category}
+                onClick={() => setFilter(category)}
+                className={`rounded-full border px-4 py-1.5 text-sm font-semibold transition-colors ${
+                  filter === category
+                    ? "border-primary bg-primary text-bg"
+                    : "border-borderDark bg-bg2/80 text-text2 hover:border-borderLit"
+                }`}
               >
-                {c}
+                {category}
               </button>
             ))}
           </div>
 
-          {/* Evidence Grid */}
           {evidenceLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
               {Array.from({ length: 3 }).map((_, index) => (
-                <div key={index} className="h-[420px] rounded-2xl border border-borderDark bg-bg2 animate-pulse" />
+                <div key={index} className="h-[420px] animate-pulse rounded-2xl border border-borderDark bg-bg2" />
               ))}
+            </div>
+          ) : evidenceItems.length === 0 ? (
+            <div className="glass-panel rounded-2xl p-8 text-center text-text3">
+              No evidence items are published yet. Upload the first before-and-after record from the dashboard to populate this section.
             </div>
           ) : (
             <EvidenceGalleryGrid
@@ -254,68 +334,75 @@ export default function Home() {
             />
           )}
         </div>
-      </section>
+      </motion.section>
 
-      {/* ORG TEASER */}
-      <section className="py-16 md:py-24 bg-bg2 border-t border-borderDark relative z-10 overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute -top-20 right-0 h-48 w-48 rounded-full bg-primary/10 blur-3xl" />
-          <div className="absolute -bottom-24 left-0 h-56 w-56 rounded-full bg-accent/10 blur-3xl" />
-        </div>
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-textDefault mb-4">Who runs IMAT?</h2>
-          <p className="text-base md:text-lg text-text2 max-w-2xl mx-auto mb-8">
-            A dedicated team of Civil Engineering students (200L–500L) overseen by a Faculty Advisor. 
-            We organize into specific roles to ensure efficient reporting and documentation.
+      <motion.section
+        variants={sectionReveal}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+        className="border-t border-borderDark/80 bg-bg2/65 py-16 md:py-24"
+      >
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 text-center">
+          <p className="mb-2 text-xs font-mono uppercase tracking-[0.18em] text-text3">Human Infrastructure</p>
+          <h2 className="text-3xl font-bold text-textDefault md:text-4xl">The Team Behind The System</h2>
+          <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-text2 md:text-base">
+            From field officers to technical leadership, IMAT runs as a coordinated engineering operation with clear responsibilities.
           </p>
 
-          <div className="mb-8">
-            <div className="mx-auto max-w-4xl rounded-2xl border border-borderDark/80 bg-bg/70 p-3 md:p-4 backdrop-blur-sm">
-              <div className="relative md:hidden overflow-hidden">
-                <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-8 bg-gradient-to-r from-bg2 to-transparent" />
-                <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-8 bg-gradient-to-l from-bg2 to-transparent" />
-                <div className="flex w-max items-center gap-2.5 animate-role-marquee pr-2">
-                  {[...spotlightRoles, ...spotlightRoles].map((role, index) => (
-                    <span
-                      key={`${role}-${index}`}
-                      className="rounded-full border border-primary/25 bg-gradient-to-r from-bg to-bg2 px-3.5 py-1.5 text-[10px] font-mono uppercase tracking-wider text-text2 shadow-[0_0_0_1px_rgba(59,130,246,0.08)] whitespace-nowrap"
-                    >
-                      {role === "member" ? "Member" : ROLE_LABELS[role]}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              <div className="hidden md:flex flex-wrap items-center justify-center gap-2.5">
-                {spotlightRoles.map((role, index) => (
-                  <motion.span
-                    key={role}
-                    initial={{ opacity: 0, y: 8, scale: 0.96 }}
-                    whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                    viewport={{ once: true, amount: 0.5 }}
-                    transition={{ delay: index * 0.06, duration: 0.35, ease: "easeOut" }}
-                    whileHover={{ y: -2, scale: 1.03 }}
-                    className="rounded-full border border-primary/25 bg-gradient-to-r from-bg to-bg2 px-3.5 py-1.5 text-[10px] font-mono uppercase tracking-wider text-text2 shadow-[0_0_0_1px_rgba(59,130,246,0.08)]"
+          <div className="mx-auto mb-10 mt-8 max-w-4xl rounded-2xl border border-borderDark/80 bg-bg/70 p-3 md:p-4">
+            <div className="relative overflow-hidden md:hidden">
+              <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-8 bg-gradient-to-r from-bg2 to-transparent" />
+              <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-8 bg-gradient-to-l from-bg2 to-transparent" />
+              <div className="animate-role-marquee flex w-max items-center gap-2.5 pr-2">
+                {[...spotlightRoles, ...spotlightRoles].map((role, index) => (
+                  <span
+                    key={`${role}-${index}`}
+                    className="whitespace-nowrap rounded-full border border-primary/25 bg-gradient-to-r from-bg to-bg2 px-3.5 py-1.5 text-[10px] font-mono uppercase tracking-wider text-text2 shadow-[0_0_0_1px_rgba(59,130,246,0.08)]"
                   >
                     {role === "member" ? "Member" : ROLE_LABELS[role]}
-                  </motion.span>
+                  </span>
                 ))}
               </div>
             </div>
+
+            <div className="hidden flex-wrap items-center justify-center gap-2.5 md:flex">
+              {spotlightRoles.map((role, index) => (
+                <motion.span
+                  key={role}
+                  initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                  whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                  viewport={{ once: true, amount: 0.5 }}
+                  transition={{ delay: index * 0.05, duration: 0.3, ease: "easeOut" }}
+                  whileHover={{ y: -2, scale: 1.03 }}
+                  className="rounded-full border border-primary/25 bg-gradient-to-r from-bg to-bg2 px-3.5 py-1.5 text-[10px] font-mono uppercase tracking-wider text-text2 shadow-[0_0_0_1px_rgba(59,130,246,0.08)]"
+                >
+                  {role === "member" ? "Member" : ROLE_LABELS[role]}
+                </motion.span>
+              ))}
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
             {membersLoading
               ? Array.from({ length: 5 }).map((_, index) => (
-                  <div key={index} className="rounded-xl border border-borderDark bg-bg p-4 animate-pulse min-h-[118px]" />
+                  <div key={index} className="min-h-[120px] animate-pulse rounded-xl border border-borderDark bg-bg p-4" />
                 ))
               : spotlightMembers.map((member) => {
                   const initials = (member.full_name || "M").slice(0, 1).toUpperCase();
                   const RoleIcon = getRoleIcon(member.role);
+
                   return (
-                    <div key={member.id} className="rounded-xl border border-borderDark bg-bg/95 p-3.5 text-left hover:border-primary/40 hover:-translate-y-0.5 transition-all">
+                    <motion.div
+                      key={member.id}
+                      initial={{ opacity: 0, y: 16 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, amount: 0.45 }}
+                      transition={{ duration: 0.35 }}
+                      className="glass-panel rounded-xl p-3.5 text-left transition-all hover:-translate-y-0.5 hover:border-primary/40"
+                    >
                       <div className="flex items-center gap-2.5">
-                        <div className="h-9 w-9 shrink-0 rounded-full border border-borderDark overflow-hidden bg-gradient-to-br from-primary/30 to-accent/20 flex items-center justify-center text-[11px] font-bold text-textDefault">
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-borderDark bg-gradient-to-br from-primary/30 to-accent/20 text-[11px] font-bold text-textDefault">
                           {member.avatar_url ? (
                             <Image
                               src={member.avatar_url}
@@ -330,8 +417,8 @@ export default function Home() {
                           )}
                         </div>
                         <div className="min-w-0">
-                          <p className="text-sm font-semibold text-textDefault truncate leading-tight">{member.full_name}</p>
-                          <p className="text-[10px] font-mono uppercase tracking-wider text-text3 truncate mt-0.5">
+                          <p className="truncate text-sm font-semibold leading-tight text-textDefault">{member.full_name}</p>
+                          <p className="mt-0.5 truncate font-mono text-[10px] uppercase tracking-wider text-text3">
                             {toRoleLabel(member.role)}
                           </p>
                         </div>
@@ -339,18 +426,41 @@ export default function Home() {
                           <RoleIcon size={14} />
                         </div>
                       </div>
-                    </div>
+                    </motion.div>
                   );
                 })}
           </div>
-          
-                    <div className="mt-8">
-            <Link href="/members" className="text-accent hover:text-accent2 transition-colors font-medium flex items-center justify-center gap-2">
-              See all members <ArrowRight size={16} />
+
+          <div className="mt-9">
+            <Link href="/members" className="inline-flex items-center justify-center gap-2 text-sm font-semibold text-accent transition-colors hover:text-accent2">
+              See All Members <ArrowRight size={15} />
             </Link>
           </div>
         </div>
-      </section>
+      </motion.section>
+
+      <motion.section
+        variants={sectionReveal}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.35 }}
+        className="py-14"
+      >
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <div className="glass-panel flex flex-col items-start justify-between gap-6 rounded-3xl p-6 sm:flex-row sm:items-center sm:p-8">
+            <div>
+              <p className="mb-1 text-xs font-mono uppercase tracking-[0.16em] text-text3">Move From Complaint To Closure</p>
+              <h3 className="text-2xl font-bold text-textDefault">Ready to log a campus defect with evidence?</h3>
+            </div>
+            <Link href="/report" className="inline-flex items-center gap-2 rounded-xl border border-success/40 bg-success/20 px-5 py-3 text-sm font-bold text-success transition-colors hover:bg-success/30">
+              Submit Report
+              <ArrowRight size={15} />
+            </Link>
+          </div>
+        </div>
+      </motion.section>
     </div>
   );
 }
+
+

@@ -75,7 +75,7 @@ export default async function ActivityPage() {
   const logs = (data ?? []) as unknown as ActivityLog[];
 
   return (
-    <div className="max-w-5xl mx-auto animate-in fade-in duration-500 pb-16">
+    <div className="mx-auto max-w-5xl animate-in fade-in duration-500 px-4 pb-16 pt-6 sm:px-6">
       <Link href="/dashboard" className="inline-flex items-center gap-2 text-text3 hover:text-primary transition-colors text-sm font-mono mb-8">
         <ArrowLeft size={16} /> Back to Dashboard
       </Link>
@@ -89,7 +89,7 @@ export default async function ActivityPage() {
       </div>
 
       {logs.length === 0 ? (
-        <div className="rounded-2xl border border-borderDark border-dashed bg-bg2 p-12 text-center text-text3">
+        <div className="glass-panel rounded-2xl border border-borderDark border-dashed p-12 text-center text-text3">
           No activity recorded yet.
         </div>
       ) : (

@@ -40,7 +40,7 @@ export default async function WikiIndexPage() {
   const pages = (data ?? []) as unknown as WikiPage[];
 
   return (
-    <div className="max-w-6xl mx-auto animate-in fade-in duration-500">
+    <div className="mx-auto max-w-6xl animate-in fade-in duration-500 px-4 py-6 sm:px-6">
       <Link href="/dashboard" className="inline-flex items-center gap-2 text-text3 hover:text-primary transition-colors text-sm font-mono mb-8">
         <ArrowLeft size={16} /> Back to Dashboard
       </Link>
@@ -61,7 +61,7 @@ export default async function WikiIndexPage() {
       </div>
 
       {error || pages.length === 0 ? (
-        <div className="border border-borderDark border-dashed rounded-2xl bg-bg2 p-12 text-center">
+        <div className="glass-panel rounded-2xl border border-borderDark border-dashed p-12 text-center">
           <BookOpen size={40} className="mx-auto text-text3 mb-4" />
           <h3 className="text-lg font-bold text-textDefault mb-2">No wiki pages yet</h3>
           <p className="text-text3 text-sm">Add entries to the wiki_pages table to populate the knowledge base.</p>
@@ -69,7 +69,7 @@ export default async function WikiIndexPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {pages.map((page) => (
-            <Link key={page.id} href={`/dashboard/wiki/${page.slug}`} className="group rounded-2xl border border-borderDark bg-bg2 p-6 hover:border-primary transition-colors shadow-lg shadow-black/5">
+            <Link key={page.id} href={`/dashboard/wiki/${page.slug}`} className="group glass-panel rounded-2xl p-6 transition-colors hover:border-primary shadow-lg shadow-black/5">
               <div className="text-xs font-mono uppercase tracking-wider text-text3 mb-3">{page.category}</div>
               <h2 className="text-xl font-bold text-textDefault group-hover:text-primary transition-colors mb-3 line-clamp-2">{page.title}</h2>
               <div className="flex items-center justify-between gap-4 text-xs text-text3 font-mono mt-6 pt-4 border-t border-borderDark">

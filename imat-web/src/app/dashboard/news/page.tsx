@@ -115,7 +115,7 @@ export default async function DashboardNewsPage() {
   const announcements = (data ?? []) as unknown as AnnouncementRow[];
 
   return (
-    <div className="max-w-6xl mx-auto animate-in fade-in duration-500 pb-16">
+    <div className="mx-auto max-w-6xl animate-in fade-in duration-500 px-4 pb-16 pt-6 sm:px-6">
       <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
         <Link href="/dashboard" className="inline-flex items-center gap-2 text-text3 hover:text-primary transition-colors text-sm font-mono">
           <ArrowLeft size={16} /> Back to Dashboard
@@ -134,13 +134,13 @@ export default async function DashboardNewsPage() {
       </div>
 
       {announcements.length === 0 ? (
-        <div className="rounded-2xl border border-borderDark border-dashed bg-bg2 p-12 text-center text-text3">
+        <div className="glass-panel rounded-2xl border border-borderDark border-dashed p-12 text-center text-text3">
           No announcements found.
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {announcements.map((item) => (
-            <article key={item.id} className="rounded-2xl border border-borderDark bg-bg2 p-6 shadow-lg shadow-black/5">
+            <article key={item.id} className="glass-panel rounded-2xl p-6 shadow-lg shadow-black/5">
               <div className="flex items-start justify-between gap-4 mb-4">
                 <div>
                   <div className="inline-flex items-center gap-2 rounded-full border border-borderDark bg-bg px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-text3 mb-3">

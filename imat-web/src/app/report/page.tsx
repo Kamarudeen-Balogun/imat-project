@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, FormEvent, useEffect, ChangeEvent } from "react";
+import { useState, FormEvent, useEffect, ChangeEvent, useCallback } from "react";
 import { ArrowLeft, AlertTriangle, UploadCloud, X, MapPin } from "lucide-react";
 import Link from "next/link";
 import { createSupabaseClient } from "@/lib/supabase/client";
@@ -54,6 +54,46 @@ export default function ReportPage() {
   const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
 
   const category = draft.category;
+
+  const supportsBackgroundSync = useCallback(() => {
+    return typeof window !== "undefined" && "serviceWorker" in navigator && "SyncManager" in window;
+  }, []);
+
+  const registerAndScheduleBackgroundSync = useCallback(async (): Promise<boolean> => {
+    if (!supportsBackgroundSync()) return false;
+
+    try {
+      await navigator.serviceWorker.register("/upload-sync-sw.js");
+
+      // Ensure a service worker is active before attempting Background Sync registration.
+      const registration = await navigator.serviceWorker.ready;
+      if (!("sync" in registration) || !registration.active) {
+        return false;
+      }
+
+      const syncManager = (registration as ServiceWorkerRegistration & {
+        sync: { register: (tag: string) => Promise<void> };
+      }).sync;
+
+      try {
+        await syncManager.register(UPLOAD_SYNC_TAG);
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "InvalidStateError") {
+          await new Promise((resolve) => window.setTimeout(resolve, 300));
+          await syncManager.register(UPLOAD_SYNC_TAG);
+        } else {
+          throw error;
+        }
+      }
+
+      registration.active.postMessage({ type: "PROCESS_UPLOAD_QUEUE" });
+
+      return true;
+    } catch (error) {
+      console.error("Failed to register background sync", error);
+      return false;
+    }
+  }, [supportsBackgroundSync]);
 
   useEffect(() => {
     const fetchZones = async () => {
@@ -127,47 +167,7 @@ export default function ReportPage() {
       navigator.serviceWorker.removeEventListener("message", handleServiceWorkerMessage as EventListener);
       window.removeEventListener("online", handleOnline);
     };
-  }, []);
-
-  const supportsBackgroundSync = () => {
-    return typeof window !== "undefined" && "serviceWorker" in navigator && "SyncManager" in window;
-  };
-
-  const registerAndScheduleBackgroundSync = async (): Promise<boolean> => {
-    if (!supportsBackgroundSync()) return false;
-
-    try {
-      await navigator.serviceWorker.register("/upload-sync-sw.js");
-
-      // Ensure a service worker is active before attempting Background Sync registration.
-      const registration = await navigator.serviceWorker.ready;
-      if (!("sync" in registration) || !registration.active) {
-        return false;
-      }
-
-      const syncManager = (registration as ServiceWorkerRegistration & {
-        sync: { register: (tag: string) => Promise<void> };
-      }).sync;
-
-      try {
-        await syncManager.register(UPLOAD_SYNC_TAG);
-      } catch (error) {
-        if (error instanceof DOMException && error.name === "InvalidStateError") {
-          await new Promise((resolve) => window.setTimeout(resolve, 300));
-          await syncManager.register(UPLOAD_SYNC_TAG);
-        } else {
-          throw error;
-        }
-      }
-
-      registration.active.postMessage({ type: "PROCESS_UPLOAD_QUEUE" });
-
-      return true;
-    } catch (error) {
-      console.error("Failed to register background sync", error);
-      return false;
-    }
-  };
+  }, [registerAndScheduleBackgroundSync]);
 
   const clearSelectedPhotos = () => {
     photoPreviews.forEach((preview) => URL.revokeObjectURL(preview));
@@ -408,7 +408,7 @@ export default function ReportPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-14 sm:py-20 min-h-screen">
+    <div className="mx-auto min-h-screen max-w-4xl px-4 py-14 sm:px-6 sm:py-20">
       <Link href="/" className="inline-flex items-center gap-2 text-text3 hover:text-primary transition-colors text-sm font-mono mb-12">
         <ArrowLeft size={16} /> Back to Home
       </Link>
@@ -428,7 +428,7 @@ export default function ReportPage() {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="bg-bg2 border border-borderDark rounded-xl p-6 md:p-10 space-y-8">
+      <form onSubmit={handleSubmit} className="glass-panel space-y-8 rounded-xl p-6 md:p-10">
         
         {/* WHAT HAPPENED */}
         <section>

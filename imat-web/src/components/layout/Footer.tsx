@@ -2,37 +2,45 @@ import Link from "next/link";
 
 export function Footer() {
   return (
-    <footer className="border-t border-borderDark bg-bg2 py-12 mt-16 md:mt-20">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 grid grid-cols-1 md:grid-cols-4 gap-8">
+    <footer className="relative mt-20 border-t border-borderDark/75 bg-bg2/70 py-14 backdrop-blur-sm md:mt-24">
+      <div className="mx-auto grid max-w-6xl grid-cols-1 gap-10 px-4 sm:px-6 md:grid-cols-4">
         <div className="col-span-1 md:col-span-2">
-          <h3 className="font-mono text-lg font-bold text-white mb-4"><span className="text-accent">IMAT</span> FUTA</h3>
-          <p className="text-text2 text-sm leading-relaxed max-w-sm">
+          <p className="mb-3 inline-flex rounded-full border border-primary/35 bg-primary/10 px-3 py-1 text-[10px] font-mono uppercase tracking-[0.16em] text-primary">
+            Infrastructure Maintenance Awareness Team
+          </p>
+          <h3 className="mb-4 text-lg font-bold text-textDefault">
+            <span className="font-mono text-accent">IMAT</span> FUTA
+          </h3>
+          <p className="max-w-sm text-sm leading-relaxed text-text2">
             Student-led infrastructure advocacy body within the Civil Engineering Department at the Federal University of Technology, Akure.
           </p>
         </div>
+
         <div>
-          <h4 className="font-mono text-xs uppercase tracking-wider text-text3 mb-4">Quick Links</h4>
+          <h4 className="mb-4 font-mono text-xs uppercase tracking-wider text-text3">Quick Links</h4>
           <ul className="space-y-2 text-sm">
-            <li><Link href="/" className="text-textDefault hover:text-primary transition-colors">Home</Link></li>
-            <li><Link href="/about" className="text-textDefault hover:text-primary transition-colors">About Us</Link></li>
-            <li><Link href="/newsroom" className="text-textDefault hover:text-primary transition-colors">Newsroom</Link></li>
-            <li><Link href="/apply" className="text-textDefault hover:text-primary transition-colors">Apply to Join</Link></li>
-            <li><Link href="/login" className="text-textDefault hover:text-primary transition-colors">Member Login</Link></li>
+            <li><Link href="/" className="text-textDefault transition-colors hover:text-primary">Home</Link></li>
+            <li><Link href="/about" className="text-textDefault transition-colors hover:text-primary">About Us</Link></li>
+            <li><Link href="/newsroom" className="text-textDefault transition-colors hover:text-primary">Newsroom</Link></li>
+            <li><Link href="/apply" className="text-textDefault transition-colors hover:text-primary">Apply to Join</Link></li>
+            <li><Link href="/login" className="text-textDefault transition-colors hover:text-primary">Member Login</Link></li>
           </ul>
         </div>
+
         <div>
-          <h4 className="font-mono text-xs uppercase tracking-wider text-text3 mb-4">Resources</h4>
+          <h4 className="mb-4 font-mono text-xs uppercase tracking-wider text-text3">Resources</h4>
           <ul className="space-y-2 text-sm">
-            <li><Link href="/evidence" className="text-textDefault hover:text-primary transition-colors">Evidence Gallery</Link></li>
-            <li><Link href="/issues" className="text-textDefault hover:text-primary transition-colors">Public Issue Tracker</Link></li>
-            <li><Link href="/report" className="text-textDefault hover:text-primary transition-colors">Quick Report</Link></li>
-            <li><Link href="/dashboard" className="text-textDefault hover:text-primary transition-colors">Admin Portal</Link></li>
+            <li><Link href="/evidence" className="text-textDefault transition-colors hover:text-primary">Evidence Gallery</Link></li>
+            <li><Link href="/issues" className="text-textDefault transition-colors hover:text-primary">Public Issue Tracker</Link></li>
+            <li><Link href="/report" className="text-textDefault transition-colors hover:text-primary">Quick Report</Link></li>
+            <li><Link href="/dashboard" className="text-textDefault transition-colors hover:text-primary">Member Portal</Link></li>
           </ul>
         </div>
       </div>
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 mt-12 pt-8 border-t border-borderDark flex flex-col md:flex-row justify-between items-center text-xs text-text3 gap-2 text-center md:text-left">
+
+      <div className="mx-auto mt-12 flex max-w-6xl flex-col items-center justify-between gap-2 border-t border-borderDark/80 px-4 pt-8 text-center text-xs text-text3 sm:px-6 md:flex-row md:text-left">
         <p suppressHydrationWarning>&copy; {new Date().getFullYear()} IMAT FUTA. All rights reserved.</p>
-        <p>Built with care by codeflowx1@gmail.com</p>
+        <p>Built with <span className="text-red-500">❤️</span> by <a href="mailto:codeflowx1@gmail.com" className="hover:text-primary transition-colors">codeflowx1@gmail.com</a></p>
       </div>
     </footer>
   );

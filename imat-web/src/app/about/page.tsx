@@ -3,11 +3,14 @@ import { ArrowLeft } from "lucide-react";
 
 export default function AboutPage() {
   return (
-    <div className="max-w-4xl mx-auto px-6 py-20 min-h-screen">
+    <div className="mx-auto min-h-screen max-w-5xl px-4 py-16 sm:px-6 md:py-20">
       <Link href="/" className="inline-flex items-center gap-2 text-text3 hover:text-primary transition-colors text-sm font-mono mb-12">
         <ArrowLeft size={16} /> Back to Home
       </Link>
 
+      <p className="mb-3 inline-flex rounded-full border border-primary/35 bg-primary/10 px-3 py-1 text-[11px] font-mono uppercase tracking-[0.16em] text-primary">
+        About The Team
+      </p>
       <h1 className="text-4xl md:text-5xl font-bold text-textDefault mb-6">About IMAT</h1>
       <p className="text-xl text-text2 leading-relaxed mb-16">
         The Infrastructure Maintenance Awareness Team (IMAT) is a student-led advocacy body established in 2026 within the Civil Engineering Department at FUTA. We bridge the gap between students and university management on campus infrastructure issues.
@@ -38,7 +41,7 @@ export default function AboutPage() {
 
         <div>
           <h2 className="text-2xl font-bold text-textDefault mb-6 border-b border-borderDark pb-4">Membership Eligibility</h2>
-          <div className="bg-bg2 border border-borderDark rounded-xl p-6">
+          <div className="glass-panel rounded-xl p-6">
             <dl className="space-y-4">
               <div>
                 <dt className="text-xs font-mono text-text3 uppercase">Department</dt>
@@ -65,7 +68,7 @@ export default function AboutPage() {
       </div>
 
       <h2 className="text-2xl font-bold text-textDefault mb-8">Organizational Structure</h2>
-      <div className="bg-bg2 border border-borderDark rounded-xl p-8 mb-8">
+      <div className="glass-panel rounded-xl p-8 mb-8">
         <div className="flex flex-col items-center gap-5 mb-10">
           <div className="w-full max-w-sm text-center p-4 border border-primary/50 bg-primary/10 rounded-lg">
             <h3 className="font-bold text-textDefault">Faculty Advisor</h3>
@@ -86,7 +89,7 @@ export default function AboutPage() {
             "Works Dept Liaison",
             "Admin",
           ].map((role) => (
-            <div key={role} className="text-center p-4 border border-borderDark rounded-lg hover:border-text3 transition-colors bg-bg">
+            <div key={role} className="text-center p-4 border border-borderDark rounded-lg hover:border-text3 transition-colors bg-surfaceStrong">
               <h4 className="font-semibold text-textDefault text-sm">{role}</h4>
             </div>
           ))}

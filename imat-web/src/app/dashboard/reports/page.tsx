@@ -48,7 +48,7 @@ export default function ReportsMasterlist() {
   }, []);
 
   return (
-    <div className="max-w-7xl mx-auto animate-in fade-in duration-500">
+    <div className="mx-auto max-w-7xl px-4 py-6 animate-in fade-in duration-500 sm:px-6">
       <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-textDefault mb-2 flex items-center gap-2">
@@ -64,7 +64,7 @@ export default function ReportsMasterlist() {
         </Link>
       </div>
 
-      <div className="bg-bg2 border border-borderDark rounded-xl overflow-x-auto shadow-xl">
+      <div className="glass-panel overflow-x-auto rounded-xl shadow-xl">
         <table className="w-full text-left border-collapse min-w-[800px]">
           <thead>
             <tr className="bg-bg border-b border-borderDark font-mono text-[10px] uppercase text-text3 tracking-wider">

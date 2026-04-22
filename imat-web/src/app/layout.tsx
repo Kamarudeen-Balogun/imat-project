@@ -18,14 +18,14 @@ export const metadata: Metadata = {
   title: "IMAT · Infrastructure Maintenance Awareness Team",
   description: "FUTA Civil Engineering Infrastructure Maintenance Awareness Team",
   icons: {
-    icon: "/imatlogo.png",
-    shortcut: "/imatlogo.png",
-    apple: "/imatlogo.png",
+    icon: "/images/imatlogo.png",
+    shortcut: "/images/imatlogo.png",
+    apple: "/images/imatlogo.png",
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#2563eb",
+  themeColor: "#29abff",
 };
 
 import { Navbar } from "@/components/layout/Navbar";
@@ -41,11 +41,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${ibmPlexSans.variable} ${ibmPlexMono.variable} font-sans antialiased text-textDefault flex flex-col min-h-screen bg-bg transition-colors duration-300`}>
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
+      <body className={`${ibmPlexSans.variable} ${ibmPlexMono.variable} font-sans antialiased text-textDefault flex min-h-screen flex-col transition-colors duration-300`}>
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
           <BrowserNewsNotifier />
           <Navbar />
-          <main className="flex-grow">
+          <main className="futuristic-grid relative flex-grow">
             {children}
           </main>
           <Footer />

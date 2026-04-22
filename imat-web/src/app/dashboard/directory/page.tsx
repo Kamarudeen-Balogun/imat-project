@@ -69,14 +69,14 @@ export default function MemberDirectoryPage() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto animate-in fade-in duration-500">
+    <div className="mx-auto max-w-6xl animate-in fade-in duration-500 px-4 py-6 sm:px-6">
       
       <div className="mb-8">
         <h1 className="text-2xl md:text-3xl font-bold text-textDefault mb-2">Member Directory</h1>
         <p className="text-text2">Connect with active IMAT personnel and officers.</p>
       </div>
 
-      <div className="bg-bg2 border border-borderDark rounded-xl p-4 mb-8 flex items-center gap-3 shadow-sm">
+      <div className="glass-panel mb-8 flex items-center gap-3 rounded-xl p-4 shadow-sm">
          <Search size={20} className="text-text3" />
          <input 
            type="text" 
@@ -96,7 +96,7 @@ export default function MemberDirectoryPage() {
           </div>
         ) : (
           filteredMembers.map(member => (
-            <div key={member.id} className="bg-bg border border-borderDark rounded-xl p-5 hover:border-primary/50 transition-colors shadow-sm flex flex-col justify-between">
+            <div key={member.id} className="glass-panel flex flex-col justify-between rounded-xl p-5 transition-colors hover:border-primary/50">
                
                <div className="flex justify-between items-start mb-4">
                   <div>

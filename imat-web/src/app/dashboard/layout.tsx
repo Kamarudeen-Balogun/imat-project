@@ -91,12 +91,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   ];
 
   return (
-    <div className="min-h-screen bg-bg flex flex-col md:flex-row">
+    <div className="min-h-screen flex flex-col md:flex-row">
       <OfflineBanner />
-      <aside className="hidden md:flex w-64 bg-bg2 border-r border-borderDark flex-col">
-         <div className="p-6 border-b border-borderDark flex items-center gap-3">
+      <aside className="hidden w-64 flex-col border-r border-borderDark/80 bg-surfaceStrong md:flex">
+         <div className="flex items-center gap-3 border-b border-borderDark/80 p-6">
             <Image
-              src="/imatlogo.png"
+              src="/images/imatlogo.png"
               alt="IMAT"
               width={32}
               height={32}
@@ -108,7 +108,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <div className="text-[10px] text-text3 font-mono uppercase truncate">{profile?.role.replace("_", " ")}</div>
             </div>
          </div>
-         <nav className="flex-grow p-4 space-y-2">
+         <nav className="flex-grow space-y-2 p-4">
             {navItems.map((item) => (
               <Link key={item.href} href={item.href} className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-sm transition-colors ${item.classes}`}>
                 <item.icon size={18} /> {item.label}
@@ -130,7 +130,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             )}
 
          </nav>
-         <div className="p-4 border-t border-borderDark bg-bg2 text-sm text-text3">
+         <div className="border-t border-borderDark/80 bg-surface p-4 text-sm text-text3">
             <button onClick={handleLogout} className="flex items-center gap-3 px-4 py-3 w-full text-left hover:text-danger hover:bg-dangerDim rounded-lg font-medium transition-colors">
               <LogOut size={18} /> Sign Out
             </button>
@@ -138,11 +138,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </aside>
 
       <main className="flex-grow flex flex-col min-h-screen">
-        <header className="h-16 border-b border-borderDark bg-bg2/70 backdrop-blur-md sticky top-0 z-10 flex items-center px-4 sm:px-6 md:px-8 justify-between gap-2">
+        <header className="sticky top-0 z-10 flex h-16 items-center justify-between gap-2 border-b border-borderDark/80 bg-surfaceStrong px-4 backdrop-blur-md sm:px-6 md:px-8">
             <div className="flex items-center gap-3 min-w-0">
               <button
                 onClick={() => setMenuOpen((current) => !current)}
-                className="md:hidden p-2 rounded-lg border border-borderDark bg-bg hover:bg-bg3 transition-colors"
+                className="rounded-lg border border-borderDark bg-surface px-2 py-2 transition-colors hover:bg-bg3 md:hidden"
                 aria-label="Toggle dashboard menu"
               >
                 {menuOpen ? <X size={18} /> : <Menu size={18} />}
@@ -178,7 +178,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 onClick={() => setMenuOpen(false)}
               />
               <motion.aside
-                className="md:hidden fixed top-16 left-0 z-30 h-[calc(100vh-4rem)] w-80 max-w-[88vw] bg-bg2 border-r border-borderDark p-4 overflow-y-auto"
+                className="fixed left-0 top-16 z-30 h-[calc(100vh-4rem)] w-80 max-w-[88vw] overflow-y-auto border-r border-borderDark bg-surfaceStrong p-4 md:hidden"
                 initial={{ x: -24, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 exit={{ x: -24, opacity: 0 }}
@@ -212,7 +212,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </>
           )}
         </AnimatePresence>
-        <div className="flex-grow p-4 md:p-8 overflow-y-auto">
+        <div className="flex-grow overflow-y-auto p-4 md:p-8">
           {children}
         </div>
       </main>

@@ -196,7 +196,7 @@ export default function DashboardProfilePage() {
 
   if (loading) {
     return (
-      <div className="rounded-2xl border border-borderDark bg-bg2 p-8 text-center text-text3">
+      <div className="glass-panel rounded-2xl p-8 text-center text-text3">
         <Loader2 size={20} className="mx-auto mb-3 animate-spin" />
         Loading profile...
       </div>
@@ -205,7 +205,7 @@ export default function DashboardProfilePage() {
 
   if (!profile) {
     return (
-      <div className="rounded-2xl border border-borderDark bg-bg2 p-8 text-center text-text3">
+      <div className="glass-panel rounded-2xl p-8 text-center text-text3">
         Your profile could not be loaded.
       </div>
     );
@@ -221,11 +221,11 @@ export default function DashboardProfilePage() {
     : "N/A";
 
   return (
-    <div className="max-w-3xl mx-auto animate-in fade-in duration-500">
+    <div className="mx-auto max-w-3xl px-4 py-6 animate-in fade-in duration-500 sm:px-6">
       <h1 className="text-2xl md:text-3xl font-bold text-textDefault mb-2">Profile Settings</h1>
       <p className="text-text2 mb-8">Manage your name, level, and display picture for the dashboard, member pages, and homepage highlights.</p>
 
-      <div className="rounded-2xl border border-borderDark bg-bg2 p-6 md:p-8">
+      <div className="glass-panel rounded-2xl p-6 md:p-8">
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5">
           <div className="h-20 w-20 rounded-full border border-borderDark overflow-hidden bg-gradient-to-br from-primary/25 to-accent/20 flex items-center justify-center text-lg font-bold text-textDefault">
             {profile.avatar_url ? (

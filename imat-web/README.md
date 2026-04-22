@@ -42,6 +42,45 @@ Not every logged-in user will have a staff role. Users without a staff position 
 - Framer Motion for animations
 - Lucide React for icons
 
+## Full Redesign Program (2026)
+
+IMAT is currently undergoing a complete visual and UX redesign with a futuristic, high-clarity interface direction.
+
+- Design system plan: `docs/redesign-plan.md`
+- Updated shell and homepage now use layered glass surfaces, animated grid atmosphere, and stronger mobile-first hierarchy.
+- Installed `@tailwindcss/forms` for cleaner, more consistent form controls across the redesigned app.
+- Homepage now uses a clean no-image hero layout with clear text hierarchy.
+- Color direction now prioritizes electric blue, amber, and mint accents over deep navy bases for a modern operations dashboard feel.
+
+## Security Skills Integration
+
+Security tooling is now part of project workflow and CI.
+
+- GitHub Actions workflow: `.github/workflows/security-checks.yml`
+- Secret scanning: Gitleaks
+- Static analysis: GitHub CodeQL
+- Dependency checks: `npm audit` high-level gating
+
+Local commands:
+
+```bash
+npm run security:audit
+npm run security:full
+```
+
+## AI Long-Chat Memory Structure
+
+To support robust long-chat memory and structured context handling, the project now includes a typed memory schema layer.
+
+- File: `src/lib/ai/memorySchema.ts`
+- Tiers: `working`, `episodic`, `semantic`
+- Includes helpers for:
+	- bounded message windows
+	- memory snapshot normalization
+	- structured prompt input generation for summarization/memory extraction
+
+This schema is the foundation for future assistant/chat modules in the platform.
+
 ## Running The Project
 
 1. Install dependencies:

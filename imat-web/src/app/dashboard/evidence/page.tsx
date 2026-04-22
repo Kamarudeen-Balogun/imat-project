@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import { canEditEvidenceGallery } from "@/lib/access";
 import { toast } from "react-hot-toast";
@@ -210,7 +209,7 @@ export default function DashboardEvidencePage() {
 
   if (loading) {
     return (
-      <div className="rounded-2xl border border-borderDark bg-bg2 p-8 text-center text-text3">
+      <div className="glass-panel rounded-2xl p-8 text-center text-text3">
         <Loader2 size={20} className="mx-auto mb-3 animate-spin" />
         Loading evidence gallery...
       </div>
@@ -224,7 +223,7 @@ export default function DashboardEvidencePage() {
   const categoryOptions = ["Drainage", "Roads", "Walkways", "Structures", "Other"];
 
   return (
-    <div className="max-w-6xl mx-auto pb-16 animate-in fade-in duration-500 space-y-8">
+    <div className="mx-auto max-w-6xl space-y-8 px-4 pb-16 pt-6 animate-in fade-in duration-500 sm:px-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <Link href="/dashboard" className="inline-flex items-center gap-2 text-text3 hover:text-primary transition-colors text-sm font-mono">
           <ArrowLeft size={16} /> Back to Dashboard
@@ -234,7 +233,7 @@ export default function DashboardEvidencePage() {
         </Link>
       </div>
 
-      <div className="rounded-2xl border border-borderDark bg-bg2 p-6 md:p-8 space-y-3">
+      <div className="glass-panel space-y-3 rounded-2xl p-6 md:p-8">
         <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-mono uppercase tracking-wider text-primary">
           <Edit3 size={14} /> Evidence Gallery Manager
         </div>
@@ -244,7 +243,7 @@ export default function DashboardEvidencePage() {
         </p>
       </div>
 
-      <div className="rounded-2xl border border-borderDark bg-bg2 p-6 space-y-4 shadow-lg shadow-black/5">
+      <div className="glass-panel space-y-4 rounded-2xl p-6 shadow-lg shadow-black/5">
         <h2 className="text-lg font-bold text-textDefault">Add new evidence item</h2>
         <div className="grid gap-4 md:grid-cols-2">
           <label className="space-y-2">

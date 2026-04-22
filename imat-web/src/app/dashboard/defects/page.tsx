@@ -72,7 +72,7 @@ export default function InternalDefectsLogPage() {
   });
 
   return (
-    <div className="max-w-7xl mx-auto animate-in fade-in duration-500">
+    <div className="mx-auto max-w-7xl px-4 py-6 animate-in fade-in duration-500 sm:px-6">
       
       <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
@@ -89,8 +89,8 @@ export default function InternalDefectsLogPage() {
         </Link>
       </div>
 
-      <div className="bg-bg2 border border-borderDark rounded-xl p-4 mb-6 flex flex-col md:flex-row gap-4 shadow-sm">
-         <div className="flex-grow flex items-center gap-3 bg-bg px-4 py-2 rounded-lg border border-borderDark">
+      <div className="glass-panel mb-6 flex flex-col gap-4 rounded-xl p-4 md:flex-row">
+        <div className="flex-grow flex items-center gap-3 rounded-lg border border-borderDark bg-surfaceStrong px-4 py-2">
            <Search size={18} className="text-text3" />
            <input 
              type="text" 
@@ -100,7 +100,7 @@ export default function InternalDefectsLogPage() {
              className="w-full bg-transparent border-none focus:outline-none text-textDefault placeholder-text3 text-sm font-mono"
            />
          </div>
-         <div className="flex items-center gap-3 bg-bg px-4 py-2 rounded-lg border border-borderDark min-w-[200px]">
+         <div className="flex min-w-[200px] items-center gap-3 rounded-lg border border-borderDark bg-surfaceStrong px-4 py-2">
            <Filter size={18} className="text-text3" />
            <select 
              value={filterSeverity} 
@@ -117,7 +117,7 @@ export default function InternalDefectsLogPage() {
          </div>
       </div>
 
-      <div className="bg-bg2 border border-borderDark rounded-xl overflow-x-auto shadow-xl">
+      <div className="glass-panel overflow-x-auto rounded-xl shadow-xl">
         <table className="w-full text-left border-collapse min-w-[900px]">
           <thead>
             <tr className="bg-bg border-b border-borderDark font-mono text-[10px] uppercase text-text3 tracking-wider">

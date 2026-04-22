@@ -181,6 +181,50 @@ This is the living implementation history for the IMAT web platform.
   - manual order still supported to pin priority items at top/homepage preview
 - Improved mobile experience by reducing homepage evidence preview length and using horizontal card flow with side-by-side media comparison.
 
+### 20) Full Redesign Program Kickoff (Futuristic UI + Security + AI Memory)
+
+- Started the complete visual redesign initiative for IMAT with a futuristic, glass-layered interface direction and stronger responsive behavior.
+- Reworked global design tokens in `src/app/globals.css`:
+  - new electric-blue/amber/mint palette
+  - atmospheric radial/gradient background system
+  - shared `glass-panel` and animated `futuristic-grid` utilities
+- Updated root shell in `src/app/layout.tsx` and redesigned shared navigation/footer components for cleaner hierarchy and improved mobile action flow.
+- Rebuilt homepage (`src/app/page.tsx`) into a modern operations-style landing experience while preserving live data wiring and existing route integrations.
+- Added a formal redesign program document at `docs/redesign-plan.md` with phased delivery strategy.
+- Added security CI workflow at `.github/workflows/security-checks.yml` to run:
+  - Gitleaks secret scanning
+  - GitHub CodeQL static analysis
+  - npm high-severity dependency audit and lint checks
+- Added local security scripts in `package.json`:
+  - `security:audit`
+  - `security:full`
+- Added typed long-chat memory scaffolding at `src/lib/ai/memorySchema.ts` with:
+  - tiered memory model (`working`, `episodic`, `semantic`)
+  - message windowing helper
+  - snapshot normalization helper
+  - structured summarization prompt input helper
+- Updated README with redesign/security/memory architecture documentation.
+- Fixed a pre-existing lint blocker in `src/app/report/page.tsx` by stabilizing background sync callback usage and effect dependencies.
+- Corrected site stats semantics so homepage counters align with issue tracker reality:
+  - `Defects Reported` now counts total submitted defects (all statuses)
+  - replaced `Assessments Completed` with `Under Assessment`
+  - `Under Assessment` now tracks in-progress defect statuses (`assessed`, `escalated`)
+- Removed duplicated top metrics row in homepage hero to avoid repeating counters already shown in the live metrics section.
+- Corrected footer wording to use the exact IMAT meaning: Infrastructure Maintenance Awareness Team.
+- Added layered/partial-blur hero background image treatment on homepage while keeping existing FUTA network wording intact.
+- Removed the homepage background image after review and returned the hero to a clean no-image layout with the same text hierarchy.
+- Removed all static files from `public/images` after confirming no source references remained, and converted the evidence gallery to database-only uploads without static fallback images.
+- Added explicit IMAT meaning line at the top of homepage hero (`IMAT = Infrastructure Maintenance Awareness Team`).
+- Retuned dark theme palette to a cooler teal-slate tone while keeping light theme as default preference.
+- Expanded redesign coverage across all top-level website pages and dashboard shell for full-site visual consistency:
+  - public pages: home, about, evidence, issues, members, newsroom, report, apply, login
+  - dashboard shared layout and dashboard landing cards
+- Installed `@tailwindcss/forms` to improve the consistency of form controls across the redesigned site.
+- Removed the leftover root-level `D:\IMAT\background.png` source asset after the homepage was switched back to a no-image layout.
+- Verification status:
+  - lint now passes with warnings only (no errors)
+  - production build completes successfully
+
 ## Operational Notes
 
 - Current image strategy uses WebP for optimized public assets.

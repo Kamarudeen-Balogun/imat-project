@@ -6,36 +6,9 @@ import Link from "next/link";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import EvidenceGalleryGrid, { type EvidenceGalleryItem } from "@/components/evidence/EvidenceGalleryGrid";
 
-const fallbackEvidenceItems: EvidenceGalleryItem[] = [
-  {
-    id: "fallback-1",
-    title: "Blocked Drain Grate",
-    description: "A public before-and-after comparison card. The after image can be updated once the repair is verified.",
-    category: "Drainage",
-    before_image_url: "/images/Blocked drain grate.webp",
-    after_image_url: null,
-  },
-  {
-    id: "fallback-2",
-    title: "Cracked Road Surface",
-    description: "Road deterioration documented as a paired evidence item for inspection and follow-up.",
-    category: "Roads",
-    before_image_url: "/images/Cracked road surface.webp",
-    after_image_url: null,
-  },
-  {
-    id: "fallback-3",
-    title: "Eroded Corridor Walkway",
-    description: "Walkway erosion card prepared for before and after verification shots.",
-    category: "Walkways",
-    before_image_url: "/images/Eroded corridor walkway.webp",
-    after_image_url: null,
-  },
-];
-
 export default function EvidencePage() {
   const [categoryFilter, setCategoryFilter] = useState("All");
-  const [items, setItems] = useState<EvidenceGalleryItem[]>(fallbackEvidenceItems);
+  const [items, setItems] = useState<EvidenceGalleryItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -49,7 +22,7 @@ export default function EvidencePage() {
         .order("created_at", { ascending: false });
 
       const rows = (data ?? []) as EvidenceGalleryItem[];
-      setItems(rows.length > 0 ? rows : fallbackEvidenceItems);
+      setItems(rows);
       setLoading(false);
     };
 
@@ -63,7 +36,7 @@ export default function EvidencePage() {
   }, [categoryFilter, items]);
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-16 min-h-screen flex flex-col">
+    <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-4 py-16 sm:px-6">
       <Link href="/" className="inline-flex items-center gap-2 text-text3 hover:text-primary transition-colors text-sm font-mono mb-8">
         <ArrowLeft size={16} /> Back to Home
       </Link>
@@ -78,7 +51,7 @@ export default function EvidencePage() {
         </p>
       </div>
 
-      <div className="bg-bg2 border border-borderDark rounded-xl p-4 md:p-6 mb-8 flex flex-col md:flex-row gap-6 items-center">
+      <div className="glass-panel mb-8 flex flex-col items-center gap-6 rounded-xl p-4 md:flex-row md:p-6">
         <div className="flex items-center gap-2 text-text3 w-full md:w-auto font-mono text-sm uppercase shrink-0">
           <SlidersHorizontal size={16} /> Filters
         </div>
@@ -89,7 +62,7 @@ export default function EvidencePage() {
             <select 
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
-              className="w-full bg-bg border border-borderDark rounded-lg px-3 py-2 text-sm text-textDefault focus:outline-none focus:border-primary transition-colors"
+              className="w-full rounded-lg border border-borderDark bg-surfaceStrong px-3 py-2 text-sm text-textDefault transition-colors focus:border-primary focus:outline-none"
             >
               {categories.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
@@ -100,12 +73,12 @@ export default function EvidencePage() {
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {Array.from({ length: 3 }).map((_, index) => (
-            <div key={index} className="h-[420px] rounded-2xl border border-borderDark bg-bg2 animate-pulse" />
+            <div key={index} className="h-[420px] rounded-2xl border border-borderDark bg-surface animate-pulse" />
           ))}
         </div>
       ) : filteredItems.length === 0 ? (
-        <div className="rounded-2xl border border-borderDark border-dashed bg-bg2 p-12 text-center text-text3">
-          No evidence items match your filter.
+        <div className="glass-panel rounded-2xl p-12 text-center text-text3">
+          No evidence items have been published yet. Add the first record in the dashboard evidence manager.
         </div>
       ) : (
         <EvidenceGalleryGrid items={filteredItems} mobileHorizontal compact className="md:overflow-visible" />

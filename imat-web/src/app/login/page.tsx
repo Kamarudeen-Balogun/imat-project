@@ -42,14 +42,17 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-bg relative px-6 py-20">
+    <div className="relative flex min-h-screen items-center justify-center px-4 py-20 sm:px-6">
+      <div className="pointer-events-none absolute left-[12%] top-[10%] h-40 w-40 rounded-full bg-primary/20 blur-3xl" />
+      <div className="pointer-events-none absolute right-[10%] bottom-[12%] h-40 w-40 rounded-full bg-success/20 blur-3xl" />
+
       <div className="absolute top-8 left-8">
         <Link href="/" className="inline-flex items-center gap-2 text-text3 hover:text-primary transition-colors text-sm font-mono">
           <ArrowLeft size={16} /> Back to Home
         </Link>
       </div>
 
-      <div className="w-full max-w-md">
+      <div className="relative z-10 w-full max-w-md">
         <div className="text-center mb-10">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary mb-6">
             <Lock size={32} />
@@ -58,7 +61,7 @@ export default function LoginPage() {
           <p className="text-text2">Sign in to access your administrative dashboard.</p>
         </div>
 
-        <form onSubmit={handleLogin} className="bg-bg2 border border-borderDark rounded-xl p-8 space-y-6 shadow-2xl">
+        <form onSubmit={handleLogin} className="glass-panel rounded-xl p-8 space-y-6 shadow-2xl">
           <div>
             <label className="block text-sm font-bold text-textDefault mb-2">School Email Address</label>
             <input 
@@ -67,7 +70,7 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="e.g. officer@futa.edu.ng" 
               required 
-              className="w-full p-4 bg-bg border border-borderDark rounded-lg focus:border-primary focus:outline-none text-textDefault text-sm transition-colors" 
+              className="w-full rounded-lg border border-borderDark bg-surfaceStrong p-4 text-sm text-textDefault transition-colors focus:border-primary focus:outline-none" 
             />
           </div>
 
@@ -81,7 +84,7 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••" 
               required 
-              className="w-full p-4 bg-bg border border-borderDark rounded-lg focus:border-primary focus:outline-none text-textDefault text-sm transition-colors" 
+              className="w-full rounded-lg border border-borderDark bg-surfaceStrong p-4 text-sm text-textDefault transition-colors focus:border-primary focus:outline-none" 
             />
           </div>
 

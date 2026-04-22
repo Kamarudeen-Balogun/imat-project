@@ -6,7 +6,6 @@ type SiteStats = {
   reported: number;
   underAssessment: number;
   resolved: number;
-  assessmentsCompleted: number;
   activeMembers: number;
 };
 
@@ -14,7 +13,6 @@ const DEFAULT_STATS: SiteStats = {
   reported: 0,
   underAssessment: 0,
   resolved: 0,
-  assessmentsCompleted: 0,
   activeMembers: 0,
 };
 
@@ -34,7 +32,6 @@ export function useSiteStats(refreshIntervalMs = 30000) {
         reported: Number(data.reported ?? 0),
         underAssessment: Number(data.underAssessment ?? 0),
         resolved: Number(data.resolved ?? 0),
-        assessmentsCompleted: Number(data.assessmentsCompleted ?? 0),
         activeMembers: Number(data.activeMembers ?? 0),
       });
     } catch (error) {

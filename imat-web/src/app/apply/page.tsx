@@ -97,7 +97,7 @@ export default function ApplyPage() {
 
   if (submitSuccess) {
     return (
-      <div className="max-w-xl mx-auto px-4 sm:px-6 py-24 sm:py-32 text-center">
+      <div className="mx-auto max-w-xl px-4 py-24 text-center sm:px-6 sm:py-32">
         <CheckCircle2 size={64} className="text-success mx-auto mb-6" />
         <h1 className="text-3xl font-bold text-textDefault mb-4">Application Submitted!</h1>
         <p className="text-text2 mb-8">
@@ -111,7 +111,7 @@ export default function ApplyPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-14 sm:py-20 min-h-screen">
+    <div className="mx-auto min-h-screen max-w-4xl px-4 py-14 sm:px-6 sm:py-20">
       <Link href="/" className="inline-flex items-center gap-2 text-text3 hover:text-primary transition-colors text-sm font-mono mb-12">
         <ArrowLeft size={16} /> Back to Home
       </Link>
@@ -122,11 +122,11 @@ export default function ApplyPage() {
         <p className="text-text3 italic">&quot;Building a Culture of Care for Campus Infrastructure&quot;</p>
       </div>
 
-      <div className="bg-warningDim border-l-4 border-warning p-4 mb-8 rounded text-sm text-textDefault">
+      <div className="mb-8 rounded border-l-4 border-warning bg-warningDim p-4 text-sm text-textDefault">
         <strong>INSTRUCTIONS:</strong> Please fill out this form completely. All fields marked with <span className="text-danger">*</span> are mandatory.
       </div>
 
-      <form onSubmit={handleSubmit} className="bg-bg2 border border-borderDark rounded-xl overflow-hidden p-6 md:p-10 space-y-12">
+      <form onSubmit={handleSubmit} className="glass-panel space-y-12 overflow-hidden rounded-xl p-6 md:p-10">
         
         {/* SECTION A */}
         <section>
