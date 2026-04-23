@@ -1,0 +1,3 @@
+# Local lint artifacts
+**/lint_output.json
+**/lint_results.json
