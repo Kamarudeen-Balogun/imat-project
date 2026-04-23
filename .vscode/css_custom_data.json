@@ -1,0 +1,33 @@
+{
+  "version": 1.1,
+  "atDirectives": [
+    {
+      "name": "@tailwind",
+      "description": "Injects Tailwind base, components, and utilities."
+    },
+    {
+      "name": "@apply",
+      "description": "Inlines Tailwind utility classes into a custom CSS rule."
+    },
+    {
+      "name": "@layer",
+      "description": "Adds styles to Tailwind's base, components, or utilities layer."
+    },
+    {
+      "name": "@config",
+      "description": "Specifies a custom Tailwind config file for this stylesheet."
+    },
+    {
+      "name": "@screen",
+      "description": "Expands to a configured breakpoint media query."
+    },
+    {
+      "name": "@variants",
+      "description": "Generates utility variants for a custom rule."
+    },
+    {
+      "name": "@responsive",
+      "description": "Generates responsive variants for nested rules."
+    }
+  ]
+}
