@@ -138,21 +138,21 @@ export default function NewWikiPage() {
         <p className="text-text2">Document decisions, procedures, and implementation notes for team continuity.</p>
       </div>
 
-      <form onSubmit={handleSave} className="space-y-6 rounded-2xl border border-borderDark bg-bg2 p-6 md:p-8">
+      <form onSubmit={handleSave} className="space-y-6 rounded-2xl border border-soft bg-bg2 p-6 md:p-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-xs font-mono uppercase tracking-wider text-text3 mb-2">Title</label>
             <input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full rounded-lg border border-borderDark bg-bg px-4 py-3 text-textDefault focus:outline-none focus:border-primary"
+              className="w-full rounded-lg border border-soft bg-bg px-4 py-3 text-textDefault focus:outline-none focus:border-primary"
               placeholder="e.g. Newsroom publishing runbook"
               required
             />
           </div>
           <div>
             <label className="block text-xs font-mono uppercase tracking-wider text-text3 mb-2">Category</label>
-            <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full rounded-lg border border-borderDark bg-bg px-4 py-3 text-textDefault focus:outline-none focus:border-primary">
+            <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full rounded-lg border border-soft bg-bg px-4 py-3 text-textDefault focus:outline-none focus:border-primary">
               {CATEGORIES.map((item) => (
                 <option key={item} value={item}>{item}</option>
               ))}
@@ -165,7 +165,7 @@ export default function NewWikiPage() {
           <input
             value={slug}
             onChange={(e) => setSlug(e.target.value)}
-            className="w-full rounded-lg border border-borderDark bg-bg px-4 py-3 text-textDefault focus:outline-none focus:border-primary"
+            className="w-full rounded-lg border border-soft bg-bg px-4 py-3 text-textDefault focus:outline-none focus:border-primary"
             placeholder="auto-generated-from-title"
           />
           <p className="mt-2 text-xs text-text3">Final slug: {slugPreview || "-"}</p>
@@ -176,13 +176,13 @@ export default function NewWikiPage() {
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            className="w-full min-h-[320px] rounded-lg border border-borderDark bg-bg px-4 py-3 text-textDefault focus:outline-none focus:border-primary"
+            className="w-full min-h-[320px] rounded-lg border border-soft bg-bg px-4 py-3 text-textDefault focus:outline-none focus:border-primary"
             placeholder="Write the context, decisions, and implementation notes here..."
           />
         </div>
 
         <div className="pt-2 flex flex-col sm:flex-row gap-3 sm:justify-end">
-          <Link href="/dashboard/wiki" className="px-5 py-3 rounded-lg border border-borderDark text-text3 hover:text-textDefault hover:border-text3 text-center">Cancel</Link>
+          <Link href="/dashboard/wiki" className="px-5 py-3 rounded-lg border border-soft text-text3 hover:text-textDefault hover:border-text3 text-center">Cancel</Link>
           <button type="submit" disabled={saving} className="px-5 py-3 rounded-lg bg-primary hover:bg-blue-500 text-white font-semibold inline-flex items-center justify-center gap-2 disabled:opacity-70">
             {saving ? <Loader2 size={16} className="animate-spin" /> : <PlusCircle size={16} />} Save Page
           </button>
@@ -191,3 +191,4 @@ export default function NewWikiPage() {
     </div>
   );
 }
+

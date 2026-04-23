@@ -6,6 +6,7 @@ import { createSupabaseClient } from "@/lib/supabase/server";
 import { canEditContent } from "@/lib/access";
 import Image from "next/image";
 import DeleteAnnouncementButton from "./DeleteAnnouncementButton";
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 
 export const dynamic = "force-dynamic";
 
@@ -112,11 +113,12 @@ export default async function DashboardNewsPage() {
     .select("id, slug, title, visibility, published_at, updated_at, image_url, author:users!announcements_author_id_fkey(full_name)")
     .order("published_at", { ascending: false });
 
-  const announcements = (data ?? []) as unknown as AnnouncementRow[];
+   const announcements = (data ?? []) as unknown as AnnouncementRow[];
 
-  return (
-    <div className="mx-auto max-w-6xl animate-in fade-in duration-500 px-4 pb-16 pt-6 sm:px-6">
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
+   return (
+     <div className="mx-auto max-w-6xl animate-in fade-in duration-500 px-4 pb-16 pt-6 sm:px-6">
+       <Breadcrumbs className="mb-8" />
+       <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
         <Link href="/dashboard" className="inline-flex items-center gap-2 text-text3 hover:text-primary transition-colors text-sm font-mono">
           <ArrowLeft size={16} /> Back to Dashboard
         </Link>
@@ -134,7 +136,7 @@ export default async function DashboardNewsPage() {
       </div>
 
       {announcements.length === 0 ? (
-        <div className="glass-panel rounded-2xl border border-borderDark border-dashed p-12 text-center text-text3">
+        <div className="glass-panel rounded-2xl border border-soft border-dashed p-12 text-center text-text3">
           No announcements found.
         </div>
       ) : (
@@ -143,12 +145,12 @@ export default async function DashboardNewsPage() {
             <article key={item.id} className="glass-panel rounded-2xl p-6 shadow-lg shadow-black/5">
               <div className="flex items-start justify-between gap-4 mb-4">
                 <div>
-                  <div className="inline-flex items-center gap-2 rounded-full border border-borderDark bg-bg px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-text3 mb-3">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-soft bg-bg px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-text3 mb-3">
                     {item.visibility === "public" ? "Public" : "Members Only"}
                   </div>
                   <h2 className="text-xl font-bold text-textDefault">{item.title}</h2>
                 </div>
-                <div className="w-16 h-16 rounded-xl border border-borderDark overflow-hidden bg-bg shrink-0">
+                <div className="w-16 h-16 rounded-xl border border-soft overflow-hidden bg-bg shrink-0">
                   {item.image_url ? (
                     <Image
                       src={item.image_url}
@@ -164,7 +166,7 @@ export default async function DashboardNewsPage() {
                 </div>
               </div>
 
-              <div className="flex flex-wrap items-center gap-4 text-xs font-mono text-text3 border-t border-borderDark pt-4 mt-4">
+              <div className="flex flex-wrap items-center gap-4 text-xs font-mono text-text3 border-t border-soft pt-4 mt-4">
                 <span className="inline-flex items-center gap-2"><Calendar size={14} /> Published {format(new Date(item.published_at), "MMM d, yyyy")}</span>
                 <span>Updated {format(new Date(item.updated_at), "MMM d, yyyy")}</span>
               </div>
@@ -182,7 +184,7 @@ export default async function DashboardNewsPage() {
                     className={`inline-flex items-center rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors ${
                       item.visibility === "public"
                         ? "border-primary bg-primary/10 text-primary"
-                        : "border-borderDark text-text3 hover:border-primary/40 hover:text-primary"
+                        : "border-soft text-text3 hover:border-primary/40 hover:text-primary"
                     }`}
                     disabled={item.visibility === "public"}
                   >
@@ -197,7 +199,7 @@ export default async function DashboardNewsPage() {
                     className={`inline-flex items-center rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors ${
                       item.visibility === "members_only"
                         ? "border-warning bg-warning/10 text-warning"
-                        : "border-borderDark text-text3 hover:border-warning/40 hover:text-warning"
+                        : "border-soft text-text3 hover:border-warning/40 hover:text-warning"
                     }`}
                     disabled={item.visibility === "members_only"}
                   >
@@ -207,10 +209,10 @@ export default async function DashboardNewsPage() {
               </div>
 
               <div className="mt-6 flex flex-wrap gap-3">
-                <Link href={`/dashboard/news/${item.slug ?? item.id}`} className="inline-flex items-center gap-2 rounded-lg border border-borderDark px-4 py-2 text-sm font-semibold text-textDefault hover:border-primary hover:text-primary transition-colors">
+                <Link href={`/dashboard/news/${item.slug ?? item.id}`} className="inline-flex items-center gap-2 rounded-lg border border-soft px-4 py-2 text-sm font-semibold text-textDefault hover:border-primary hover:text-primary transition-colors">
                   <Edit3 size={16} /> Edit
                 </Link>
-                <Link href={`/newsroom/${item.slug ?? item.id}`} className="inline-flex items-center gap-2 rounded-lg border border-borderDark px-4 py-2 text-sm font-semibold text-text3 hover:border-text3 hover:text-textDefault transition-colors">
+                <Link href={`/newsroom/${item.slug ?? item.id}`} className="inline-flex items-center gap-2 rounded-lg border border-soft px-4 py-2 text-sm font-semibold text-text3 hover:border-text3 hover:text-textDefault transition-colors">
                   View public page <ArrowRight size={16} />
                 </Link>
                 <DeleteAnnouncementButton

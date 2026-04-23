@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { createSupabaseClient } from "@/lib/supabase/client";
-import { Search, Mail, Shield, User, GraduationCap } from "lucide-react";
+import { Mail, Shield, User, GraduationCap } from "lucide-react";
 import Image from "next/image";
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
+import { GooeyInput } from "@/components/ui/gooey-input";
 
 type Member = {
   id: string;
@@ -65,25 +67,25 @@ export default function MemberDirectoryPage() {
     if (role === 'technical_officer' || role === 'documentation_officer') {
       return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-blue-500/10 text-blue-400 text-[10px] font-bold uppercase tracking-wider border border-blue-500/20"><User size={10}/> {ROLE_LABELS[role] ?? role.replace('_', ' ')}</span>;
     }
-    return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-bg3 text-text2 text-[10px] font-bold uppercase tracking-wider border border-borderDark">{ROLE_LABELS[role] ?? role.replace('_', ' ')}</span>;
+    return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-bg3 text-text2 text-[10px] font-bold uppercase tracking-wider border border-soft">{ROLE_LABELS[role] ?? role.replace('_', ' ')}</span>;
   };
 
-  return (
-    <div className="mx-auto max-w-6xl animate-in fade-in duration-500 px-4 py-6 sm:px-6">
-      
-      <div className="mb-8">
+   return (
+     <div className="mx-auto max-w-6xl animate-in fade-in duration-500 px-4 py-6 sm:px-6">
+       
+       <Breadcrumbs className="mb-8" />
+       
+       <div className="mb-8">
         <h1 className="text-2xl md:text-3xl font-bold text-textDefault mb-2">Member Directory</h1>
         <p className="text-text2">Connect with active IMAT personnel and officers.</p>
       </div>
 
-      <div className="glass-panel mb-8 flex items-center gap-3 rounded-xl p-4 shadow-sm">
-         <Search size={20} className="text-text3" />
-         <input 
-           type="text" 
-           placeholder="Search by name, email, or role..." 
+      <div className="mb-8">
+         <GooeyInput
+           placeholder="Search by name, email, or role..."
            value={search}
-           onChange={e => setSearch(e.target.value)}
-           className="w-full bg-transparent border-none focus:outline-none text-textDefault placeholder-text3 text-sm"
+           onChange={setSearch}
+           onSearch={setSearch}
          />
       </div>
 
@@ -91,7 +93,7 @@ export default function MemberDirectoryPage() {
         {loading ? (
           <div className="col-span-full p-12 text-center text-text3 font-mono">Loading active personnel...</div>
         ) : filteredMembers.length === 0 ? (
-          <div className="col-span-full p-12 text-center border-dashed border border-borderDark rounded-xl text-text3 font-mono bg-bg2">
+          <div className="col-span-full p-12 text-center border-dashed border border-soft rounded-xl text-text3 font-mono bg-bg2">
             No active members matched your search.
           </div>
         ) : (
@@ -121,7 +123,7 @@ export default function MemberDirectoryPage() {
                   </div>
                </div>
 
-               <div className="space-y-3 mt-4 pt-4 border-t border-borderDark/50">
+               <div className="space-y-3 mt-4 pt-4 border-t border-soft">
                   <div className="flex items-center gap-3 text-sm text-text2">
                     <Mail size={14} className="text-text3" />
                     <a href={`mailto:${member.email}`} className="hover:text-primary transition-colors truncate">{member.email}</a>
@@ -139,3 +141,4 @@ export default function MemberDirectoryPage() {
     </div>
   );
 }
+

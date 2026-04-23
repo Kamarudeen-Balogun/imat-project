@@ -6,6 +6,7 @@ import { AlertTriangle, Clock, MapPin, CheckCircle, FileText, Megaphone, BookOpe
 import Link from "next/link";
 import { canEditContent } from "@/lib/access";
 import { useSiteStats } from "@/hooks/useSiteStats";
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 
 export default function DashboardPage() {
   const [role, setRole] = useState("admin");
@@ -26,6 +27,7 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
+      <Breadcrumbs className="mb-2" />
       
       {/* GLOBAL STATS */}
       <div className="overflow-x-auto md:overflow-visible">
@@ -49,7 +51,7 @@ export default function DashboardPage() {
         </div>
 
       <div>
-         <h2 className="text-xl font-bold text-textDefault mb-6 border-b border-borderDark pb-2">Quick Actions ({role.replace("_", " ")})</h2>
+         <h2 className="text-xl font-bold text-textDefault mb-6 border-b border-soft pb-2">Quick Actions ({role.replace("_", " ")})</h2>
          
          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             
@@ -128,3 +130,4 @@ export default function DashboardPage() {
     </div>
   );
 }
+

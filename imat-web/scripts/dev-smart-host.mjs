@@ -40,7 +40,6 @@ async function pickPort(startPort) {
   for (let currentPort = startPort; currentPort < startPort + 50; currentPort += 1) {
     // Pick the first available port at or above the requested one.
     // This keeps localhost and LAN access aligned on the same port.
-    // eslint-disable-next-line no-await-in-loop
     if (await isPortFree(currentPort)) {
       return currentPort;
     }

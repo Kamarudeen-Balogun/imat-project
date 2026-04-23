@@ -41,27 +41,28 @@ export function Navbar() {
   }, []);
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-borderDark/80 bg-bg/55 backdrop-blur-xl supports-[backdrop-filter]:bg-bg/40">
+    <nav className="sticky top-0 z-50 border-b border-borderDark bg-bg/80 backdrop-blur-xl supports-[backdrop-filter]:bg-bg/70">
       <div className="mx-auto grid h-16 max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-3 px-4 sm:px-6">
         <div className="flex min-w-0 items-center">
-          <Link href="/" className="group flex min-w-0 items-center gap-2 font-mono text-xl font-semibold tracking-tight text-textDefault">
+          <Link href="/" className="group flex min-w-0 items-center gap-2.5 font-mono text-xl font-bold tracking-tight text-textDefault">
             <Image
               src="/images/imatlogo.png"
               alt="IMAT Logo"
-              width={32}
-              height={32}
-              style={{ width: "32px", height: "32px" }}
-              className="shrink-0 rounded-lg border border-borderDark/80"
+              width={36}
+              height={36}
+              loading="eager"
+              style={{ width: "36px", height: "36px" }}
+              className="shrink-0 rounded-xl shadow-glow"
             />
-            <span className="truncate text-accent transition-colors group-hover:text-primary">IMAT</span>
+            <span className="truncate bg-gradient-to-r from-accent to-primary bg-clip-text text-transparent transition-all group-hover:shadow-glow">IMAT</span>
           </Link>
         </div>
 
-        <div className="hidden items-center justify-center gap-2 md:flex">
-          <Link href="/about" className="rounded-full px-3 py-1.5 text-sm font-semibold tracking-wide text-text2 transition-colors hover:bg-primary/10 hover:text-textDefault">About</Link>
-          <Link href="/evidence" className="rounded-full px-3 py-1.5 text-sm font-semibold tracking-wide text-text2 transition-colors hover:bg-primary/10 hover:text-textDefault">Evidence</Link>
-          <Link href="/newsroom" className="rounded-full px-3 py-1.5 text-sm font-semibold tracking-wide text-text2 transition-colors hover:bg-primary/10 hover:text-textDefault">Newsroom</Link>
-          <Link href="/issues" className="rounded-full px-3 py-1.5 text-sm font-semibold tracking-wide text-text2 transition-colors hover:bg-primary/10 hover:text-textDefault">Tracker</Link>
+        <div className="hidden items-center justify-center gap-1 md:flex">
+          <Link href="/about" className="rounded-full px-4 py-2 text-sm font-semibold text-text2 transition-all hover:bg-primary/10 hover:text-primary hover:shadow-glow">About</Link>
+          <Link href="/evidence" className="rounded-full px-4 py-2 text-sm font-semibold text-text2 transition-all hover:bg-primary/10 hover:text-primary hover:shadow-glow">Evidence</Link>
+          <Link href="/newsroom" className="rounded-full px-4 py-2 text-sm font-semibold text-text2 transition-all hover:bg-primary/10 hover:text-primary hover:shadow-glow">Newsroom</Link>
+          <Link href="/issues" className="rounded-full px-4 py-2 text-sm font-semibold text-text2 transition-all hover:bg-primary/10 hover:text-primary hover:shadow-glow">Tracker</Link>
         </div>
 
         <div className="hidden items-center justify-end gap-2 md:flex">
@@ -69,7 +70,7 @@ export function Navbar() {
           {mounted && (
             <button
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="rounded-full border border-borderDark/70 bg-surface px-2.5 py-2 text-text3 transition-colors hover:text-textDefault"
+              className="rounded-xl border border-borderDark/50 bg-bg2/60 p-2.5 text-text2 transition-all hover:border-accent hover:text-accent hover:shadow-glow-accent"
               aria-label="Toggle theme"
             >
               {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
@@ -77,20 +78,20 @@ export function Navbar() {
           )}
 
           {isLoggedIn ? (
-            <Link href="/dashboard" className="rounded-xl border border-primary/35 bg-primary/12 px-3 py-2 text-sm font-semibold text-textDefault transition-colors hover:border-primary/55 hover:text-primary">
+            <Link href="/dashboard" className="rounded-xl border-2 border-primary/40 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary transition-all hover:border-primary hover:bg-primary/20 hover:shadow-glow">
               Dashboard
             </Link>
           ) : (
-            <Link href="/login" className="rounded-xl px-3 py-2 text-sm font-semibold text-textDefault transition-colors hover:text-primary">
+            <Link href="/login" className="rounded-xl px-4 py-2 text-sm font-semibold text-text2 transition-all hover:text-primary hover:bg-primary/5">
               Login
             </Link>
           )}
 
-          <Link href="/report" className="rounded-xl border border-borderDark/80 px-3 py-2 text-sm text-textDefault transition-colors hover:border-borderLit">
+          <Link href="/report" className="rounded-xl border border-borderDark/60 bg-bg2/60 px-4 py-2 text-sm font-semibold text-textDefault transition-all hover:border-accent hover:text-accent hover:shadow-glow-accent">
             Report Issue
           </Link>
 
-          <Link href="/apply" className="inline-flex items-center gap-2 rounded-xl border border-primary/50 bg-primary px-3.5 py-2 text-sm font-bold text-bg transition-colors hover:bg-sky-400">
+          <Link href="/apply" className="inline-flex items-center gap-2 rounded-xl border-2 border-primary bg-primary px-4 py-2 text-sm font-bold text-white transition-all hover:bg-accent hover:shadow-glow-accent">
             Apply to Join
             <ArrowUpRight size={15} />
           </Link>
@@ -121,8 +122,8 @@ export function Navbar() {
       <AnimatePresence>
         {isOpen && (
           <>
-            <motion.div
-              className="fixed inset-0 bg-slate-950/45 backdrop-blur-[1px] md:hidden"
+             <motion.div
+              className="fixed inset-0 bg-black/80 backdrop-blur-lg md:hidden"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -136,10 +137,7 @@ export function Navbar() {
               exit={{ opacity: 0, y: -14 }}
               transition={{ duration: 0.2, ease: "easeOut" }}
             >
-              <div className="glass-panel max-h-[calc(100vh-5.25rem)] overflow-y-auto rounded-2xl p-4">
-                <div className="mb-3 rounded-xl border border-primary/35 bg-primary/10 px-3 py-2 text-[11px] font-mono uppercase tracking-[0.18em] text-primary">
-                  IMAT Mission Control
-                </div>
+              <div className="bg-bg border border-borderDark max-h-[calc(100vh-5.25rem)] overflow-y-auto rounded-2xl p-4 shadow-2xl">
 
                 <div className="grid grid-cols-1 gap-2 text-sm font-semibold">
                   <Link href="/about" className="block rounded-xl border border-borderDark/70 bg-surfaceStrong px-4 py-3 text-textDefault transition-colors hover:border-primary/60 hover:text-primary">About</Link>

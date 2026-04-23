@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { ArrowLeft, BookOpen, Clock3 } from "lucide-react";
+import { BookOpen, Clock3 } from "lucide-react";
 import { createSupabaseClient } from "@/lib/supabase/server";
 import { formatDistanceToNow } from "date-fns";
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 
 export const dynamic = "force-dynamic";
 
@@ -39,11 +40,9 @@ export default async function WikiIndexPage() {
 
   const pages = (data ?? []) as unknown as WikiPage[];
 
-  return (
-    <div className="mx-auto max-w-6xl animate-in fade-in duration-500 px-4 py-6 sm:px-6">
-      <Link href="/dashboard" className="inline-flex items-center gap-2 text-text3 hover:text-primary transition-colors text-sm font-mono mb-8">
-        <ArrowLeft size={16} /> Back to Dashboard
-      </Link>
+   return (
+     <div className="mx-auto max-w-6xl animate-in fade-in duration-500 px-4 py-6 sm:px-6">
+       <Breadcrumbs className="mb-8" />
 
       <div className="mb-8 flex flex-col gap-3">
         <div className="inline-flex items-center gap-2 text-primary font-mono text-sm uppercase tracking-wider bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/20 w-fit">
@@ -61,7 +60,7 @@ export default async function WikiIndexPage() {
       </div>
 
       {error || pages.length === 0 ? (
-        <div className="glass-panel rounded-2xl border border-borderDark border-dashed p-12 text-center">
+        <div className="glass-panel rounded-2xl border border-soft border-dashed p-12 text-center">
           <BookOpen size={40} className="mx-auto text-text3 mb-4" />
           <h3 className="text-lg font-bold text-textDefault mb-2">No wiki pages yet</h3>
           <p className="text-text3 text-sm">Add entries to the wiki_pages table to populate the knowledge base.</p>
@@ -72,7 +71,7 @@ export default async function WikiIndexPage() {
             <Link key={page.id} href={`/dashboard/wiki/${page.slug}`} className="group glass-panel rounded-2xl p-6 transition-colors hover:border-primary shadow-lg shadow-black/5">
               <div className="text-xs font-mono uppercase tracking-wider text-text3 mb-3">{page.category}</div>
               <h2 className="text-xl font-bold text-textDefault group-hover:text-primary transition-colors mb-3 line-clamp-2">{page.title}</h2>
-              <div className="flex items-center justify-between gap-4 text-xs text-text3 font-mono mt-6 pt-4 border-t border-borderDark">
+              <div className="flex items-center justify-between gap-4 text-xs text-text3 font-mono mt-6 pt-4 border-t border-soft">
                 <span className="flex items-center gap-2"><Clock3 size={14} /> {formatDistanceToNow(new Date(page.updated_at), { addSuffix: true })}</span>
                 <span>{page.author?.full_name ?? "IMAT"}</span>
               </div>

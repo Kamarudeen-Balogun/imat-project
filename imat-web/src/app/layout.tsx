@@ -28,11 +28,9 @@ export const viewport: Viewport = {
   themeColor: "#29abff",
 };
 
-import { Navbar } from "@/components/layout/Navbar";
-import { Footer } from "@/components/layout/Footer";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import ClientToaster from "@/components/ClientToaster";
-import BrowserNewsNotifier from "@/components/notifications/BrowserNewsNotifier";
+import { SiteShell } from "@/components/layout/SiteShell";
 
 export default function RootLayout({
   children,
@@ -43,12 +41,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${ibmPlexSans.variable} ${ibmPlexMono.variable} font-sans antialiased text-textDefault flex min-h-screen flex-col transition-colors duration-300`}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-          <BrowserNewsNotifier />
-          <Navbar />
-          <main className="futuristic-grid relative flex-grow">
-            {children}
-          </main>
-          <Footer />
+          <SiteShell>{children}</SiteShell>
           <ClientToaster />
         </ThemeProvider>
       </body>

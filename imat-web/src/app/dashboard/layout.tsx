@@ -1,15 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { LayoutDashboard, Users, Map, BookOpen, LogOut, Loader2, FileText, BarChart2, Megaphone, Activity, Menu, X, User } from "lucide-react";
+import { LayoutDashboard, Users, Map, BookOpen, LogOut, Loader2, FileText, BarChart2, Megaphone, Activity, Menu, X, User, Share2, Moon, Sun } from "lucide-react";
 import Image from "next/image";
 import { toast } from "react-hot-toast";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { AnimatePresence, motion } from "framer-motion";
-import { canEditContent, canEditEvidenceGallery } from "@/lib/access";
+import { canEditContent, canEditEvidenceGallery, canManageSocialLinks } from "@/lib/access";
+import { useTheme } from "@/components/ThemeProvider";
 
 type UserProfile = {
   id: string;
@@ -24,7 +25,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [loading, setLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
   const router = useRouter();
-  const supabase = createSupabaseClient();
+  const supabase = useMemo(() => createSupabaseClient(), []);
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -84,6 +91,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { href: "/portal/analytics", label: "Analytics", icon: BarChart2, classes: "text-text2 hover:text-textDefault hover:bg-bg3" },
     ...(canEditContent(profile?.role) ? [{ href: "/dashboard/news", label: "Newsroom Manager", icon: Megaphone, classes: "text-text2 hover:text-textDefault hover:bg-bg3" }] : []),
     ...(canEditEvidenceGallery(profile?.role) ? [{ href: "/dashboard/evidence", label: "Evidence Gallery", icon: FileText, classes: "text-text2 hover:text-textDefault hover:bg-bg3" }] : []),
+    ...(canManageSocialLinks(profile?.role) ? [{ href: "/dashboard/social-links", label: "Social Links", icon: Share2, classes: "text-text2 hover:text-textDefault hover:bg-bg3" }] : []),
     { href: "/dashboard/directory", label: "Member Directory", icon: Users, classes: "text-text2 hover:text-textDefault hover:bg-bg3" },
     { href: "/dashboard/profile", label: "My Profile", icon: User, classes: "text-text2 hover:text-textDefault hover:bg-bg3" },
     { href: "/dashboard/wiki", label: "Knowledge Base", icon: BookOpen, classes: "text-text2 hover:text-textDefault hover:bg-bg3" },
@@ -93,13 +101,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
       <OfflineBanner />
-      <aside className="hidden w-64 flex-col border-r border-borderDark/80 bg-surfaceStrong md:flex">
-         <div className="flex items-center gap-3 border-b border-borderDark/80 p-6">
+      <aside className="hidden w-64 flex-col border-r border-soft bg-surfaceStrong md:flex">
+         <div className="flex items-center gap-3 border-b border-soft p-6">
             <Image
               src="/images/imatlogo.png"
               alt="IMAT"
               width={32}
               height={32}
+              loading="eager"
               style={{ width: "32px", height: "32px" }}
               className="rounded"
             />
@@ -129,8 +138,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                </Link>
             )}
 
+            <div className="pt-2 pb-1 px-4 text-[10px] font-mono text-text3 uppercase tracking-wider">Public Portal</div>
+
+            <Link href="/issues" className="flex items-center gap-3 px-4 py-3 text-text2 hover:text-textDefault hover:bg-bg3 rounded-lg font-medium text-sm transition-colors">
+              <Map size={18} /> Issue Tracker
+            </Link>
+            <Link href="/evidence" className="flex items-center gap-3 px-4 py-3 text-text2 hover:text-textDefault hover:bg-bg3 rounded-lg font-medium text-sm transition-colors">
+              <FileText size={18} /> Evidence Gallery
+            </Link>
+            <Link href="/newsroom" className="flex items-center gap-3 px-4 py-3 text-text2 hover:text-textDefault hover:bg-bg3 rounded-lg font-medium text-sm transition-colors">
+              <Megaphone size={18} /> Newsroom
+            </Link>
+
          </nav>
-         <div className="border-t border-borderDark/80 bg-surface p-4 text-sm text-text3">
+         <div className="border-t border-soft bg-surface p-4 text-sm text-text3">
             <button onClick={handleLogout} className="flex items-center gap-3 px-4 py-3 w-full text-left hover:text-danger hover:bg-dangerDim rounded-lg font-medium transition-colors">
               <LogOut size={18} /> Sign Out
             </button>
@@ -138,11 +159,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </aside>
 
       <main className="flex-grow flex flex-col min-h-screen">
-        <header className="sticky top-0 z-10 flex h-16 items-center justify-between gap-2 border-b border-borderDark/80 bg-surfaceStrong px-4 backdrop-blur-md sm:px-6 md:px-8">
+        <header className="sticky top-0 z-10 flex h-16 items-center justify-between gap-2 border-b border-soft bg-surfaceStrong px-4 backdrop-blur-md sm:px-6 md:px-8">
             <div className="flex items-center gap-3 min-w-0">
               <button
                 onClick={() => setMenuOpen((current) => !current)}
-                className="rounded-lg border border-borderDark bg-surface px-2 py-2 transition-colors hover:bg-bg3 md:hidden"
+                className="rounded-lg border border-soft bg-surface px-2 py-2 transition-colors hover:bg-bg3 md:hidden"
                 aria-label="Toggle dashboard menu"
               >
                 {menuOpen ? <X size={18} /> : <Menu size={18} />}
@@ -150,7 +171,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <h1 className="text-xs sm:text-sm font-mono text-text3 truncate">Welcome back, <strong className="text-textDefault">{profile?.full_name}</strong></h1>
             </div>
             <div className="flex items-center gap-3">
-              <Link href="/dashboard/profile" className="hidden sm:flex h-9 w-9 items-center justify-center rounded-full border border-borderDark overflow-hidden bg-gradient-to-br from-primary/20 to-accent/20 text-sm font-bold text-textDefault">
+              {mounted && (
+                <button
+                  onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                  className="rounded-xl border border-soft bg-surface px-2.5 py-2 text-text2 transition-colors hover:border-accent hover:text-accent"
+                  aria-label="Toggle theme"
+                >
+                  {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+                </button>
+              )}
+              <Link href="/dashboard/profile" className="hidden sm:flex h-9 w-9 items-center justify-center rounded-full border border-soft overflow-hidden bg-gradient-to-br from-primary/20 to-accent/20 text-sm font-bold text-textDefault">
                 {profile?.avatar_url ? (
                   <Image
                     src={profile.avatar_url}
@@ -178,7 +208,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 onClick={() => setMenuOpen(false)}
               />
               <motion.aside
-                className="fixed left-0 top-16 z-30 h-[calc(100vh-4rem)] w-80 max-w-[88vw] overflow-y-auto border-r border-borderDark bg-surfaceStrong p-4 md:hidden"
+                className="fixed left-0 top-16 z-30 h-[calc(100vh-4rem)] w-80 max-w-[88vw] overflow-y-auto border-r border-soft bg-bg p-4 shadow-2xl md:hidden"
                 initial={{ x: -24, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 exit={{ x: -24, opacity: 0 }}
@@ -204,6 +234,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       <Megaphone size={18} /> Broadcast & Campaigns
                     </Link>
                   )}
+                  <div className="pt-2 pb-1 px-4 text-[10px] font-mono text-text3 uppercase tracking-wider">Public Portal</div>
+                  <Link href="/issues" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 text-text2 hover:text-textDefault hover:bg-bg3 rounded-lg font-medium text-sm transition-colors">
+                    <Map size={18} /> Issue Tracker
+                  </Link>
+                  <Link href="/evidence" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 text-text2 hover:text-textDefault hover:bg-bg3 rounded-lg font-medium text-sm transition-colors">
+                    <FileText size={18} /> Evidence Gallery
+                  </Link>
+                  <Link href="/newsroom" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 text-text2 hover:text-textDefault hover:bg-bg3 rounded-lg font-medium text-sm transition-colors">
+                    <Megaphone size={18} /> Newsroom
+                  </Link>
                   <button onClick={handleLogout} className="flex items-center gap-3 px-4 py-3 w-full text-left hover:text-danger hover:bg-dangerDim rounded-lg font-medium text-sm transition-colors text-text2">
                     <LogOut size={18} /> Sign Out
                   </button>
@@ -219,3 +259,4 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     </div>
   );
 }
+

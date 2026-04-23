@@ -1,12 +1,9 @@
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 
 export default function AboutPage() {
   return (
     <div className="mx-auto min-h-screen max-w-5xl px-4 py-16 sm:px-6 md:py-20">
-      <Link href="/" className="inline-flex items-center gap-2 text-text3 hover:text-primary transition-colors text-sm font-mono mb-12">
-        <ArrowLeft size={16} /> Back to Home
-      </Link>
+      <Breadcrumbs className="mb-8" />
 
       <p className="mb-3 inline-flex rounded-full border border-primary/35 bg-primary/10 px-3 py-1 text-[11px] font-mono uppercase tracking-[0.16em] text-primary">
         About The Team
@@ -70,11 +67,11 @@ export default function AboutPage() {
       <h2 className="text-2xl font-bold text-textDefault mb-8">Organizational Structure</h2>
       <div className="glass-panel rounded-xl p-8 mb-8">
         <div className="flex flex-col items-center gap-5 mb-10">
-          <div className="w-full max-w-sm text-center p-4 border border-primary/50 bg-primary/10 rounded-lg">
+          <div className="w-full max-w-sm text-center p-4 border border-primary/35 bg-primary/10 rounded-lg">
             <h3 className="font-bold text-textDefault">Faculty Advisor</h3>
             <p className="text-xs text-text2 mt-1">Academic and strategic oversight</p>
           </div>
-          <div className="w-full max-w-sm text-center p-4 border border-borderLit bg-bg rounded-lg">
+          <div className="w-full max-w-sm text-center p-4 border border-soft bg-bg rounded-lg">
             <h3 className="font-bold text-textDefault">President & Vice President</h3>
             <p className="text-xs text-text2 mt-1">Executive leadership and coordination</p>
           </div>
@@ -89,7 +86,7 @@ export default function AboutPage() {
             "Works Dept Liaison",
             "Admin",
           ].map((role) => (
-            <div key={role} className="text-center p-4 border border-borderDark rounded-lg hover:border-text3 transition-colors bg-surfaceStrong">
+            <div key={role} className="text-center p-4 border border-soft rounded-lg transition-colors bg-surfaceStrong">
               <h4 className="font-semibold text-textDefault text-sm">{role}</h4>
             </div>
           ))}

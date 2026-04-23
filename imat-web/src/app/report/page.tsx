@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, FormEvent, useEffect, ChangeEvent, useCallback } from "react";
-import { ArrowLeft, AlertTriangle, UploadCloud, X, MapPin } from "lucide-react";
-import Link from "next/link";
+import { AlertTriangle, UploadCloud, X, MapPin } from "lucide-react";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import { toast } from "react-hot-toast";
 import Image from "next/image";
 import { enqueueReportUpload, QueuedReportPayload } from "@/lib/reportUploadQueue";
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 
 type Zone = { id: string; name: string };
 const UPLOAD_SYNC_TAG = "imat-report-upload-sync";
@@ -407,11 +407,9 @@ export default function ReportPage() {
     }
   };
 
-  return (
-    <div className="mx-auto min-h-screen max-w-4xl px-4 py-14 sm:px-6 sm:py-20">
-      <Link href="/" className="inline-flex items-center gap-2 text-text3 hover:text-primary transition-colors text-sm font-mono mb-12">
-        <ArrowLeft size={16} /> Back to Home
-      </Link>
+   return (
+     <div className="mx-auto min-h-screen max-w-4xl px-4 py-14 sm:px-6 sm:py-20">
+       <Breadcrumbs className="mb-8" />
 
       <div className="text-center mb-12">
         <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-textDefault mb-4">Report an Issue</h1>

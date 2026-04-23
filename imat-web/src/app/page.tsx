@@ -24,6 +24,65 @@ import { createSupabaseClient } from "@/lib/supabase/client";
 import { ROLE_LABELS, sortByRoleHierarchy, toRoleLabel } from "@/lib/roleHierarchy";
 import EvidenceGalleryGrid, { type EvidenceGalleryItem } from "@/components/evidence/EvidenceGalleryGrid";
 
+function useTypewriter(text: string, speed = 70, delay = 800) {
+  const [displayText, setDisplayText] = useState("");
+  const [phase, setPhase] = useState<'idle' | 'typing' | 'paused' | 'deleting'>('idle');
+
+  useEffect(() => {
+    const startTimeout = setTimeout(() => {
+      setPhase('typing');
+    }, delay);
+
+    return () => clearTimeout(startTimeout);
+  }, [delay]);
+
+  useEffect(() => {
+    let index = 0;
+
+    if (phase === 'typing') {
+      const typingInterval = setInterval(() => {
+        if (index < text.length) {
+          setDisplayText(text.slice(0, index + 1));
+          index++;
+        } else {
+          clearInterval(typingInterval);
+          setPhase('paused');
+        }
+      }, speed);
+
+      return () => clearInterval(typingInterval);
+    }
+
+    if (phase === 'paused') {
+      const pauseTimeout = setTimeout(() => {
+        setPhase('deleting');
+      }, 2500);
+
+      return () => clearTimeout(pauseTimeout);
+    }
+
+    if (phase === 'deleting') {
+      const deleteInterval = setInterval(() => {
+        setDisplayText(current => {
+          if (current.length === 0) {
+            clearInterval(deleteInterval);
+            setPhase('typing');
+            return '';
+          }
+          return current.slice(0, Math.max(0, current.length - 3));
+        });
+      }, 30);
+
+      return () => clearInterval(deleteInterval);
+    }
+  }, [text, speed, phase]);
+
+  return { 
+    displayText, 
+    showCursor: phase === 'typing' || phase === 'paused' 
+  };
+}
+
 type MemberSpotlight = {
   id: string;
   full_name: string;
@@ -106,11 +165,18 @@ function AnimatedMetricCard({
       whileInView="visible"
       viewport={{ once: true, amount: 0.45 }}
       transition={{ delay }}
-      className="glass-panel rounded-2xl p-5"
+      className="group relative overflow-hidden rounded-2xl border border-borderDark bg-bg/60 p-5 transition-all hover:border-primary/40 hover:shadow-glow"
     >
-      <Icon className="mb-4 h-7 w-7 text-primary" />
-      <p className="text-3xl font-bold text-textDefault md:text-4xl">{loading ? "--" : displayValue}</p>
-      <p className="mt-2 text-xs uppercase tracking-[0.14em] text-text3">{label}</p>
+      <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-primary/5 transition-transform group-hover:scale-150" />
+      <div className="relative">
+        <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+          <Icon className="h-5 w-5" />
+        </div>
+        <p className="text-3xl font-bold text-textDefault md:text-4xl">
+          {loading ? "--" : displayValue}
+        </p>
+        <p className="mt-2 text-xs font-semibold uppercase tracking-[0.14em] text-text3">{label}</p>
+      </div>
     </motion.div>
   );
 }
@@ -122,6 +188,7 @@ export default function Home() {
   const [evidenceItems, setEvidenceItems] = useState<EvidenceGalleryItem[]>([]);
   const [evidenceLoading, setEvidenceLoading] = useState(true);
   const { stats, loading } = useSiteStats(60000);
+  const typewriter = useTypewriter("Infrastructure Maintenance Awareness Team");
 
   useEffect(() => {
     const loadEvidence = async () => {
@@ -205,45 +272,57 @@ export default function Home() {
 
   return (
     <div className="flex w-full flex-col">
-      <section className="relative overflow-hidden pb-20 pt-20 md:pb-28 md:pt-24">
-        <div className="pointer-events-none absolute left-[8%] top-[6%] h-48 w-48 rounded-full bg-primary/30 blur-3xl" />
-        <div className="pointer-events-none absolute right-[8%] top-[16%] h-44 w-44 rounded-full bg-success/30 blur-3xl" />
+      <section className="relative overflow-hidden pb-20 pt-16 md:pb-24 md:pt-20">
+        <div className="pointer-events-none absolute -left-20 top-0 h-80 w-80 rounded-full bg-primary/20 blur-[100px]" />
+        <div className="pointer-events-none absolute -right-20 top-20 h-72 w-72 rounded-full bg-success/15 blur-[80px]" />
+        <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 h-40 w-40 rounded-full bg-accent/10 blur-[60px]" />
 
         <div className="relative mx-auto max-w-6xl px-4 sm:px-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.55 }}
-            className="glass-panel relative overflow-hidden rounded-3xl p-6 sm:p-8 lg:p-10"
+            className="relative"
           >
-            <div className="relative z-10">
-              <div className="mb-2 inline-flex rounded-full border border-accent/50 bg-accent/10 px-3 py-1 text-[11px] font-mono uppercase tracking-[0.16em] text-accent">
-                IMAT = Infrastructure Maintenance Awareness Team
-              </div>
-              <div className="mb-6 inline-flex rounded-full border border-primary/45 bg-primary/10 px-3 py-1 text-[11px] font-mono uppercase tracking-[0.16em] text-primary">
-                FUTA Infrastructure Monitoring Network
-              </div>
+            <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-primary via-accent to-success opacity-20 blur-xl" />
+            <div className="absolute inset-0 rounded-3xl bg-bg opacity-90" />
+            <div className="relative rounded-3xl border border-borderDark bg-bg/80 p-6 sm:p-8 lg:p-10 backdrop-blur-sm">
+              <div className="mb-5 flex flex-wrap gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent/10 px-3 py-1 text-[11px] font-mono font-semibold uppercase tracking-[0.16em] text-accent">
+                <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
+                {typewriter.displayText}
+                <span className={`${typewriter.showCursor ? 'opacity-100' : 'opacity-0'} text-accent animate-pulse`}>|</span>
+              </span>
+            </div>
 
-              <h1 className="text-balance max-w-4xl text-4xl font-bold leading-[0.95] text-textDefault sm:text-5xl lg:text-7xl">
+              <h1 className="text-balance mb-4 max-w-4xl text-4xl font-bold leading-[0.95] text-textDefault sm:text-5xl lg:text-6xl">
                 Campus Problems,
-                <span className="block bg-gradient-to-r from-primary via-accent to-success bg-clip-text text-transparent">Engineered Responses.</span>
+                <span className="block mt-1 bg-gradient-to-r from-primary via-accent to-success bg-clip-text text-transparent">
+                  Engineered Responses.
+                </span>
               </h1>
 
-              <p className="mt-5 max-w-2xl text-base leading-relaxed text-text2 sm:text-lg">
+              <p className="mb-6 max-w-2xl text-base leading-relaxed text-text2 sm:text-lg">
                 IMAT unifies student reports, evidence validation, and engineering follow-through so every infrastructure issue can be tracked from first alert to verified fix.
               </p>
 
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <Link href="/report" className="inline-flex items-center justify-center gap-2 rounded-xl border border-primary/40 bg-primary px-6 py-3 text-sm font-bold text-bg transition-colors hover:bg-sky-400">
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <Link 
+                  href="/report" 
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-primary bg-primary px-6 py-3 text-sm font-bold text-white transition-all hover:border-primary/80 hover:shadow-glow focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 btn-press"
+                >
                   Report an Issue
                   <ArrowRight size={16} />
                 </Link>
-                <Link href="/apply" className="inline-flex items-center justify-center gap-2 rounded-xl border border-borderLit bg-bg2/70 px-6 py-3 text-sm font-semibold text-textDefault transition-colors hover:border-primary/45 hover:text-primary">
+                <Link 
+                  href="/apply" 
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-borderLit bg-bg2/80 px-6 py-3 text-sm font-semibold text-textDefault transition-all hover:border-accent hover:text-accent focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 btn-press"
+                >
                   Join the Team
+                  <ArrowRight size={16} />
                 </Link>
               </div>
             </div>
-
           </motion.div>
         </div>
       </section>
@@ -253,17 +332,17 @@ export default function Home() {
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.22 }}
-        className="border-y border-borderDark/80 bg-bg2/65 py-16 md:py-20"
+        className="border-y border-borderDark bg-bg2/40 py-14 md:py-18"
       >
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="mb-10 flex items-end justify-between gap-4">
             <div>
-              <p className="mb-2 text-xs font-mono uppercase tracking-[0.18em] text-text3">Operational Coverage</p>
+              <p className="mb-2 text-xs font-mono font-semibold uppercase tracking-[0.18em] text-accent">Operational Coverage</p>
               <h2 className="text-2xl font-bold text-textDefault sm:text-3xl">Live Infrastructure Metrics</h2>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             {cards.map((stat, i) => (
               <AnimatedMetricCard
                 key={stat.label}
@@ -283,18 +362,18 @@ export default function Home() {
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.2 }}
-        className="py-20 md:py-28"
+        className="py-16 md:py-24"
       >
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="mb-8 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
-              <p className="mb-2 text-xs font-mono uppercase tracking-[0.18em] text-text3">Field Intelligence</p>
+              <p className="mb-2 text-xs font-mono font-semibold uppercase tracking-[0.18em] text-accent">Field Intelligence</p>
               <h2 className="text-3xl font-bold text-textDefault md:text-4xl">Evidence Gallery</h2>
               <p className="mt-3 max-w-2xl text-sm leading-relaxed text-text2 md:text-base">
                 Verified media logs create traceability and help maintenance stakeholders prioritize urgent defects across campus.
               </p>
             </div>
-            <Link href="/evidence" className="inline-flex items-center gap-2 text-sm font-semibold text-primary transition-colors hover:text-textDefault">
+            <Link href="/evidence" className="inline-flex items-center gap-2 text-sm font-semibold text-primary transition-colors hover:text-accent">
               Open Full Evidence Board <ArrowRight size={15} />
             </Link>
           </div>
@@ -304,10 +383,10 @@ export default function Home() {
               <button
                 key={category}
                 onClick={() => setFilter(category)}
-                className={`rounded-full border px-4 py-1.5 text-sm font-semibold transition-colors ${
+                className={`rounded-full border-2 px-4 py-1.5 text-sm font-semibold transition-all ${
                   filter === category
-                    ? "border-primary bg-primary text-bg"
-                    : "border-borderDark bg-bg2/80 text-text2 hover:border-borderLit"
+                    ? "border-primary bg-primary text-white shadow-glow"
+                    : "border-borderDark/50 bg-bg2/60 text-text2 hover:border-accent hover:text-accent"
                 }`}
               >
                 {category}
@@ -341,16 +420,16 @@ export default function Home() {
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.2 }}
-        className="border-t border-borderDark/80 bg-bg2/65 py-16 md:py-24"
+        className="border-t border-borderDark bg-bg2/40 py-14 md:py-20"
       >
         <div className="mx-auto max-w-6xl px-4 sm:px-6 text-center">
-          <p className="mb-2 text-xs font-mono uppercase tracking-[0.18em] text-text3">Human Infrastructure</p>
+          <p className="mb-2 text-xs font-mono font-semibold uppercase tracking-[0.18em] text-accent">Human Infrastructure</p>
           <h2 className="text-3xl font-bold text-textDefault md:text-4xl">The Team Behind The System</h2>
           <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-text2 md:text-base">
             From field officers to technical leadership, IMAT runs as a coordinated engineering operation with clear responsibilities.
           </p>
 
-          <div className="mx-auto mb-10 mt-8 max-w-4xl rounded-2xl border border-borderDark/80 bg-bg/70 p-3 md:p-4">
+          <div className="mx-auto mb-10 mt-8 max-w-4xl rounded-2xl border border-soft bg-bg/70 p-3 md:p-4">
             <div className="relative overflow-hidden md:hidden">
               <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-8 bg-gradient-to-r from-bg2 to-transparent" />
               <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-8 bg-gradient-to-l from-bg2 to-transparent" />
@@ -358,7 +437,7 @@ export default function Home() {
                 {[...spotlightRoles, ...spotlightRoles].map((role, index) => (
                   <span
                     key={`${role}-${index}`}
-                    className="whitespace-nowrap rounded-full border border-primary/25 bg-gradient-to-r from-bg to-bg2 px-3.5 py-1.5 text-[10px] font-mono uppercase tracking-wider text-text2 shadow-[0_0_0_1px_rgba(59,130,246,0.08)]"
+                    className="whitespace-nowrap rounded-full border border-soft bg-gradient-to-r from-bg to-bg2 px-3.5 py-1.5 text-[10px] font-mono uppercase tracking-wider text-text2"
                   >
                     {role === "member" ? "Member" : ROLE_LABELS[role]}
                   </span>
@@ -375,7 +454,7 @@ export default function Home() {
                   viewport={{ once: true, amount: 0.5 }}
                   transition={{ delay: index * 0.05, duration: 0.3, ease: "easeOut" }}
                   whileHover={{ y: -2, scale: 1.03 }}
-                  className="rounded-full border border-primary/25 bg-gradient-to-r from-bg to-bg2 px-3.5 py-1.5 text-[10px] font-mono uppercase tracking-wider text-text2 shadow-[0_0_0_1px_rgba(59,130,246,0.08)]"
+                  className="rounded-full border border-soft bg-gradient-to-r from-bg to-bg2 px-3.5 py-1.5 text-[10px] font-mono uppercase tracking-wider text-text2"
                 >
                   {role === "member" ? "Member" : ROLE_LABELS[role]}
                 </motion.span>
@@ -386,7 +465,7 @@ export default function Home() {
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
             {membersLoading
               ? Array.from({ length: 5 }).map((_, index) => (
-                  <div key={index} className="min-h-[120px] animate-pulse rounded-xl border border-borderDark bg-bg p-4" />
+                  <div key={index} className="min-h-[120px] skeleton-shimmer rounded-xl border border-borderDark/40 bg-bg2/40 p-4" />
                 ))
               : spotlightMembers.map((member) => {
                   const initials = (member.full_name || "M").slice(0, 1).toUpperCase();
@@ -399,16 +478,16 @@ export default function Home() {
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true, amount: 0.45 }}
                       transition={{ duration: 0.35 }}
-                      className="glass-panel rounded-xl p-3.5 text-left transition-all hover:-translate-y-0.5 hover:border-primary/40"
+                      className="group relative overflow-hidden rounded-xl border border-borderDark bg-bg/60 p-3.5 text-left transition-all hover:-translate-y-1 hover:border-accent/50 hover:shadow-glow-accent"
                     >
                       <div className="flex items-center gap-2.5">
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-borderDark bg-gradient-to-br from-primary/30 to-accent/20 text-[11px] font-bold text-textDefault">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-borderLit/50 bg-gradient-to-br from-primary/20 to-accent/10 text-[11px] font-bold text-textDefault">
                           {member.avatar_url ? (
                             <Image
                               src={member.avatar_url}
                               alt={member.full_name}
-                              width={36}
-                              height={36}
+                              width={40}
+                              height={40}
                               unoptimized
                               className="h-full w-full object-cover"
                             />
@@ -418,11 +497,11 @@ export default function Home() {
                         </div>
                         <div className="min-w-0">
                           <p className="truncate text-sm font-semibold leading-tight text-textDefault">{member.full_name}</p>
-                          <p className="mt-0.5 truncate font-mono text-[10px] uppercase tracking-wider text-text3">
+                          <p className="mt-0.5 truncate font-mono text-[10px] font-semibold uppercase tracking-wider text-accent">
                             {toRoleLabel(member.role)}
                           </p>
                         </div>
-                        <div className="ml-auto rounded-lg border border-accent/35 bg-accent/10 p-1.5 text-accent">
+                        <div className="ml-auto rounded-lg border border-accent/30 bg-accent/10 p-1.5 text-accent">
                           <RoleIcon size={14} />
                         </div>
                       </div>
@@ -432,7 +511,7 @@ export default function Home() {
           </div>
 
           <div className="mt-9">
-            <Link href="/members" className="inline-flex items-center justify-center gap-2 text-sm font-semibold text-accent transition-colors hover:text-accent2">
+            <Link href="/members" className="inline-flex items-center justify-center gap-2 text-sm font-semibold text-accent transition-colors hover:text-white hover:bg-accent rounded-full px-4 py-2">
               See All Members <ArrowRight size={15} />
             </Link>
           </div>
@@ -447,12 +526,13 @@ export default function Home() {
         className="py-14"
       >
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <div className="glass-panel flex flex-col items-start justify-between gap-6 rounded-3xl p-6 sm:flex-row sm:items-center sm:p-8">
-            <div>
-              <p className="mb-1 text-xs font-mono uppercase tracking-[0.16em] text-text3">Move From Complaint To Closure</p>
+          <div className="relative overflow-hidden rounded-3xl border border-borderDark bg-gradient-to-r from-bg2 to-bg p-6 sm:flex-row sm:items-center sm:p-8">
+            <div className="absolute -right-20 top-0 h-40 w-40 rounded-full bg-accent/10 blur-[60px]" />
+            <div className="relative">
+              <p className="mb-1 text-xs font-mono font-semibold uppercase tracking-[0.16em] text-accent">Move From Complaint To Closure</p>
               <h3 className="text-2xl font-bold text-textDefault">Ready to log a campus defect with evidence?</h3>
             </div>
-            <Link href="/report" className="inline-flex items-center gap-2 rounded-xl border border-success/40 bg-success/20 px-5 py-3 text-sm font-bold text-success transition-colors hover:bg-success/30">
+            <Link href="/report" className="mt-4 sm:mt-0 inline-flex items-center gap-2 rounded-xl border-2 border-success bg-success px-5 py-3 text-sm font-bold text-white transition-all hover:bg-success/90 hover:shadow-glow-success focus-visible:ring-2 focus-visible:ring-success focus-visible:ring-offset-2 btn-press">
               Submit Report
               <ArrowRight size={15} />
             </Link>

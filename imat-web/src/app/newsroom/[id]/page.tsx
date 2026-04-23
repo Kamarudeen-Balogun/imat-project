@@ -6,7 +6,7 @@ import { ArrowLeft, Calendar, User } from "lucide-react";
 import Image from "next/image";
 import { notFound, redirect } from "next/navigation";
 import { extractAnnouncementSuffix, getAnnouncementHref, toCompactAnnouncementSlug } from "@/lib/news";
-import { canEditContent, canDeleteContent } from "@/lib/access";
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 60;
@@ -187,6 +187,7 @@ export default async function NewsPostPage({ params }: { params: Promise<{ id: s
       {/* Hero */}
       <div className="bg-bg2 border-b border-borderDark pt-10 pb-20">
         <div className="max-w-3xl mx-auto px-6 sm:px-8">
+          <Breadcrumbs className="mb-8" />
           <Link
             href="/newsroom"
             className="inline-flex items-center gap-2 text-text3 hover:text-primary transition-colors text-sm font-mono mb-12"

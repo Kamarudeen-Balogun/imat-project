@@ -5,6 +5,7 @@ import { createSupabaseClient } from "@/lib/supabase/client";
 import { FileText, Download, Plus } from "lucide-react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 
 type ReportRecord = {
   id: string;
@@ -47,9 +48,10 @@ export default function ReportsMasterlist() {
     fetchReports();
   }, []);
 
-  return (
-    <div className="mx-auto max-w-7xl px-4 py-6 animate-in fade-in duration-500 sm:px-6">
-      <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+   return (
+     <div className="mx-auto max-w-7xl px-4 py-6 animate-in fade-in duration-500 sm:px-6">
+       <Breadcrumbs className="mb-8" />
+       <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-textDefault mb-2 flex items-center gap-2">
              <FileText className="text-primary"/> Engineering Reports
@@ -67,7 +69,7 @@ export default function ReportsMasterlist() {
       <div className="glass-panel overflow-x-auto rounded-xl shadow-xl">
         <table className="w-full text-left border-collapse min-w-[800px]">
           <thead>
-            <tr className="bg-bg border-b border-borderDark font-mono text-[10px] uppercase text-text3 tracking-wider">
+            <tr className="bg-bg border-b border-soft font-mono text-[10px] uppercase text-text3 tracking-wider">
               <th className="p-4 font-medium">Report Details</th>
               <th className="p-4 font-medium">Period</th>
               <th className="p-4 font-medium">Author</th>
@@ -126,3 +128,4 @@ export default function ReportsMasterlist() {
     </div>
   );
 }
+

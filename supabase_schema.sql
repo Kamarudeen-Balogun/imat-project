@@ -358,6 +358,35 @@ CREATE TABLE IF NOT EXISTS notifications (
 CREATE INDEX IF NOT EXISTS notifications_recipient_created_at_idx ON notifications(recipient_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS notifications_recipient_is_read_idx ON notifications(recipient_id, is_read);
 
+-- 15. SITE SOCIAL LINKS (public footer dock)
+CREATE TABLE IF NOT EXISTS site_social_links (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  platform TEXT NOT NULL UNIQUE CHECK (platform IN ('twitter', 'instagram', 'github', 'linkedin', 'youtube', 'facebook')),
+  label TEXT NOT NULL,
+  url TEXT NOT NULL,
+  is_enabled BOOLEAN NOT NULL DEFAULT false,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  updated_by UUID REFERENCES users(id) ON DELETE SET NULL,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS site_social_links_enabled_sort_idx ON site_social_links(is_enabled, sort_order);
+
+DROP TRIGGER IF EXISTS update_site_social_links_updated_at ON site_social_links;
+CREATE TRIGGER update_site_social_links_updated_at
+BEFORE UPDATE ON site_social_links
+FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
+
+INSERT INTO site_social_links (platform, label, url, is_enabled, sort_order)
+VALUES
+  ('twitter', 'Twitter/X', 'https://x.com/', true, 1),
+  ('instagram', 'Instagram', 'https://instagram.com/', true, 2),
+  ('github', 'GitHub', 'https://github.com/', true, 3),
+  ('linkedin', 'LinkedIn', 'https://linkedin.com/', true, 4),
+  ('youtube', 'YouTube', 'https://youtube.com/', true, 5),
+  ('facebook', 'Facebook', 'https://facebook.com/', true, 6)
+ON CONFLICT (platform) DO NOTHING;
+
 CREATE OR REPLACE FUNCTION prune_activity_logs()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -421,6 +450,7 @@ ALTER TABLE volunteer_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE wiki_pages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE activity_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
+ALTER TABLE site_social_links ENABLE ROW LEVEL SECURITY;
 ALTER TABLE applications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE intake_cycles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE wiki_pages FORCE ROW LEVEL SECURITY;
@@ -438,6 +468,15 @@ DROP POLICY IF EXISTS "Public read access to campus_zones" ON campus_zones;
 DROP POLICY IF EXISTS "Public read access to severity_criteria" ON severity_criteria;
 CREATE POLICY "Public read access to campus_zones" ON campus_zones FOR SELECT USING (true);
 CREATE POLICY "Public read access to severity_criteria" ON severity_criteria FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Public can read site social links" ON site_social_links;
+DROP POLICY IF EXISTS "Admins can manage site social links" ON site_social_links;
+CREATE POLICY "Public can read site social links" ON site_social_links FOR SELECT USING (true);
+CREATE POLICY "Admins can manage site social links" ON site_social_links FOR ALL USING (
+  get_my_role() = 'admin'
+) WITH CHECK (
+  get_my_role() = 'admin'
+);
 
 -- Defects: Public can report, public can see (anonymous basic details)
 DROP POLICY IF EXISTS "Public can view defects" ON defects;

@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, FormEvent } from "react";
-import { ArrowLeft, CheckCircle2 } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import { toast } from "react-hot-toast";
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzeIK6drlHbG278eWTXNKdBKtRcJxGsJdMj6aqeeTVfhDLRNAwCabqNAioZloYW4DrEuQ/exec";
 
@@ -95,26 +96,24 @@ export default function ApplyPage() {
     }
   };
 
-  if (submitSuccess) {
-    return (
-      <div className="mx-auto max-w-xl px-4 py-24 text-center sm:px-6 sm:py-32">
-        <CheckCircle2 size={64} className="text-success mx-auto mb-6" />
-        <h1 className="text-3xl font-bold text-textDefault mb-4">Application Submitted!</h1>
-        <p className="text-text2 mb-8">
-          Thank you for applying to join IMAT-FUTA. Your responses have been recorded and sent successfully!
-        </p>
-        <Link href="/" className="px-8 py-4 bg-primary text-white font-bold rounded-lg hover:bg-blue-500 transition-colors">
-          Return Home
-        </Link>
-      </div>
-    );
-  }
+   if (submitSuccess) {
+     return (
+       <div className="mx-auto max-w-xl px-4 py-24 text-center sm:px-6 sm:py-32">
+         <CheckCircle2 size={64} className="text-success mx-auto mb-6" />
+         <h1 className="text-3xl font-bold text-textDefault mb-4">Application Submitted!</h1>
+         <p className="text-text2 mb-8">
+           Thank you for applying to join IMAT-FUTA. Your responses have been recorded and sent successfully!
+         </p>
+         <Link href="/" className="px-8 py-4 bg-primary text-white font-bold rounded-lg hover:bg-blue-500 transition-colors">
+           Return Home
+         </Link>
+       </div>
+     );
+   }
 
-  return (
-    <div className="mx-auto min-h-screen max-w-4xl px-4 py-14 sm:px-6 sm:py-20">
-      <Link href="/" className="inline-flex items-center gap-2 text-text3 hover:text-primary transition-colors text-sm font-mono mb-12">
-        <ArrowLeft size={16} /> Back to Home
-      </Link>
+   return (
+     <div className="mx-auto min-h-screen max-w-4xl px-4 py-14 sm:px-6 sm:py-20">
+       <Breadcrumbs className="mb-8" />
 
       <div className="text-center mb-12">
         <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-textDefault mb-4 uppercase">Membership Registration</h1>

@@ -129,40 +129,40 @@ export default function AnnouncementEditor({
       </Link>
 
       <div className="mb-8">
-        <div className="inline-flex items-center gap-2 rounded-full border border-borderDark bg-bg2 px-3 py-1 text-xs font-mono uppercase tracking-wider text-text3 mb-4">
+        <div className="inline-flex items-center gap-2 rounded-full border border-soft bg-bg2 px-3 py-1 text-xs font-mono uppercase tracking-wider text-text3 mb-4">
           <FileText size={14} /> Edit Broadcast
         </div>
         <h1 className="text-3xl font-bold text-textDefault mb-2">{announcement.title}</h1>
         <p className="text-text2">Update the text, image, or visibility. The public link stays stable while timestamps and notifications are refreshed.</p>
       </div>
 
-      <form onSubmit={handleSave} className="space-y-6 rounded-2xl border border-borderDark bg-bg2 p-6 md:p-8">
+      <form onSubmit={handleSave} className="space-y-6 rounded-2xl border border-soft bg-bg2 p-6 md:p-8">
         <div>
           <label className="block text-xs font-mono uppercase tracking-wider text-text3 mb-2">Headline</label>
-          <input value={title} onChange={(e) => setTitle(e.target.value)} className="w-full rounded-lg border border-borderDark bg-bg px-4 py-3 text-textDefault focus:outline-none focus:border-primary" required />
+          <input value={title} onChange={(e) => setTitle(e.target.value)} className="w-full rounded-lg border border-soft bg-bg px-4 py-3 text-textDefault focus:outline-none focus:border-primary" required />
         </div>
 
         <div>
           <label className="block text-xs font-mono uppercase tracking-wider text-text3 mb-2">Broadcast Body</label>
-          <textarea value={body} onChange={(e) => setBody(e.target.value)} className="w-full min-h-[280px] rounded-lg border border-borderDark bg-bg px-4 py-3 text-textDefault focus:outline-none focus:border-primary" required />
+          <textarea value={body} onChange={(e) => setBody(e.target.value)} className="w-full min-h-[280px] rounded-lg border border-soft bg-bg px-4 py-3 text-textDefault focus:outline-none focus:border-primary" required />
         </div>
 
         <div>
           <label className="block text-xs font-mono uppercase tracking-wider text-text3 mb-2">Cover Image URL</label>
-          <input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://..." className="w-full rounded-lg border border-borderDark bg-bg px-4 py-3 text-textDefault focus:outline-none focus:border-primary" />
+          <input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://..." className="w-full rounded-lg border border-soft bg-bg px-4 py-3 text-textDefault focus:outline-none focus:border-primary" />
         </div>
 
         <div>
           <label className="block text-xs font-mono uppercase tracking-wider text-text3 mb-3">Visibility</label>
           <div className="grid gap-4 sm:grid-cols-2">
-            <label className={`flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition-colors ${visibility === "public" ? "border-primary bg-primary/10" : "border-borderDark bg-bg hover:border-text3"}`}>
+            <label className={`flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition-colors ${visibility === "public" ? "border-primary bg-primary/10" : "border-soft bg-bg hover:border-text3"}`}>
               <input type="radio" className="mt-1" checked={visibility === "public"} onChange={() => setVisibility("public")} />
               <div>
                 <div className="flex items-center gap-2 font-semibold text-textDefault"><Globe size={16} /> Public</div>
                 <div className="text-sm text-text3">Visible on the public newsroom page.</div>
               </div>
             </label>
-            <label className={`flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition-colors ${visibility === "members_only" ? "border-warning bg-warning/10" : "border-borderDark bg-bg hover:border-text3"}`}>
+            <label className={`flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition-colors ${visibility === "members_only" ? "border-warning bg-warning/10" : "border-soft bg-bg hover:border-text3"}`}>
               <input type="radio" className="mt-1" checked={visibility === "members_only"} onChange={() => setVisibility("members_only")} />
               <div>
                 <div className="flex items-center gap-2 font-semibold text-textDefault"><Lock size={16} /> Members only</div>
@@ -172,7 +172,7 @@ export default function AnnouncementEditor({
           </div>
         </div>
 
-        <div className="flex flex-col gap-2 rounded-xl border border-borderDark bg-bg p-4 text-sm text-text3">
+        <div className="flex flex-col gap-2 rounded-xl border border-soft bg-bg p-4 text-sm text-text3">
           <div>Published by {announcement.author?.full_name ?? "IMAT Official"}</div>
           <div>Updated on {new Date(announcement.updated_at).toLocaleDateString()}</div>
           <div>Slug: {announcement.slug ?? announcement.id}</div>
@@ -193,7 +193,7 @@ export default function AnnouncementEditor({
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3 sm:ml-auto">
-            <Link href={`/newsroom/${announcement.slug ?? announcement.id}`} className="rounded-lg border border-borderDark px-4 py-3 text-center text-text3 hover:text-textDefault hover:border-text3 transition-colors">
+            <Link href={`/newsroom/${announcement.slug ?? announcement.id}`} className="rounded-lg border border-soft px-4 py-3 text-center text-text3 hover:text-textDefault hover:border-text3 transition-colors">
               View public page
             </Link>
             <button type="submit" disabled={saving || deleting} className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-5 py-3 font-semibold text-white hover:bg-blue-500 transition-colors disabled:opacity-70">
@@ -213,7 +213,7 @@ export default function AnnouncementEditor({
           />
 
           <div className="relative z-10 w-full max-w-md overflow-hidden rounded-2xl border border-danger/30 bg-bg2 shadow-2xl shadow-black/40">
-            <div className="border-b border-borderDark bg-gradient-to-r from-danger/15 via-danger/5 to-transparent p-5">
+            <div className="border-b border-soft bg-gradient-to-r from-danger/15 via-danger/5 to-transparent p-5">
               <div className="flex items-start justify-between gap-3">
                 <div className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-danger/30 bg-danger/15 text-danger">
                   <AlertTriangle size={18} />
@@ -221,7 +221,7 @@ export default function AnnouncementEditor({
                 <button
                   type="button"
                   onClick={() => !deleting && setIsDeleteModalOpen(false)}
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-borderDark text-text3 hover:text-textDefault hover:border-text3 transition-colors disabled:opacity-50"
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-soft text-text3 hover:text-textDefault hover:border-text3 transition-colors disabled:opacity-50"
                   aria-label="Close"
                   disabled={deleting}
                 >
@@ -240,7 +240,7 @@ export default function AnnouncementEditor({
                 type="button"
                 onClick={() => setIsDeleteModalOpen(false)}
                 disabled={deleting}
-                className="rounded-lg border border-borderDark px-4 py-2 text-sm font-semibold text-text3 hover:border-text3 hover:text-textDefault transition-colors disabled:opacity-50"
+                className="rounded-lg border border-soft px-4 py-2 text-sm font-semibold text-text3 hover:border-text3 hover:text-textDefault transition-colors disabled:opacity-50"
               >
                 Cancel
               </button>

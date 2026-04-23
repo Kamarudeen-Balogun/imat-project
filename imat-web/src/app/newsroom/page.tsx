@@ -1,11 +1,12 @@
 import { createSupabaseClient } from "@/lib/supabase/server";
 import { format } from "date-fns";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, Megaphone, Calendar } from "lucide-react";
+import { ArrowRight, Megaphone, Calendar } from "lucide-react";
 import Image from "next/image";
 import NewsroomNotificationSettings from "./NewsroomNotificationSettings";
 import NotificationsHistoryPanel from "./NotificationsHistoryPanel";
 import { canEditContent } from "@/lib/access";
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 
 export const metadata = {
   title: "Newsroom | IMAT FUTA",
@@ -39,24 +40,22 @@ export default async function NewsroomPage() {
     role = profile?.role ?? null;
   }
   
-  const announcementQuery = supabase
-    .from("announcements")
-    .select("id, slug, title, body, visibility, published_at, image_url, author:users!announcements_author_id_fkey(full_name)")
-    .order("published_at", { ascending: false });
+   const announcementQuery = supabase
+     .from("announcements")
+     .select("id, slug, title, body, visibility, published_at, image_url, author:users!announcements_author_id_fkey(full_name)")
+     .order("published_at", { ascending: false });
 
-  const { data, error } = user
-    ? await announcementQuery.in("visibility", ["public", "members_only"])
-    : await announcementQuery.eq("visibility", "public");
+   const { data, error } = user
+     ? await announcementQuery.in("visibility", ["public", "members_only"])
+     : await announcementQuery.eq("visibility", "public");
 
-  const newsItems = (data ?? []) as unknown as Announcement[];
+   const newsItems = (data ?? []) as unknown as Announcement[];
 
-  return (
-    <div className="relative min-h-screen">
-      <div className="mx-auto max-w-7xl border-b border-borderDark px-4 py-6 sm:px-6">
-        <Link href="/" className="inline-flex items-center gap-2 text-text3 hover:text-primary transition-colors text-sm font-mono">
-          <ArrowLeft size={16} /> Back to Home
-        </Link>
-      </div>
+   return (
+     <div className="relative min-h-screen">
+       <div className="mx-auto max-w-7xl border-b border-borderDark px-4 py-6 sm:px-6">
+         <Breadcrumbs className="mb-4" />
+       </div>
 
       <div className="border-b border-borderDark py-16 sm:py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">

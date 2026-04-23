@@ -8,6 +8,8 @@ import { toast } from "react-hot-toast";
 import { ArrowLeft, Check, Edit3, Loader2, Plus, Trash2, Upload } from "lucide-react";
 import Link from "next/link";
 import EvidenceGalleryGrid, { type EvidenceGalleryItem } from "@/components/evidence/EvidenceGalleryGrid";
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
 
 const emptyItem: EvidenceGalleryItem = {
   id: "new-item",
@@ -29,6 +31,7 @@ export default function DashboardEvidencePage() {
   const [role, setRole] = useState<string | null>(null);
   const [items, setItems] = useState<EvidenceGalleryItem[]>([]);
   const [newItem, setNewItem] = useState<EvidenceGalleryItem>(emptyItem);
+  const [pendingDeleteItem, setPendingDeleteItem] = useState<EvidenceGalleryItem | null>(null);
 
   useEffect(() => {
     const init = async () => {
@@ -188,18 +191,23 @@ export default function DashboardEvidencePage() {
     setSaving(null);
   };
 
-  const deleteItem = async (itemId: string) => {
-    const confirmed = window.confirm("Delete this evidence item?");
-    if (!confirmed) return;
+  const deleteItem = (itemId: string) => {
+    const targetItem = items.find((item) => item.id === itemId) ?? null;
+    setPendingDeleteItem(targetItem);
+  };
 
-    setSaving(itemId);
-    const { error } = await supabase.from("evidence_gallery").delete().eq("id", itemId);
+  const confirmDeleteItem = async () => {
+    if (!pendingDeleteItem) return;
+
+    setSaving(pendingDeleteItem.id);
+    const { error } = await supabase.from("evidence_gallery").delete().eq("id", pendingDeleteItem.id);
     if (error) {
       toast.error("Could not delete evidence item.");
     } else {
       toast.success("Evidence item deleted.");
-      setItems((current) => current.filter((item) => item.id !== itemId));
+      setItems((current) => current.filter((item) => item.id !== pendingDeleteItem.id));
     }
+    setPendingDeleteItem(null);
     setSaving(null);
   };
 
@@ -222,9 +230,10 @@ export default function DashboardEvidencePage() {
 
   const categoryOptions = ["Drainage", "Roads", "Walkways", "Structures", "Other"];
 
-  return (
-    <div className="mx-auto max-w-6xl space-y-8 px-4 pb-16 pt-6 animate-in fade-in duration-500 sm:px-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
+   return (
+     <div className="mx-auto max-w-6xl space-y-8 px-4 pb-16 pt-6 animate-in fade-in duration-500 sm:px-6">
+       <Breadcrumbs className="mb-8" />
+       <div className="flex flex-wrap items-center justify-between gap-4">
         <Link href="/dashboard" className="inline-flex items-center gap-2 text-text3 hover:text-primary transition-colors text-sm font-mono">
           <ArrowLeft size={16} /> Back to Dashboard
         </Link>
@@ -251,7 +260,7 @@ export default function DashboardEvidencePage() {
             <input
               value={newItem.title}
               onChange={(event) => setNewItem((current) => ({ ...current, title: event.target.value }))}
-              className="w-full rounded-lg border border-borderDark bg-bg px-3 py-2 text-sm text-textDefault focus:border-primary focus:outline-none"
+              className="w-full rounded-lg border border-soft bg-bg px-3 py-2 text-sm text-textDefault focus:border-primary focus:outline-none"
               placeholder="Blocked Drain Grate"
             />
           </label>
@@ -260,7 +269,7 @@ export default function DashboardEvidencePage() {
             <select
               value={newItem.category}
               onChange={(event) => setNewItem((current) => ({ ...current, category: event.target.value }))}
-              className="w-full rounded-lg border border-borderDark bg-bg px-3 py-2 text-sm text-textDefault focus:border-primary focus:outline-none"
+              className="w-full rounded-lg border border-soft bg-bg px-3 py-2 text-sm text-textDefault focus:border-primary focus:outline-none"
             >
               {categoryOptions.map((option) => (
                 <option key={option} value={option}>{option}</option>
@@ -273,7 +282,7 @@ export default function DashboardEvidencePage() {
               value={newItem.description}
               onChange={(event) => setNewItem((current) => ({ ...current, description: event.target.value }))}
               rows={3}
-              className="w-full rounded-lg border border-borderDark bg-bg px-3 py-2 text-sm text-textDefault focus:border-primary focus:outline-none"
+              className="w-full rounded-lg border border-soft bg-bg px-3 py-2 text-sm text-textDefault focus:border-primary focus:outline-none"
               placeholder="Short context for the evidence item"
             />
           </label>
@@ -282,7 +291,7 @@ export default function DashboardEvidencePage() {
             <input
               value={newItem.before_image_url}
               onChange={(event) => setNewItem((current) => ({ ...current, before_image_url: event.target.value }))}
-              className="w-full rounded-lg border border-borderDark bg-bg px-3 py-2 text-sm text-textDefault focus:border-primary focus:outline-none"
+              className="w-full rounded-lg border border-soft bg-bg px-3 py-2 text-sm text-textDefault focus:border-primary focus:outline-none"
               placeholder="https://..."
             />
             <div className="flex flex-wrap items-center gap-3">
@@ -298,7 +307,7 @@ export default function DashboardEvidencePage() {
             <input
               value={newItem.after_image_url ?? ""}
               onChange={(event) => setNewItem((current) => ({ ...current, after_image_url: event.target.value || null }))}
-              className="w-full rounded-lg border border-borderDark bg-bg px-3 py-2 text-sm text-textDefault focus:border-primary focus:outline-none"
+              className="w-full rounded-lg border border-soft bg-bg px-3 py-2 text-sm text-textDefault focus:border-primary focus:outline-none"
               placeholder="Optional"
             />
             <div className="flex flex-wrap items-center gap-3">
@@ -320,7 +329,7 @@ export default function DashboardEvidencePage() {
                   sort_order: event.target.value === "" ? undefined : Number(event.target.value),
                 }))
               }
-              className="w-full rounded-lg border border-borderDark bg-bg px-3 py-2 text-sm text-textDefault focus:border-primary focus:outline-none"
+              className="w-full rounded-lg border border-soft bg-bg px-3 py-2 text-sm text-textDefault focus:border-primary focus:outline-none"
               placeholder="Auto (next position)"
             />
           </label>
@@ -339,7 +348,7 @@ export default function DashboardEvidencePage() {
       </div>
 
       {items.length === 0 ? (
-        <div className="rounded-2xl border border-borderDark border-dashed bg-bg2 p-12 text-center text-text3">
+        <div className="rounded-2xl border border-soft border-dashed bg-bg2 p-12 text-center text-text3">
           No evidence items found.
         </div>
       ) : (
@@ -348,7 +357,7 @@ export default function DashboardEvidencePage() {
 
           <div className="grid gap-6">
             {items.map((item) => (
-              <div key={item.id} className="rounded-2xl border border-borderDark bg-bg2 p-5 space-y-4 shadow-lg shadow-black/5">
+              <div key={item.id} className="rounded-2xl border border-soft bg-bg2 p-5 space-y-4 shadow-lg shadow-black/5">
                 <div className="grid gap-4 lg:grid-cols-[1.2fr_1fr]">
                   <div className="space-y-3">
                     <label className="space-y-2">
@@ -356,7 +365,7 @@ export default function DashboardEvidencePage() {
                       <input
                         value={item.title}
                         onChange={(event) => updateItem(item.id, { title: event.target.value })}
-                        className="w-full rounded-lg border border-borderDark bg-bg px-3 py-2 text-sm text-textDefault focus:border-primary focus:outline-none"
+                        className="w-full rounded-lg border border-soft bg-bg px-3 py-2 text-sm text-textDefault focus:border-primary focus:outline-none"
                       />
                     </label>
                     <label className="space-y-2">
@@ -365,7 +374,7 @@ export default function DashboardEvidencePage() {
                         value={item.description}
                         onChange={(event) => updateItem(item.id, { description: event.target.value })}
                         rows={3}
-                        className="w-full rounded-lg border border-borderDark bg-bg px-3 py-2 text-sm text-textDefault focus:border-primary focus:outline-none"
+                        className="w-full rounded-lg border border-soft bg-bg px-3 py-2 text-sm text-textDefault focus:border-primary focus:outline-none"
                       />
                     </label>
                     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -374,7 +383,7 @@ export default function DashboardEvidencePage() {
                         <select
                           value={item.category}
                           onChange={(event) => updateItem(item.id, { category: event.target.value })}
-                          className="w-full rounded-lg border border-borderDark bg-bg px-3 py-2 text-sm text-textDefault focus:border-primary focus:outline-none"
+                          className="w-full rounded-lg border border-soft bg-bg px-3 py-2 text-sm text-textDefault focus:border-primary focus:outline-none"
                         >
                           {categoryOptions.map((option) => (
                             <option key={option} value={option}>{option}</option>
@@ -391,11 +400,11 @@ export default function DashboardEvidencePage() {
                               sort_order: event.target.value === "" ? undefined : Number(event.target.value),
                             })
                           }
-                          className="w-full rounded-lg border border-borderDark bg-bg px-3 py-2 text-sm text-textDefault focus:border-primary focus:outline-none"
+                          className="w-full rounded-lg border border-soft bg-bg px-3 py-2 text-sm text-textDefault focus:border-primary focus:outline-none"
                           placeholder="Keep existing"
                         />
                       </label>
-                      <label className="flex items-end gap-2 rounded-lg border border-borderDark bg-bg px-3 py-2 text-sm text-textDefault">
+                      <label className="flex items-end gap-2 rounded-lg border border-soft bg-bg px-3 py-2 text-sm text-textDefault">
                         <input
                           type="checkbox"
                           checked={Boolean(item.is_active)}
@@ -413,7 +422,7 @@ export default function DashboardEvidencePage() {
                       <input
                         value={item.before_image_url}
                         onChange={(event) => updateItem(item.id, { before_image_url: event.target.value })}
-                        className="w-full rounded-lg border border-borderDark bg-bg px-3 py-2 text-sm text-textDefault focus:border-primary focus:outline-none"
+                        className="w-full rounded-lg border border-soft bg-bg px-3 py-2 text-sm text-textDefault focus:border-primary focus:outline-none"
                       />
                       <div className="flex flex-wrap items-center gap-3">
                         <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-primary/40 bg-primary/10 px-3 py-2 text-xs font-semibold text-primary hover:bg-primary/20 transition-colors">
@@ -428,7 +437,7 @@ export default function DashboardEvidencePage() {
                       <input
                         value={item.after_image_url ?? ""}
                         onChange={(event) => updateItem(item.id, { after_image_url: event.target.value || null })}
-                        className="w-full rounded-lg border border-borderDark bg-bg px-3 py-2 text-sm text-textDefault focus:border-primary focus:outline-none"
+                        className="w-full rounded-lg border border-soft bg-bg px-3 py-2 text-sm text-textDefault focus:border-primary focus:outline-none"
                       />
                       <div className="flex flex-wrap items-center gap-3">
                         <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-primary/40 bg-primary/10 px-3 py-2 text-xs font-semibold text-primary hover:bg-primary/20 transition-colors">
@@ -463,6 +472,22 @@ export default function DashboardEvidencePage() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={Boolean(pendingDeleteItem)}
+        title="Delete evidence item?"
+        description={`This will permanently remove ${pendingDeleteItem?.title ?? "this item"} from the gallery.`}
+        confirmLabel={saving === pendingDeleteItem?.id ? "Deleting..." : "Yes, delete"}
+        busy={saving === pendingDeleteItem?.id}
+        onClose={() => {
+          if (saving === pendingDeleteItem?.id) return;
+          setPendingDeleteItem(null);
+        }}
+        onConfirm={() => {
+          void confirmDeleteItem();
+        }}
+      />
     </div>
   );
 }
+

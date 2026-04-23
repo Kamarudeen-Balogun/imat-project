@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import { BellRing, Check, Sparkles } from "lucide-react";
+import Link from "next/link";
 import { toast } from "react-hot-toast";
 
 export default function NewsroomNotificationSettings() {
@@ -70,7 +71,19 @@ export default function NewsroomNotificationSettings() {
     toast.success(willEnable ? "News alerts enabled for this account." : "News alerts turned off.");
   };
 
-  if (loading || !isAuthenticated) return null;
+  if (loading) return null;
+
+  if (!isAuthenticated) {
+    return (
+      <Link
+        href="/login"
+        className="inline-flex items-center gap-2 rounded-full border border-borderDark bg-bg2 px-4 py-2 text-xs sm:text-sm font-semibold text-textDefault hover:border-primary hover:text-primary transition-colors"
+      >
+        <BellRing size={16} />
+        Sign in for news alerts
+      </Link>
+    );
+  }
 
   return (
     <button

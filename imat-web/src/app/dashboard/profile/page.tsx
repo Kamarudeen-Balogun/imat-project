@@ -5,6 +5,7 @@ import Image from "next/image";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import { Loader2, Trash2, Upload, Edit2, Check, X } from "lucide-react";
 import { toast } from "react-hot-toast";
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 
 type ProfileRow = {
   id: string;
@@ -220,14 +221,15 @@ export default function DashboardProfilePage() {
       })
     : "N/A";
 
-  return (
-    <div className="mx-auto max-w-3xl px-4 py-6 animate-in fade-in duration-500 sm:px-6">
-      <h1 className="text-2xl md:text-3xl font-bold text-textDefault mb-2">Profile Settings</h1>
+   return (
+     <div className="mx-auto max-w-3xl px-4 py-6 animate-in fade-in duration-500 sm:px-6">
+       <Breadcrumbs className="mb-8" />
+       <h1 className="text-2xl md:text-3xl font-bold text-textDefault mb-2">Profile Settings</h1>
       <p className="text-text2 mb-8">Manage your name, level, and display picture for the dashboard, member pages, and homepage highlights.</p>
 
       <div className="glass-panel rounded-2xl p-6 md:p-8">
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5">
-          <div className="h-20 w-20 rounded-full border border-borderDark overflow-hidden bg-gradient-to-br from-primary/25 to-accent/20 flex items-center justify-center text-lg font-bold text-textDefault">
+          <div className="h-20 w-20 rounded-full border border-soft overflow-hidden bg-gradient-to-br from-primary/25 to-accent/20 flex items-center justify-center text-lg font-bold text-textDefault">
             {profile.avatar_url ? (
               <Image
                 src={profile.avatar_url}
@@ -277,7 +279,7 @@ export default function DashboardProfilePage() {
                   <button
                     onClick={cancelEditName}
                     disabled={saving}
-                    className="inline-flex items-center gap-1 rounded-lg border border-borderDark bg-bg3 px-3 py-1.5 text-xs font-semibold text-text3 hover:bg-borderDark transition-colors disabled:opacity-50"
+                    className="inline-flex items-center gap-1 rounded-lg border border-soft bg-bg3 px-3 py-1.5 text-xs font-semibold text-text3 hover:bg-borderDark transition-colors disabled:opacity-50"
                   >
                     <X size={14} /> Cancel
                   </button>
@@ -285,14 +287,14 @@ export default function DashboardProfilePage() {
               </div>
             )}
             <p className="text-sm text-text2 mt-2">{profile.email}</p>
-            <p className="mt-1 inline-flex rounded-full border border-borderDark bg-bg px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-text3">
+            <p className="mt-1 inline-flex rounded-full border border-soft bg-bg px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-text3">
               {getRoleLabel(profile.role)}
             </p>
           </div>
         </div>
 
         <div className="mt-6 grid gap-3 sm:grid-cols-3">
-          <div className="rounded-xl border border-borderDark bg-bg p-3">
+          <div className="rounded-xl border border-soft bg-bg p-3">
             <p className="text-[10px] font-mono uppercase tracking-wider text-text3">Current Level</p>
             {!editingLevel ? (
               <div className="mt-2 flex items-center justify-between gap-2">
@@ -330,7 +332,7 @@ export default function DashboardProfilePage() {
                   <button
                     onClick={cancelEditLevel}
                     disabled={saving}
-                    className="inline-flex items-center gap-1 rounded-lg border border-borderDark bg-bg3 px-2.5 py-1 text-xs font-semibold text-text3 hover:bg-borderDark transition-colors disabled:opacity-50"
+                    className="inline-flex items-center gap-1 rounded-lg border border-soft bg-bg3 px-2.5 py-1 text-xs font-semibold text-text3 hover:bg-borderDark transition-colors disabled:opacity-50"
                   >
                     <X size={12} /> Cancel
                   </button>
@@ -339,12 +341,12 @@ export default function DashboardProfilePage() {
             )}
           </div>
 
-          <div className="rounded-xl border border-borderDark bg-bg p-3">
+          <div className="rounded-xl border border-soft bg-bg p-3">
             <p className="text-[10px] font-mono uppercase tracking-wider text-text3">Status</p>
             <p className="mt-2 text-sm font-semibold text-textDefault capitalize">{profile.status ?? "active"}</p>
           </div>
 
-          <div className="rounded-xl border border-borderDark bg-bg p-3">
+          <div className="rounded-xl border border-soft bg-bg p-3">
             <p className="text-[10px] font-mono uppercase tracking-wider text-text3">Joined</p>
             <p className="mt-2 text-sm font-semibold text-textDefault">{joinedDate}</p>
           </div>
@@ -380,3 +382,4 @@ export default function DashboardProfilePage() {
     </div>
   );
 }
+

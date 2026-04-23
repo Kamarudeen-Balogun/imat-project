@@ -33,9 +33,10 @@ export default async function NewCampaignPage() {
         </p>
       </div>
 
-      <div className="bg-bg2 border border-borderDark rounded-2xl p-6 md:p-8">
+      <div className="bg-bg2 border border-soft rounded-2xl p-6 md:p-8">
         <CampaignForm userId={user.id} />
       </div>
     </div>
   );
 }
+

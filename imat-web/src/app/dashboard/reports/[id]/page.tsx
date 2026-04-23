@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { useParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 
 // Disable SSR for react-pdf Viewer
 const ExistingReportViewer = dynamic(() => import("./ExistingReportViewer"), {
@@ -13,5 +14,10 @@ const ExistingReportViewer = dynamic(() => import("./ExistingReportViewer"), {
 export default function Page() {
   const params = useParams<{ id: string }>();
 
-  return <ExistingReportViewer reportId={params.id} />;
+  return (
+    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
+      <Breadcrumbs className="mb-8" />
+      <ExistingReportViewer reportId={params.id} />
+    </div>
+  );
 }

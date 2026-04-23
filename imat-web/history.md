@@ -225,6 +225,39 @@ This is the living implementation history for the IMAT web platform.
   - lint now passes with warnings only (no errors)
   - production build completes successfully
 
+### 21) UI/UX Accessibility And Modernization Pass
+
+- Upgraded color system in `globals.css` for improved WCAG AA contrast compliance:
+  - Light mode: darker text (`--textDefault: #0a1628`) and adjusted primary blue (`#0284c7`)
+  - Dark mode: deeper backgrounds with better contrast ratios
+- Added comprehensive CSS utilities:
+  - `skeleton-shimmer` - animated loading placeholders with gradient animation
+  - `animate-pulse-glow`, `animate-float`, `animate-spin-slow` - new animation keyframes
+  - `focus-ring`, `focus-ring-primary`, `focus-ring-accent` - keyboard focus indicators
+  - `btn-press` - button active/press states (scale + opacity feedback)
+  - `scrollbar-thin` - custom styled scrollbars
+- Extended `tailwind.config.ts` with:
+  - Custom shadows: glow, glow-lg, glow-accent, glow-success, inner-glow
+  - Animation definitions
+  - Bounce-in easing curve
+- Created shared animation variants library at `src/lib/animations.ts`:
+  - sectionReveal, fadeIn, fadeInUp, fadeInDown, scaleIn
+  - slideInLeft, slideInRight, staggerContainer, staggerItem
+  - modalVariants, dropdownVariants, toastVariants, tabVariants
+  - useAnimationPrefs hook for reduced-motion preference
+- Created reusable UI component tokens at `src/lib/ui.ts`:
+  - buttonStyles with base/sizes/variants
+  - cardStyles with hover/interactive states
+  - inputStyles with error/success states
+  - badgeStyles variants
+  - skeletonStyles
+  - sectionHeading and statCard styles
+- Added new components:
+  - `src/components/EmptyState.tsx` - animated empty states with icons (inbox, users, images, defects, files)
+  - `src/components/layout/Breadcrumbs.tsx` - auto-generated breadcrumbs with PageHeading
+- Added clsx dependency for cleaner className composition.
+- Verification: lint passes with 0 errors.
+
 ## Operational Notes
 
 - Current image strategy uses WebP for optimized public assets.

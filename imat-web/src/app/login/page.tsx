@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowLeft, Lock } from "lucide-react";
+import { Lock } from "lucide-react";
 import Link from "next/link";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import { toast } from "react-hot-toast";
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -41,16 +42,14 @@ export default function LoginPage() {
     }
   };
 
-  return (
-    <div className="relative flex min-h-screen items-center justify-center px-4 py-20 sm:px-6">
-      <div className="pointer-events-none absolute left-[12%] top-[10%] h-40 w-40 rounded-full bg-primary/20 blur-3xl" />
-      <div className="pointer-events-none absolute right-[10%] bottom-[12%] h-40 w-40 rounded-full bg-success/20 blur-3xl" />
+   return (
+     <div className="relative flex min-h-screen items-center justify-center px-4 py-20 sm:px-6">
+       <div className="pointer-events-none absolute left-[12%] top-[10%] h-40 w-40 rounded-full bg-primary/20 blur-3xl" />
+       <div className="pointer-events-none absolute right-[10%] bottom-[12%] h-40 w-40 rounded-full bg-success/20 blur-3xl" />
 
-      <div className="absolute top-8 left-8">
-        <Link href="/" className="inline-flex items-center gap-2 text-text3 hover:text-primary transition-colors text-sm font-mono">
-          <ArrowLeft size={16} /> Back to Home
-        </Link>
-      </div>
+       <div className="absolute top-8 left-8">
+         <Breadcrumbs className="mb-4" />
+       </div>
 
       <div className="relative z-10 w-full max-w-md">
         <div className="text-center mb-10">

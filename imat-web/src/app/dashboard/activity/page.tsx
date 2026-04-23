@@ -1,9 +1,9 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createSupabaseClient } from "@/lib/supabase/server";
-import { Activity, ArrowLeft } from "lucide-react";
+import { Activity } from "lucide-react";
 import { canModerateActivity } from "@/lib/access";
 import ActivityTimelineClient from "./ActivityTimelineClient";
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 
 export const dynamic = "force-dynamic";
 
@@ -74,11 +74,9 @@ export default async function ActivityPage() {
 
   const logs = (data ?? []) as unknown as ActivityLog[];
 
-  return (
-    <div className="mx-auto max-w-5xl animate-in fade-in duration-500 px-4 pb-16 pt-6 sm:px-6">
-      <Link href="/dashboard" className="inline-flex items-center gap-2 text-text3 hover:text-primary transition-colors text-sm font-mono mb-8">
-        <ArrowLeft size={16} /> Back to Dashboard
-      </Link>
+   return (
+     <div className="mx-auto max-w-5xl animate-in fade-in duration-500 px-4 pb-16 pt-6 sm:px-6">
+       <Breadcrumbs className="mb-8" />
 
       <div className="mb-8">
         <div className="inline-flex items-center gap-2 text-primary font-mono text-sm uppercase tracking-wider bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/20 mb-4">
@@ -89,7 +87,7 @@ export default async function ActivityPage() {
       </div>
 
       {logs.length === 0 ? (
-        <div className="glass-panel rounded-2xl border border-borderDark border-dashed p-12 text-center text-text3">
+        <div className="glass-panel rounded-2xl border border-soft border-dashed p-12 text-center text-text3">
           No activity recorded yet.
         </div>
       ) : (
@@ -102,3 +100,4 @@ export default async function ActivityPage() {
     </div>
   );
 }
+

@@ -237,10 +237,10 @@ export default function NewAssessmentPage() {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-8 bg-bg2 border border-borderDark rounded-xl p-6 md:p-10 shadow-xl">
+      <form onSubmit={handleSubmit} className="space-y-8 bg-bg2 border border-soft rounded-xl p-6 md:p-10 shadow-xl">
         
         {/* Core Details */}
-        <section className="space-y-6 border-b border-borderDark pb-8">
+        <section className="space-y-6 border-b border-soft pb-8">
           <div>
             <label className="block font-bold text-textDefault mb-2 uppercase tracking-wide font-mono text-xs">Defect General Title</label>
             <input 
@@ -248,7 +248,7 @@ export default function NewAssessmentPage() {
               type="text" 
               maxLength={100}
               placeholder="e.g. Total collapse of perimeter drainage wall"
-              className="w-full p-4 bg-bg border border-borderDark rounded-lg focus:border-primary focus:outline-none text-textDefault placeholder-text3 transition-colors"
+              className="w-full p-4 bg-bg border border-soft rounded-lg focus:border-primary focus:outline-none text-textDefault placeholder-text3 transition-colors"
               value={title}
               onChange={e => setTitle(e.target.value)}
             />
@@ -259,7 +259,7 @@ export default function NewAssessmentPage() {
               <label className="block font-bold text-textDefault mb-2 uppercase tracking-wide font-mono text-xs">Campus Zone</label>
               <select 
                 required
-                className="w-full p-4 bg-bg border border-borderDark rounded-lg focus:border-primary focus:outline-none text-textDefault transition-colors appearance-none"
+                className="w-full p-4 bg-bg border border-soft rounded-lg focus:border-primary focus:outline-none text-textDefault transition-colors appearance-none"
                 value={campusZoneId}
                 onChange={e => setCampusZoneId(e.target.value)}
               >
@@ -282,12 +282,12 @@ export default function NewAssessmentPage() {
         </section>
 
         {/* Technical Data */}
-        <section className="space-y-6 border-b border-borderDark pb-8">
+        <section className="space-y-6 border-b border-soft pb-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
               <label className="block font-bold text-textDefault mb-2 uppercase tracking-wide font-mono text-xs">Category</label>
               <select 
-                className="w-full p-4 bg-bg border border-borderDark rounded-lg focus:border-primary focus:outline-none text-textDefault transition-colors appearance-none"
+                className="w-full p-4 bg-bg border border-soft rounded-lg focus:border-primary focus:outline-none text-textDefault transition-colors appearance-none"
                 value={category}
                 onChange={e => setCategory(e.target.value)}
               >
@@ -298,7 +298,7 @@ export default function NewAssessmentPage() {
             <div>
               <label className="block font-bold text-textDefault mb-2 uppercase tracking-wide font-mono text-xs">Specific Type</label>
               <select 
-                className="w-full p-4 bg-bg border border-borderDark rounded-lg focus:border-primary focus:outline-none text-textDefault transition-colors appearance-none"
+                className="w-full p-4 bg-bg border border-soft rounded-lg focus:border-primary focus:outline-none text-textDefault transition-colors appearance-none"
                 value={defectType}
                 onChange={e => setDefectType(e.target.value)}
               >
@@ -313,7 +313,7 @@ export default function NewAssessmentPage() {
                 step="0.1"
                 min="0"
                 placeholder="e.g. 15.5"
-                className="w-full p-4 bg-bg border border-borderDark rounded-lg focus:border-primary focus:outline-none text-textDefault placeholder-text3 transition-colors"
+                className="w-full p-4 bg-bg border border-soft rounded-lg focus:border-primary focus:outline-none text-textDefault placeholder-text3 transition-colors"
                 value={affectedArea}
                 onChange={e => setAffectedArea(e.target.value)}
               />
@@ -346,7 +346,7 @@ export default function NewAssessmentPage() {
               required
               rows={4}
               placeholder="Provide a detailed engineering observation. Mention surrounding environmental factors, visible stresses, and proposed mitigation..."
-              className="w-full p-4 bg-bg border border-borderDark rounded-lg focus:border-primary focus:outline-none text-textDefault placeholder-text3 transition-colors resize-none"
+              className="w-full p-4 bg-bg border border-soft rounded-lg focus:border-primary focus:outline-none text-textDefault placeholder-text3 transition-colors resize-none"
               value={description}
               onChange={e => setDescription(e.target.value)}
             ></textarea>
@@ -359,7 +359,7 @@ export default function NewAssessmentPage() {
               <label className="block font-bold text-textDefault mb-2 uppercase tracking-wide font-mono text-xs">Photographic Evidence (Max 4)</label>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                  {photoPreviews.map((preview, idx) => (
-                    <div key={idx} className="relative aspect-square rounded-lg border border-borderDark overflow-hidden bg-bg">
+                    <div key={idx} className="relative aspect-square rounded-lg border border-soft overflow-hidden bg-bg">
                       <Image src={preview} alt="Upload preview" fill className="object-cover" />
                       <button 
                         type="button" 
@@ -372,7 +372,7 @@ export default function NewAssessmentPage() {
                  ))}
                  
                  {photoPreviews.length < 4 && (
-                   <label className="aspect-square rounded-lg border-2 border-dashed border-borderDark hover:border-primary hover:bg-primary/5 transition-all flex flex-col items-center justify-center cursor-pointer text-text3 hover:text-primary">
+                   <label className="aspect-square rounded-lg border-2 border-dashed border-soft hover:border-primary hover:bg-primary/5 transition-all flex flex-col items-center justify-center cursor-pointer text-text3 hover:text-primary">
                      <UploadCloud size={24} className="mb-2" />
                      <span className="text-xs font-mono uppercase">Upload Photo</span>
                      <input type="file" accept="image/jpeg, image/png, image/webp" multiple onChange={handlePhotoSelect} className="hidden" />
@@ -398,3 +398,4 @@ export default function NewAssessmentPage() {
     </div>
   );
 }
+

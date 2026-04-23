@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { createSupabaseClient } from "@/lib/supabase/client";
-import { ArrowLeft, FileText, Download, Loader2 } from "lucide-react";
-import Link from "next/link";
+import { FileText, Download, Loader2 } from "lucide-react";
 import { PDFViewer, PDFDownloadLink } from "@react-pdf/renderer";
 import { ReportDocument } from "@/components/pdf/ReportDocument";
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 
 function isMobileLikeDevice() {
   if (typeof navigator === "undefined") return false;
@@ -114,9 +114,7 @@ export default function ExistingReportViewer({ reportId }: { reportId: string })
 
   return (
     <div className="max-w-7xl mx-auto animate-in fade-in duration-500 pb-20">
-      <Link href="/dashboard/reports" className="inline-flex items-center gap-2 text-text3 hover:text-primary transition-colors text-sm font-mono mb-8">
-        <ArrowLeft size={16} /> Back to Masterlist
-      </Link>
+      <Breadcrumbs className="mb-8" />
       
       <div className="mb-8 flex flex-col md:flex-row justify-between md:items-end gap-4">
         <div>
@@ -143,8 +141,8 @@ export default function ExistingReportViewer({ reportId }: { reportId: string })
         </PDFDownloadLink>
       </div>
 
-      <div className="bg-bg2 border border-borderDark rounded-xl overflow-hidden shadow-2xl min-h-[420px] md:h-[800px] flex flex-col">
-         <div className="p-3 bg-bg border-b border-borderDark flex items-center justify-between">
+      <div className="bg-bg2 border border-soft rounded-xl overflow-hidden shadow-2xl min-h-[420px] md:h-[800px] flex flex-col">
+         <div className="p-3 bg-bg border-b border-soft flex items-center justify-between">
            <div className="text-xs font-mono text-text3">Read-only Archive Viewer</div>
          </div>
 

@@ -4,6 +4,7 @@ export const wikiEditorRoles = ["documentation_officer", "president", "admin"] a
 export const wikiDeleterRoles = ["president", "admin"] as const;
 export const evidenceGalleryEditorRoles = ["documentation_officer", "admin"] as const;
 export const activityModeratorRoles = ["admin"] as const;
+export const socialLinksManagerRoles = ["admin"] as const;
 
 function hasRole(role: string | null | undefined, allowedRoles: readonly string[]) {
   return Boolean(role && allowedRoles.includes(role));
@@ -31,4 +32,8 @@ export function canDeleteWiki(role: string | null | undefined) {
 
 export function canModerateActivity(role: string | null | undefined) {
   return hasRole(role, activityModeratorRoles);
+}
+
+export function canManageSocialLinks(role: string | null | undefined) {
+  return hasRole(role, socialLinksManagerRoles);
 }

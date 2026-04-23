@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeft, Search } from "lucide-react";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import { sortByRoleHierarchy, toRoleLabel } from "@/lib/roleHierarchy";
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
+import { GooeyInput } from "@/components/ui/gooey-input";
 
 type Member = {
   id: string;
@@ -48,24 +48,21 @@ export default function MembersPage() {
     );
   }, [members, search]);
 
-  return (
-    <div className="mx-auto min-h-screen max-w-7xl px-4 py-14 sm:px-6 md:py-20">
-      <Link href="/" className="inline-flex items-center gap-2 text-text3 hover:text-primary transition-colors text-sm font-mono mb-10">
-        <ArrowLeft size={16} /> Back to Home
-      </Link>
+   return (
+     <div className="mx-auto min-h-screen max-w-7xl px-4 py-14 sm:px-6 md:py-20">
+       <Breadcrumbs className="mb-8" />
 
       <h1 className="text-3xl md:text-4xl font-bold text-textDefault mb-3">IMAT Members</h1>
       <p className="text-text2 mb-8 max-w-2xl">
         Meet the active officers and members currently running infrastructure monitoring and advocacy across campus.
       </p>
 
-      <div className="glass-panel mb-8 flex items-center gap-3 rounded-2xl px-4 py-3">
-        <Search size={18} className="text-text3" />
-        <input
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
+      <div className="mb-8">
+        <GooeyInput
           placeholder="Search by name or role..."
-          className="w-full bg-transparent text-sm text-textDefault placeholder-text3 focus:outline-none"
+          value={search}
+          onChange={setSearch}
+          onSearch={setSearch}
         />
       </div>
 

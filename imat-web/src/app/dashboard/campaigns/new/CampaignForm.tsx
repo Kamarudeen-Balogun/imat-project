@@ -196,7 +196,7 @@ export default function CampaignForm({ userId }: { userId: string }) {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="e.g. FUTA Library Renovation Starts Tomorrow..."
-          className="w-full bg-bg border border-borderDark rounded-lg px-4 py-3 text-textDefault placeholder-text3 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors font-medium text-lg"
+          className="w-full bg-bg border border-soft rounded-lg px-4 py-3 text-textDefault placeholder-text3 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors font-medium text-lg"
           required
         />
       </div>
@@ -209,12 +209,12 @@ export default function CampaignForm({ userId }: { userId: string }) {
           value={body}
           onChange={(e) => setBody(e.target.value)}
           placeholder="Write the full announcement details here..."
-          className="w-full bg-bg border border-borderDark rounded-lg px-4 py-3 text-textDefault placeholder-text3 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors min-h-[250px] resize-y"
+          className="w-full bg-bg border border-soft rounded-lg px-4 py-3 text-textDefault placeholder-text3 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors min-h-[250px] resize-y"
           required
         />
       </div>
 
-      <div className="space-y-3 rounded-2xl border border-borderDark bg-bg p-4 sm:p-5">
+      <div className="space-y-3 rounded-2xl border border-soft bg-bg p-4 sm:p-5">
         <div className="flex items-center justify-between gap-4">
           <label className="block text-sm font-medium text-text2 font-mono uppercase tracking-wider">
             Optional Cover Image
@@ -233,7 +233,7 @@ export default function CampaignForm({ userId }: { userId: string }) {
 
         <div className="grid gap-4 sm:grid-cols-[1.15fr_0.85fr]">
           <div className="space-y-3">
-            <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-borderDark bg-bg2 px-4 py-5 text-sm text-text3 hover:border-primary hover:text-primary transition-colors">
+            <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-soft bg-bg2 px-4 py-5 text-sm text-text3 hover:border-primary hover:text-primary transition-colors">
               <ImageIcon size={16} />
               <span>{selectedImage ? selectedImage.name : "Choose a news image"}</span>
               <input
@@ -253,12 +253,12 @@ export default function CampaignForm({ userId }: { userId: string }) {
                 value={imageUrl}
                 onChange={(e) => setImageUrl(e.target.value)}
                 placeholder="https://..."
-                className="w-full rounded-lg border border-borderDark bg-bg2 px-4 py-3 text-textDefault placeholder-text3 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                className="w-full rounded-lg border border-soft bg-bg2 px-4 py-3 text-textDefault placeholder-text3 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
               />
             </div>
           </div>
 
-          <div className="overflow-hidden rounded-xl border border-borderDark bg-bg2 min-h-[180px]">
+          <div className="overflow-hidden rounded-xl border border-soft bg-bg2 min-h-[180px]">
             {imagePreview || imageUrl ? (
               renderPreviewImage(imagePreview || imageUrl, "News cover preview", "h-full w-full object-cover")
             ) : (
@@ -278,7 +278,7 @@ export default function CampaignForm({ userId }: { userId: string }) {
           <label className={`flex-1 flex px-4 py-4 rounded-xl border cursor-pointer transition-all ${
             visibility === 'public' 
               ? 'border-primary bg-primary/10 ring-1 ring-primary/50' 
-              : 'border-borderDark bg-bg hover:border-text3'
+              : 'border-soft bg-bg hover:border-text3'
           }`}>
             <input 
               type="radio" 
@@ -298,7 +298,7 @@ export default function CampaignForm({ userId }: { userId: string }) {
           <label className={`flex-1 flex justify-start items-start px-4 py-4 rounded-xl border cursor-pointer transition-all ${
             visibility === 'members_only' 
               ? 'border-warning bg-warning/10 ring-1 ring-warning/50' 
-              : 'border-borderDark bg-bg hover:border-text3'
+              : 'border-soft bg-bg hover:border-text3'
           }`}>
             <input 
               type="radio" 
@@ -317,11 +317,11 @@ export default function CampaignForm({ userId }: { userId: string }) {
         </div>
       </div>
 
-      <div className="pt-6 border-t border-borderDark flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 sm:gap-4">
+      <div className="pt-6 border-t border-soft flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 sm:gap-4">
         <button
           type="button"
           onClick={() => setShowPreview(true)}
-          className="px-6 py-3 rounded-lg border border-borderDark text-textDefault hover:border-primary hover:text-primary font-semibold transition-colors flex items-center justify-center gap-2"
+          className="px-6 py-3 rounded-lg border border-soft text-textDefault hover:border-primary hover:text-primary font-semibold transition-colors flex items-center justify-center gap-2"
           disabled={isSubmitting}
         >
           <Eye size={18} /> Preview
@@ -347,7 +347,7 @@ export default function CampaignForm({ userId }: { userId: string }) {
 
       {showPreview && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4 sm:p-6">
-          <div className="relative w-full max-w-3xl overflow-hidden rounded-2xl border border-borderDark bg-bg2 shadow-2xl">
+          <div className="relative w-full max-w-3xl overflow-hidden rounded-2xl border border-soft bg-bg2 shadow-2xl">
             <button
               type="button"
               onClick={() => setShowPreview(false)}
@@ -358,21 +358,21 @@ export default function CampaignForm({ userId }: { userId: string }) {
             </button>
 
             <div className="max-h-[85vh] overflow-y-auto">
-              <div className="border-b border-borderDark bg-bg px-5 sm:px-6 py-4">
+              <div className="border-b border-soft bg-bg px-5 sm:px-6 py-4">
                 <p className="text-xs font-mono uppercase tracking-wider text-text3">Newsroom Preview</p>
               </div>
 
               <div className="grid gap-0 lg:grid-cols-[1.15fr_0.85fr]">
                 <div className="p-5 sm:p-6 lg:p-8 space-y-5">
-                  <div className="inline-flex items-center gap-2 rounded-full border border-borderDark bg-bg px-3 py-1 text-xs font-mono uppercase tracking-wider text-text3">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-soft bg-bg px-3 py-1 text-xs font-mono uppercase tracking-wider text-text3">
                     {previewData.visibility === "public" ? <Globe size={14} /> : <Lock size={14} />} {previewData.visibility === "public" ? "Public Broadcast" : "Members Only"}
                   </div>
                   <h2 className="text-2xl sm:text-3xl font-bold text-textDefault leading-tight">{previewData.title || "Your headline will appear here"}</h2>
                   <p className="text-text2 leading-relaxed whitespace-pre-wrap">{previewData.body || "Your announcement content preview will appear here."}</p>
                 </div>
 
-                <div className="border-t lg:border-t-0 lg:border-l border-borderDark bg-bg p-5 sm:p-6">
-                  <div className="overflow-hidden rounded-xl border border-borderDark bg-bg2">
+                <div className="border-t lg:border-t-0 lg:border-l border-soft bg-bg p-5 sm:p-6">
+                  <div className="overflow-hidden rounded-xl border border-soft bg-bg2">
                     {previewData.imageUrl ? (
                       renderPreviewImage(previewData.imageUrl, "Broadcast preview image", "h-56 w-full object-cover sm:h-72 lg:h-[24rem]")
                     ) : (
@@ -382,7 +382,7 @@ export default function CampaignForm({ userId }: { userId: string }) {
                     )}
                   </div>
 
-                  <div className="mt-4 rounded-xl border border-borderDark bg-bg2 p-4 text-sm text-text3">
+                  <div className="mt-4 rounded-xl border border-soft bg-bg2 p-4 text-sm text-text3">
                     This is how the broadcast card will read on the newsroom page. You can close this preview and keep editing before publishing.
                   </div>
                 </div>
@@ -394,3 +394,4 @@ export default function CampaignForm({ userId }: { userId: string }) {
     </div>
   );
 }
+

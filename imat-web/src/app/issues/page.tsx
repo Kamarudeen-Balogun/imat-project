@@ -1,10 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ArrowLeft, Search, AlertCircle, Clock, CheckCircle } from "lucide-react";
-import Link from "next/link";
+import { AlertCircle, Clock, CheckCircle } from "lucide-react";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import { formatDistanceToNow } from "date-fns";
+import { ExpandableSearch } from "@/components/ExpandableSearch";
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
+import { motion } from "framer-motion";
+import { sectionReveal } from "@/lib/animations";
 
 type Defect = {
   id: string;
@@ -67,29 +70,38 @@ export default function IssuesTrackerPage() {
 
   return (
     <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-4 py-12 sm:px-6 sm:py-16">
-      <Link href="/" className="inline-flex items-center gap-2 text-text3 hover:text-primary transition-colors text-sm font-mono mb-8">
-        <ArrowLeft size={16} /> Back to Home
-      </Link>
+      <Breadcrumbs className="mb-8" />
 
-      <div className="mb-12">
-        <h1 className="text-3xl md:text-5xl font-bold text-textDefault mb-4">Public Issue Tracker</h1>
-        <p className="text-text2 max-w-2xl text-lg">
-          Live tracking of all reported infrastructural issues on campus. To protect student privacy and field operations, internal severity metrics and officer assignments are hidden.
-        </p>
-      </div>
+      <motion.div
+        variants={sectionReveal}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+      >
+        <div className="mb-12">
+          <h1 className="text-3xl md:text-5xl font-bold text-textDefault mb-4">Public Issue Tracker</h1>
+          <p className="text-text2 max-w-2xl text-lg">
+            Live tracking of all reported infrastructural issues on campus. To protect student privacy and field operations, internal severity metrics and officer assignments are hidden.
+          </p>
+        </div>
 
-      <div className="glass-panel mb-8 flex items-center gap-3 rounded-xl p-4">
-         <Search size={20} className="text-text3" />
-         <input 
-           type="text" 
-           placeholder="Search by issue title or ID (e.g. DEF-1A2B)..." 
-           value={search}
-           onChange={e => setSearch(e.target.value)}
-           className="w-full bg-transparent border-none focus:outline-none text-textDefault placeholder-text3 font-mono text-sm"
-         />
-      </div>
+        <div className="mb-8 flex justify-end">
+          <ExpandableSearch
+            placeholder="Search issues..."
+            value={search}
+            onChange={setSearch}
+            className="w-full sm:w-[22rem]"
+          />
+        </div>
+      </motion.div>
 
-      <div className="glass-panel overflow-x-auto rounded-xl">
+      <motion.div
+        variants={sectionReveal}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+      >
+        <div className="glass-panel overflow-x-auto rounded-xl">
         <table className="w-full text-left border-collapse min-w-[700px]">
           <thead>
             <tr className="bg-bg border-b border-borderDark font-mono text-xs uppercase text-text3 tracking-wider">
@@ -140,6 +152,7 @@ export default function IssuesTrackerPage() {
           </tbody>
         </table>
       </div>
+      </motion.div>
     </div>
   );
 }

@@ -2,13 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { createSupabaseClient } from "@/lib/supabase/client";
-import { ArrowLeft, Clock, MapPin, AlertTriangle, FileText, CheckCircle, Camera, Activity } from "lucide-react";
-import Link from "next/link";
+import { Clock, MapPin, AlertTriangle, FileText, CheckCircle, Camera, Activity } from "lucide-react";
 import Image from "next/image";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "react-hot-toast";
 import { logActivityEvent } from "@/lib/activity/logEvent";
 import { useParams } from "next/navigation";
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 
 type DetailedDefect = {
   id: string;
@@ -119,18 +119,16 @@ export default function DefectDetailsPage() {
 
   return (
     <div className="max-w-4xl mx-auto animate-in fade-in duration-500 pb-20">
-      <Link href="/dashboard/defects" className="inline-flex items-center gap-2 text-text3 hover:text-primary transition-colors text-sm font-mono mb-8">
-        <ArrowLeft size={16} /> Back to Masterlist
-      </Link>
+      <Breadcrumbs className="mb-8" />
       
-      <div className="bg-bg2 border border-borderDark rounded-xl overflow-hidden shadow-2xl">
+      <div className="bg-bg2 border border-soft rounded-xl overflow-hidden shadow-2xl">
          
          {/* HEADER */}
-         <div className="p-8 border-b border-borderDark">
+         <div className="p-8 border-b border-soft">
             <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
               <div>
                 <div className="flex items-center gap-3 mb-2">
-                   <span className="px-2 py-1 uppercase tracking-wider text-[10px] font-bold bg-bg3 text-text2 rounded border border-borderDark">
+                   <span className="px-2 py-1 uppercase tracking-wider text-[10px] font-bold bg-bg3 text-text2 rounded border border-soft">
                       {defect.id}
                    </span>
                    <span className="px-2 py-1 uppercase tracking-wider text-[10px] font-bold bg-blue-500/10 text-blue-400 rounded border border-blue-500/20">
@@ -147,7 +145,7 @@ export default function DefectDetailsPage() {
                  <div className="text-[10px] text-text3 font-mono uppercase tracking-wider mb-1">Structural Severity</div>
                  {defect.severity === 5 ? <span className="bg-danger/20 text-danger border border-danger/30 px-3 py-1.5 rounded font-bold font-mono text-sm shadow-[0_0_15px_rgba(239,68,68,0.2)]">LVL 5 EMERGENCY</span> :
                   defect.severity === 4 ? <span className="bg-warning/20 text-warning border border-warning/30 px-3 py-1.5 rounded font-bold font-mono text-sm">LVL 4 CRITICAL</span> :
-                  <span className="bg-bg3 text-text2 border border-borderDark px-3 py-1.5 rounded font-bold font-mono text-sm">LEVEL {defect.severity}</span>}
+                  <span className="bg-bg3 text-text2 border border-soft px-3 py-1.5 rounded font-bold font-mono text-sm">LEVEL {defect.severity}</span>}
               </div>
             </div>
          </div>
@@ -158,8 +156,8 @@ export default function DefectDetailsPage() {
             {/* LEFT COLUMN: Metadata & Map */}
             <div className="col-span-1 space-y-6">
                <div>
-                  <h3 className="text-xs font-mono uppercase tracking-wider text-text3 mb-3 border-b border-borderDark pb-1">Geospatial Data</h3>
-                  <div className="bg-bg rounded-lg border border-borderDark p-4 space-y-3">
+                  <h3 className="text-xs font-mono uppercase tracking-wider text-text3 mb-3 border-b border-soft pb-1">Geospatial Data</h3>
+                  <div className="bg-bg rounded-lg border border-soft p-4 space-y-3">
                     <div className="flex items-start gap-2">
                        <MapPin size={16} className="text-primary shrink-0 mt-0.5" />
                        <div>
@@ -168,7 +166,7 @@ export default function DefectDetailsPage() {
                        </div>
                     </div>
                     {defect.location_lat && defect.location_lng && (
-                      <div className="pt-3 border-t border-borderDark/50">
+                      <div className="pt-3 border-t border-soft">
                         <div className="text-xs text-text3 font-mono mb-2">VECTOR: {defect.location_lat}, {defect.location_lng}</div>
                         <a 
                           href={`https://www.google.com/maps/search/?api=1&query=${defect.location_lat},${defect.location_lng}`}
@@ -183,8 +181,8 @@ export default function DefectDetailsPage() {
                </div>
 
                <div>
-                  <h3 className="text-xs font-mono uppercase tracking-wider text-text3 mb-3 border-b border-borderDark pb-1">Personnel Info</h3>
-                  <div className="bg-bg rounded-lg border border-borderDark p-4 space-y-4">
+                  <h3 className="text-xs font-mono uppercase tracking-wider text-text3 mb-3 border-b border-soft pb-1">Personnel Info</h3>
+                  <div className="bg-bg rounded-lg border border-soft p-4 space-y-4">
                      <div>
                        <div className="text-[10px] text-text3 uppercase tracking-wider mb-1">Assigned Supervising Officer</div>
                        <div className="flex items-center gap-2">
@@ -201,7 +199,7 @@ export default function DefectDetailsPage() {
 
                {defect.affected_area_sqm && (
                  <div>
-                   <h3 className="text-xs font-mono uppercase tracking-wider text-text3 mb-3 border-b border-borderDark pb-1">Measurements</h3>
+                   <h3 className="text-xs font-mono uppercase tracking-wider text-text3 mb-3 border-b border-soft pb-1">Measurements</h3>
                    <div className="text-xl font-bold font-mono text-textDefault">{defect.affected_area_sqm} <span className="text-text3 text-sm">m²</span></div>
                  </div>
                )}
@@ -211,10 +209,10 @@ export default function DefectDetailsPage() {
             <div className="col-span-1 md:col-span-2 space-y-8">
                
                <div>
-                  <h3 className="text-xs font-mono uppercase tracking-wider text-text3 mb-3 border-b border-borderDark pb-1 flex items-center gap-2">
+                  <h3 className="text-xs font-mono uppercase tracking-wider text-text3 mb-3 border-b border-soft pb-1 flex items-center gap-2">
                     <FileText size={14} /> Official Engineering Notes
                   </h3>
-                  <div className="bg-bg border border-borderDark rounded-lg p-5">
+                  <div className="bg-bg border border-soft rounded-lg p-5">
                      <p className="text-text2 text-sm leading-relaxed whitespace-pre-wrap">
                        {defect.description}
                      </p>
@@ -222,14 +220,14 @@ export default function DefectDetailsPage() {
                </div>
 
                <div>
-                  <h3 className="text-xs font-mono uppercase tracking-wider text-text3 mb-3 border-b border-borderDark pb-1 flex items-center gap-2">
+                  <h3 className="text-xs font-mono uppercase tracking-wider text-text3 mb-3 border-b border-soft pb-1 flex items-center gap-2">
                     <Camera size={14} /> Photographic Evidence
                   </h3>
                   
                   {defect.photos && defect.photos.length > 0 ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {defect.photos.map((url, i) => (
-                        <div key={i} className="relative aspect-video rounded-lg border border-borderDark overflow-hidden bg-black group">
+                        <div key={i} className="relative aspect-video rounded-lg border border-soft overflow-hidden bg-black group">
                           <Image src={url} alt={`Evidence ${i+1}`} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
                           <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-3 opacity-0 group-hover:opacity-100 transition-opacity">
                             <span className="text-xs text-white/70 font-mono">IMG_STRUCTURAL_{i+1}</span>
@@ -238,7 +236,7 @@ export default function DefectDetailsPage() {
                       ))}
                     </div>
                   ) : (
-                    <div className="text-sm text-text3 italic p-8 text-center bg-bg rounded-lg border border-dashed border-borderDark">
+                    <div className="text-sm text-text3 italic p-8 text-center bg-bg rounded-lg border border-dashed border-soft">
                       No photographic evidence attached to this database record.
                     </div>
                   )}
@@ -248,7 +246,7 @@ export default function DefectDetailsPage() {
          </div>
          
          {/* FOOTER ACTIONS */}
-         <div className="p-6 bg-bg border-t border-borderDark flex flex-col sm:flex-row items-center justify-between gap-4">
+         <div className="p-6 bg-bg border-t border-soft flex flex-col sm:flex-row items-center justify-between gap-4">
            <div className="text-xs text-text3 font-mono flex items-center gap-2">
              <AlertTriangle size={14} className="text-warning"/>
              This structural data is confidential FUTA infrastructure data.

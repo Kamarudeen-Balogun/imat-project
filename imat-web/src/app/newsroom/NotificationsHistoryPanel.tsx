@@ -9,7 +9,7 @@ type Notification = {
   id: string;
   title: string;
   body: string;
-  sent_at: string;
+  created_at: string;
 };
 
 export default function NotificationsHistoryPanel() {
@@ -33,9 +33,9 @@ export default function NotificationsHistoryPanel() {
       // Fetch notifications for the current user
       const { data: notifData, error } = await supabase
         .from("notifications")
-        .select("id, title, body, sent_at")
+        .select("id, title, body, created_at")
         .eq("recipient_id", data.session.user.id)
-        .order("sent_at", { ascending: false })
+        .order("created_at", { ascending: false })
         .limit(50);
 
       if (!error) {
@@ -48,7 +48,7 @@ export default function NotificationsHistoryPanel() {
     void init();
   }, []);
 
-  if (loading || !isAuthenticated || notifications.length === 0) {
+  if (loading || !isAuthenticated) {
     return null;
   }
 
@@ -109,7 +109,7 @@ export default function NotificationsHistoryPanel() {
                         {notif.body}
                       </p>
                       <p className="text-[10px] text-text3 mt-2 opacity-70">
-                        {format(new Date(notif.sent_at), "MMM d, yyyy • h:mm a")}
+                        {format(new Date(notif.created_at), "MMM d, yyyy • h:mm a")}
                       </p>
                     </div>
                   </div>

@@ -2,13 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { createSupabaseClient } from "@/lib/supabase/client";
-import { ArrowLeft, FileText, Download, Loader2 } from "lucide-react";
-import Link from "next/link";
+import { FileText, Download, Loader2 } from "lucide-react";
 import { PDFViewer, PDFDownloadLink } from "@react-pdf/renderer";
 import { ReportDocument } from "@/components/pdf/ReportDocument";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { logActivityEvent } from "@/lib/activity/logEvent";
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 
 function isMobileLikeDevice() {
   if (typeof navigator === "undefined") return false;
@@ -157,9 +157,7 @@ export default function ReportGenerator() {
 
   return (
     <div className="max-w-7xl mx-auto animate-in fade-in duration-500 pb-20">
-      <Link href="/dashboard/reports" className="inline-flex items-center gap-2 text-text3 hover:text-primary transition-colors text-sm font-mono mb-8">
-        <ArrowLeft size={16} /> Back to Reports
-      </Link>
+      <Breadcrumbs className="mb-8" />
       
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-textDefault flex items-center gap-3">
@@ -174,8 +172,8 @@ export default function ReportGenerator() {
          
          {/* Configuration Sidebar */}
          <div className="lg:col-span-1 space-y-6">
-            <div className="bg-bg2 border border-borderDark rounded-xl p-6">
-               <h2 className="text-sm font-bold text-textDefault uppercase font-mono mb-4 border-b border-borderDark pb-2">Document Settings</h2>
+            <div className="bg-bg2 border border-soft rounded-xl p-6">
+               <h2 className="text-sm font-bold text-textDefault uppercase font-mono mb-4 border-b border-soft pb-2">Document Settings</h2>
                
                <div className="space-y-4">
                   <div>
@@ -184,7 +182,7 @@ export default function ReportGenerator() {
                       type="text" 
                       value={title}
                       onChange={e => setTitle(e.target.value)}
-                      className="w-full bg-bg border border-borderDark rounded p-2 text-sm text-textDefault focus:outline-none focus:border-primary"
+                      className="w-full bg-bg border border-soft rounded p-2 text-sm text-textDefault focus:outline-none focus:border-primary"
                     />
                   </div>
                   <div>
@@ -193,7 +191,7 @@ export default function ReportGenerator() {
                       type="date" 
                       value={periodStart}
                       onChange={e => setPeriodStart(e.target.value)}
-                      className="w-full bg-bg border border-borderDark rounded p-2 text-sm text-textDefault focus:outline-none focus:border-primary"
+                      className="w-full bg-bg border border-soft rounded p-2 text-sm text-textDefault focus:outline-none focus:border-primary"
                     />
                   </div>
                   <div>
@@ -202,12 +200,12 @@ export default function ReportGenerator() {
                       type="date" 
                       value={periodEnd}
                       onChange={e => setPeriodEnd(e.target.value)}
-                      className="w-full bg-bg border border-borderDark rounded p-2 text-sm text-textDefault focus:outline-none focus:border-primary"
+                      className="w-full bg-bg border border-soft rounded p-2 text-sm text-textDefault focus:outline-none focus:border-primary"
                     />
                   </div>
                </div>
 
-               <div className="mt-8 pt-6 border-t border-borderDark">
+               <div className="mt-8 pt-6 border-t border-soft">
                   <div className="text-xs font-mono text-text3 mb-4">
                     Included Data: <strong className="text-textDefault">{defects.length} Extracted Anomalies</strong>
                   </div>
@@ -235,8 +233,8 @@ export default function ReportGenerator() {
          </div>
 
          {/* PDF Live Preview Window */}
-         <div className="lg:col-span-3 bg-bg2 border border-borderDark rounded-xl overflow-hidden shadow-2xl min-h-[420px] md:h-[800px] flex flex-col">
-            <div className="p-3 bg-bg border-b border-borderDark flex items-center justify-between">
+         <div className="lg:col-span-3 bg-bg2 border border-soft rounded-xl overflow-hidden shadow-2xl min-h-[420px] md:h-[800px] flex flex-col">
+            <div className="p-3 bg-bg border-b border-soft flex items-center justify-between">
               <div className="text-xs font-mono text-text3 flex items-center gap-2">
                  <div className="w-2 h-2 rounded-full bg-success animate-pulse"></div> Live Preview Engine
               </div>
@@ -275,3 +273,4 @@ export default function ReportGenerator() {
     </div>
   );
 }
+

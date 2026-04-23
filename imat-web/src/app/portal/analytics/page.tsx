@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { Loader2 } from "lucide-react";
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 
 // Charts use window/ResizeObserver — disable SSR
 const AnalyticsCharts = dynamic(() => import("./AnalyticsCharts"), {
@@ -14,5 +15,10 @@ const AnalyticsCharts = dynamic(() => import("./AnalyticsCharts"), {
 });
 
 export default function AnalyticsPage() {
-  return <AnalyticsCharts />;
+  return (
+    <>
+      <Breadcrumbs className="mb-8" />
+      <AnalyticsCharts />
+    </>
+  );
 }

@@ -8,6 +8,7 @@ import { createSupabaseClient } from "@/lib/supabase/client";
 import { logActivityEvent } from "@/lib/activity/logEvent";
 import { toast } from "react-hot-toast";
 import { canEditWiki, canDeleteWiki } from "@/lib/access";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
 
 function toSlug(value: string) {
   return value
@@ -59,6 +60,7 @@ export default function EditWikiPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [role, setRole] = useState<string | null>(null);
   const [pageId, setPageId] = useState<string | null>(null);
@@ -166,9 +168,6 @@ export default function EditWikiPage() {
       return;
     }
 
-    const confirmed = window.confirm("Delete this knowledge page? This will remove it from the website and database.");
-    if (!confirmed) return;
-
     setDeleting(true);
 
     const { error } = await supabase.from("wiki_pages").delete().eq("id", pageId);
@@ -193,6 +192,7 @@ export default function EditWikiPage() {
     });
 
     toast.success("Knowledge page deleted.");
+    setShowDeleteConfirm(false);
     router.push("/dashboard/wiki");
     router.refresh();
   };
@@ -212,46 +212,61 @@ export default function EditWikiPage() {
         <p className="text-text2">Update runbooks, decisions, and implementation notes.</p>
       </div>
 
-      <form onSubmit={handleSave} className="space-y-6 rounded-2xl border border-borderDark bg-bg2 p-6 md:p-8">
+      <form onSubmit={handleSave} className="space-y-6 rounded-2xl border border-soft bg-bg2 p-6 md:p-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-xs font-mono uppercase tracking-wider text-text3 mb-2">Title</label>
-            <input value={title} onChange={(e) => setTitle(e.target.value)} className="w-full rounded-lg border border-borderDark bg-bg px-4 py-3 text-textDefault focus:outline-none focus:border-primary" required />
+            <input value={title} onChange={(e) => setTitle(e.target.value)} className="w-full rounded-lg border border-soft bg-bg px-4 py-3 text-textDefault focus:outline-none focus:border-primary" required />
           </div>
           <div>
             <label className="block text-xs font-mono uppercase tracking-wider text-text3 mb-2">Category</label>
-            <input value={category} onChange={(e) => setCategory(e.target.value)} className="w-full rounded-lg border border-borderDark bg-bg px-4 py-3 text-textDefault focus:outline-none focus:border-primary" required />
+            <input value={category} onChange={(e) => setCategory(e.target.value)} className="w-full rounded-lg border border-soft bg-bg px-4 py-3 text-textDefault focus:outline-none focus:border-primary" required />
           </div>
         </div>
 
         <div>
           <label className="block text-xs font-mono uppercase tracking-wider text-text3 mb-2">Slug</label>
-          <input value={slug} onChange={(e) => setSlug(e.target.value)} className="w-full rounded-lg border border-borderDark bg-bg px-4 py-3 text-textDefault focus:outline-none focus:border-primary" />
+          <input value={slug} onChange={(e) => setSlug(e.target.value)} className="w-full rounded-lg border border-soft bg-bg px-4 py-3 text-textDefault focus:outline-none focus:border-primary" />
           <p className="mt-2 text-xs text-text3">Final slug: {slugPreview || "-"}</p>
         </div>
 
         <div>
           <label className="block text-xs font-mono uppercase tracking-wider text-text3 mb-2">Content</label>
-          <textarea value={content} onChange={(e) => setContent(e.target.value)} className="w-full min-h-[320px] rounded-lg border border-borderDark bg-bg px-4 py-3 text-textDefault focus:outline-none focus:border-primary" />
+          <textarea value={content} onChange={(e) => setContent(e.target.value)} className="w-full min-h-[320px] rounded-lg border border-soft bg-bg px-4 py-3 text-textDefault focus:outline-none focus:border-primary" />
         </div>
 
         <div className="pt-2 flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
           <div>
             {canDeleteWiki(role) && (
-              <button type="button" onClick={handleDelete} disabled={saving || deleting} className="inline-flex items-center gap-2 rounded-lg border border-danger/30 bg-danger/10 px-5 py-3 text-danger font-semibold hover:bg-danger/20 transition-colors disabled:opacity-70">
+              <button type="button" onClick={() => setShowDeleteConfirm(true)} disabled={saving || deleting} className="inline-flex items-center gap-2 rounded-lg border border-danger/30 bg-danger/10 px-5 py-3 text-danger font-semibold hover:bg-danger/20 transition-colors disabled:opacity-70">
                 {deleting ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />} Delete Page
               </button>
             )}
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3 sm:justify-end">
-            <Link href={`/dashboard/wiki/${params.slug}`} className="px-5 py-3 rounded-lg border border-borderDark text-text3 hover:text-textDefault hover:border-text3 text-center">Cancel</Link>
+            <Link href={`/dashboard/wiki/${params.slug}`} className="px-5 py-3 rounded-lg border border-soft text-text3 hover:text-textDefault hover:border-text3 text-center">Cancel</Link>
             <button type="submit" disabled={saving || deleting} className="px-5 py-3 rounded-lg bg-primary hover:bg-blue-500 text-white font-semibold inline-flex items-center justify-center gap-2 disabled:opacity-70">
               {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />} Save Changes
             </button>
           </div>
         </div>
       </form>
+
+      <ConfirmDialog
+        open={showDeleteConfirm}
+        title="Delete knowledge page?"
+        description={`This will permanently remove ${title.trim() || "this page"} from the website and database.`}
+        confirmLabel={deleting ? "Deleting..." : "Yes, delete"}
+        busy={deleting}
+        onClose={() => {
+          if (deleting) return;
+          setShowDeleteConfirm(false);
+        }}
+        onConfirm={() => {
+          void handleDelete();
+        }}
+      />
     </div>
   );
 }

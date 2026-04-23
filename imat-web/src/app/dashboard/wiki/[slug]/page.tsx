@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, BookOpen, User } from "lucide-react";
 import { format } from "date-fns";
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 
 export const dynamic = "force-dynamic";
 
@@ -67,20 +68,21 @@ export default async function WikiPageDetail({ params }: { params: Promise<{ slu
 
   return (
     <div className="max-w-4xl mx-auto animate-in fade-in duration-500 pb-20">
+      <Breadcrumbs className="mb-8" />
       <Link href="/dashboard/wiki" className="inline-flex items-center gap-2 text-text3 hover:text-primary transition-colors text-sm font-mono mb-8">
         <ArrowLeft size={16} /> Back to Knowledge Base
       </Link>
 
-      <div className="bg-bg2 border border-borderDark rounded-2xl p-8">
+      <div className="bg-bg2 border border-soft rounded-2xl p-8">
         <div className="inline-flex items-center gap-2 text-primary font-mono text-xs uppercase tracking-wider bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/20 mb-5 w-fit">
           <BookOpen size={14} /> {page.category}
         </div>
         <h1 className="text-3xl md:text-4xl font-bold text-textDefault mb-4">{page.title}</h1>
-        <div className="flex flex-wrap items-center gap-4 text-sm text-text3 font-mono border-b border-borderDark pb-4 mb-6">
+        <div className="flex flex-wrap items-center gap-4 text-sm text-text3 font-mono border-b border-soft pb-4 mb-6">
           <span className="flex items-center gap-2"><User size={14} /> {page.author?.full_name ?? "IMAT"}</span>
           <span>{format(new Date(page.updated_at), "MMMM d, yyyy")}</span>
           {canEdit && (
-            <Link href={`/dashboard/wiki/${page.slug}/edit`} className="ml-auto px-3 py-1.5 rounded border border-borderDark hover:border-primary hover:text-primary transition-colors text-xs font-semibold">
+            <Link href={`/dashboard/wiki/${page.slug}/edit`} className="ml-auto px-3 py-1.5 rounded border border-soft hover:border-primary hover:text-primary transition-colors text-xs font-semibold">
               Edit Page
             </Link>
           )}

@@ -1,15 +1,29 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, SlidersHorizontal, Sparkles } from "lucide-react";
-import Link from "next/link";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { SlidersHorizontal, Sparkles, ChevronDown, Check } from "lucide-react";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import EvidenceGalleryGrid, { type EvidenceGalleryItem } from "@/components/evidence/EvidenceGalleryGrid";
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 
 export default function EvidencePage() {
   const [categoryFilter, setCategoryFilter] = useState("All");
+  const [isCategoryOpen, setIsCategoryOpen] = useState(false);
+  const categoryMenuRef = useRef<HTMLDivElement | null>(null);
   const [items, setItems] = useState<EvidenceGalleryItem[]>([]);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (!categoryMenuRef.current) return;
+      if (!categoryMenuRef.current.contains(event.target as Node)) {
+        setIsCategoryOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   useEffect(() => {
     const loadEvidence = async () => {
@@ -37,9 +51,7 @@ export default function EvidencePage() {
 
   return (
     <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-4 py-16 sm:px-6">
-      <Link href="/" className="inline-flex items-center gap-2 text-text3 hover:text-primary transition-colors text-sm font-mono mb-8">
-        <ArrowLeft size={16} /> Back to Home
-      </Link>
+      <Breadcrumbs className="mb-8" />
 
       <div className="mb-12">
         <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-mono uppercase tracking-wider text-primary">
@@ -59,13 +71,37 @@ export default function EvidencePage() {
         <div className="flex flex-col sm:flex-row w-full gap-4">
           <div className="flex-1">
             <label className="block text-xs uppercase tracking-wider text-text3 mb-2 font-mono">Category</label>
-            <select 
-              value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
-              className="w-full rounded-lg border border-borderDark bg-surfaceStrong px-3 py-2 text-sm text-textDefault transition-colors focus:border-primary focus:outline-none"
-            >
-              {categories.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
+            <div className="relative" ref={categoryMenuRef}>
+              <button
+                type="button"
+                onClick={() => setIsCategoryOpen((current) => !current)}
+                className="flex w-full items-center justify-between rounded-lg border border-borderDark bg-surfaceStrong px-3 py-2 text-sm text-textDefault transition-colors hover:border-primary/50 focus:border-primary focus:outline-none"
+                aria-expanded={isCategoryOpen}
+                aria-label="Select evidence category"
+              >
+                <span className="truncate">{categoryFilter}</span>
+                <ChevronDown size={16} className={`transition-transform ${isCategoryOpen ? "rotate-180" : ""}`} />
+              </button>
+
+              {isCategoryOpen && (
+                <div className="absolute left-0 right-0 z-30 mt-2 max-h-56 overflow-auto rounded-lg border border-borderDark bg-bg shadow-xl">
+                  {categories.map((category) => (
+                    <button
+                      key={category}
+                      type="button"
+                      onClick={() => {
+                        setCategoryFilter(category);
+                        setIsCategoryOpen(false);
+                      }}
+                      className="flex w-full items-center justify-between px-3 py-2 text-left text-sm text-textDefault transition-colors hover:bg-primary/10"
+                    >
+                      <span className="truncate">{category}</span>
+                      {categoryFilter === category && <Check size={15} className="text-primary" />}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
