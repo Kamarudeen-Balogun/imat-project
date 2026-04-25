@@ -134,16 +134,6 @@ export default function ApplyPage() {
           className="hidden"
           aria-hidden="true"
         />
-        <div className="max-w-md rounded-xl border border-borderDark bg-bg2/70 p-4">
-          <h3 className="text-sm font-semibold uppercase tracking-wide text-textDefault">Quick safety check</h3>
-          <p className="mt-1 text-xs text-text3">This simple check protects the form from spam and should only take a moment.</p>
-          <TurnstileWidget
-            onTokenChange={setTurnstileToken}
-            onError={() => toast.error("Security check unavailable. Please refresh and try again.")}
-            className="mt-3"
-          />
-        </div>
-        
         {/* SECTION A */}
         <section>
           <h2 className="bg-primary text-bg p-3 text-lg font-bold rounded uppercase tracking-wide mb-6">Section A: Personal Information</h2>
@@ -364,11 +354,21 @@ export default function ApplyPage() {
           </div>
         </section>
 
+        <div className="max-w-md rounded-xl border border-borderDark bg-bg2/70 p-4">
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-textDefault">Quick safety check</h3>
+          <p className="mt-1 text-xs text-text3">This simple check protects the form from spam and should only take a moment.</p>
+          <TurnstileWidget
+            onTokenChange={setTurnstileToken}
+            onError={() => toast.error("Security check unavailable. Please refresh and try again.")}
+            className="mt-3"
+          />
+        </div>
+
         <div className="flex flex-col sm:flex-row gap-4 justify-center pt-8 border-t border-borderDark">
-          <button type="submit" disabled={isSubmitting} className="px-10 py-4 bg-primary hover:bg-blue-500 text-white font-bold rounded-lg text-lg transition-transform hover:-translate-y-1 shadow-xl flex items-center justify-center">
+          <button type="submit" disabled={isSubmitting} className="px-6 py-3 bg-primary hover:bg-blue-500 text-white font-bold rounded-lg text-base md:text-lg transition-transform hover:-translate-y-1 shadow-xl flex items-center justify-center">
             {isSubmitting ? <span className="animate-pulse">Submitting...</span> : "📨 Submit Application"}
           </button>
-          <button type="reset" className="px-10 py-4 bg-danger hover:bg-red-700 text-white font-bold rounded-lg text-lg transition-transform hover:-translate-y-1">
+          <button type="reset" className="px-6 py-3 bg-danger hover:bg-red-700 text-white font-bold rounded-lg text-base md:text-lg transition-transform hover:-translate-y-1">
             🔄 Reset Form
           </button>
         </div>

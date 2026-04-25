@@ -84,7 +84,7 @@ export default function EvidencePage() {
               </button>
 
               {isCategoryOpen && (
-                <div className="absolute left-0 right-0 z-50 mt-2 max-h-72 overflow-y-auto rounded-lg border border-borderDark bg-bg shadow-xl">
+                <div className="absolute left-0 right-0 z-50 mt-2 max-h-72 overflow-y-auto rounded-lg border border-borderDark bg-bg shadow-xl shadow-black/20">
                   {categories.map((category) => (
                     <button
                       key={category}

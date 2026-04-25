@@ -280,7 +280,7 @@ export default function ReportPage() {
     const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET_PHOTOS;
 
     if (!cloudName || !uploadPreset) {
-      toast.error("Image upload is not configured yet.");
+      toast("Image upload is not configured yet. The report will be sent without photos.");
       return [];
     }
 
@@ -309,9 +309,10 @@ export default function ReportPage() {
       }
 
       return uploadedUrls;
-    } catch (error) {
+    } catch {
       console.error("Image upload failed.");
-      throw error;
+      toast("Image upload failed. The report will be sent without photos.");
+      return [];
     } finally {
       setIsUploadingPhotos(false);
     }
@@ -681,11 +682,11 @@ export default function ReportPage() {
             type="button"
             onClick={clearFormDraft}
             disabled={isSubmitting || isUploadingPhotos}
-            className="w-full md:w-auto px-6 py-3 bg-bg border border-borderDark hover:border-text3 text-text2 font-semibold rounded-lg transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+            className="w-full md:w-auto px-5 py-3 bg-bg border border-borderDark hover:border-text3 text-text2 font-semibold rounded-lg transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
           >
             Clear Form
           </button>
-          <button type="submit" disabled={isSubmitting || isUploadingPhotos} className="w-full md:w-auto px-10 py-4 bg-primary hover:bg-blue-500 text-white font-bold rounded-lg text-lg transition-transform hover:-translate-y-1 shadow-xl flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed">
+          <button type="submit" disabled={isSubmitting || isUploadingPhotos} className="w-full md:w-auto px-6 py-3 bg-primary hover:bg-blue-500 text-white font-bold rounded-lg text-base md:text-lg transition-transform hover:-translate-y-1 shadow-xl flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed">
             {isUploadingPhotos ? <span className="animate-pulse">Uploading images...</span> : isSubmitting ? <span className="animate-pulse">Submitting Report...</span> : "Submit Public Report"}
           </button>
         </div>

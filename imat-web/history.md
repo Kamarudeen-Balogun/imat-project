@@ -305,6 +305,13 @@ This is the living implementation history for the IMAT web platform.
 - Raised the evidence category filter menu above the gallery cards and allowed it to scroll so all categories remain visible.
 - Improved the mobile dashboard drawer scroll behavior so users can reach Sign Out after opening the menu on small screens.
 
+### 26) Submit Resilience And Form UX Refinement
+
+- Made the application API fall back to the public Supabase anon key when the service-role key is missing, matching the existing insert policy and reducing production submit failures.
+- Allowed public defect reports to submit even when Cloudinary photo upload is unavailable by degrading gracefully to a text-only report.
+- Moved the application Turnstile check to the bottom of the form so the bot check appears just before submission.
+- Reduced the oversized submit/reset controls on the public report and application forms for a tighter mobile and desktop layout.
+
 ## Operational Notes
 
 - Current image strategy uses WebP for optimized public assets.
