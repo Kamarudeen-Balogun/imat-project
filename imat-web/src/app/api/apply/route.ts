@@ -161,9 +161,11 @@ export async function POST(request: NextRequest) {
         email: parsed.data.email,
         level: Number.parseInt(parsed.data.level, 10) || 0,
         cgpa: parsed.data.cgpa.toLowerCase() === "yes" ? 3.5 : 2.5,
+        department: "Civil Engineering",
         role_preference_1: parsed.data.positions[0] || "",
         role_preference_2: parsed.data.positions[1] || null,
         motivation_statement: parsed.data.motivation,
+        cv_url: "",
         status: "submitted",
       },
     ]);

@@ -298,6 +298,13 @@ This is the living implementation history for the IMAT web platform.
 - Kept production verification strict by hard-disabling bypass behavior when `NODE_ENV=production`.
 - Added clearer “Quick safety check” sections on report/apply forms so users understand the anti-spam check without getting blocked by confusing wording.
 
+### 25) Application Submit Repair And Mobile Evidence UX Fixes
+
+- Fixed the application submit API so it now writes the schema-required `department` and `cv_url` fields, restoring successful save behavior after Turnstile verification.
+- Switched the public evidence gallery to a stacked layout on the full page instead of the horizontal swipe presentation used in compact previews.
+- Raised the evidence category filter menu above the gallery cards and allowed it to scroll so all categories remain visible.
+- Improved the mobile dashboard drawer scroll behavior so users can reach Sign Out after opening the menu on small screens.
+
 ## Operational Notes
 
 - Current image strategy uses WebP for optimized public assets.

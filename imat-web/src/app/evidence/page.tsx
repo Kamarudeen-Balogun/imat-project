@@ -63,7 +63,7 @@ export default function EvidencePage() {
         </p>
       </div>
 
-      <div className="glass-panel mb-8 flex flex-col items-center gap-6 rounded-xl p-4 md:flex-row md:p-6">
+      <div className="glass-panel relative z-30 mb-8 flex flex-col items-center gap-6 overflow-visible rounded-xl p-4 md:flex-row md:p-6">
         <div className="flex items-center gap-2 text-text3 w-full md:w-auto font-mono text-sm uppercase shrink-0">
           <SlidersHorizontal size={16} /> Filters
         </div>
@@ -84,7 +84,7 @@ export default function EvidencePage() {
               </button>
 
               {isCategoryOpen && (
-                <div className="absolute left-0 right-0 z-30 mt-2 max-h-56 overflow-auto rounded-lg border border-borderDark bg-bg shadow-xl">
+                <div className="absolute left-0 right-0 z-50 mt-2 max-h-72 overflow-y-auto rounded-lg border border-borderDark bg-bg shadow-xl">
                   {categories.map((category) => (
                     <button
                       key={category}
@@ -117,7 +117,7 @@ export default function EvidencePage() {
           No evidence items have been published yet. Add the first record in the dashboard evidence manager.
         </div>
       ) : (
-        <EvidenceGalleryGrid items={filteredItems} mobileHorizontal compact className="md:overflow-visible" />
+        <EvidenceGalleryGrid items={filteredItems} mobileHorizontal={false} compact className="md:overflow-visible" />
       )}
     </div>
   );

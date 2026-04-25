@@ -230,7 +230,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 onClick={() => setMenuOpen(false)}
               />
               <motion.aside
-                className="fixed left-0 top-16 z-30 h-[calc(100vh-4rem)] w-80 max-w-[88vw] overflow-y-auto border-r border-soft bg-bg p-4 shadow-2xl md:hidden"
+                className="fixed left-0 top-16 z-30 h-[calc(100dvh-4rem)] w-80 max-w-[88vw] overflow-y-auto overscroll-contain border-r border-soft bg-bg p-4 pb-24 shadow-2xl md:hidden"
+                style={{ WebkitOverflowScrolling: "touch" }}
                 initial={{ x: -24, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 exit={{ x: -24, opacity: 0 }}
