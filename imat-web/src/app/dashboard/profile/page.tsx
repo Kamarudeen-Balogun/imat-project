@@ -6,6 +6,7 @@ import { createSupabaseClient } from "@/lib/supabase/client";
 import { Loader2, Trash2, Upload, Edit2, Check, X } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
+import { sanitizePlainText, sanitizeNumericText } from "@/lib/inputSanitizer";
 
 type ProfileRow = {
   id: string;
@@ -118,7 +119,8 @@ export default function DashboardProfilePage() {
     if (!profile) return;
     
     const trimmedName = editedName.trim();
-    if (!trimmedName) {
+    const safeName = sanitizePlainText(trimmedName, 120);
+    if (!safeName) {
       toast.error("Name cannot be empty.");
       return;
     }
@@ -126,7 +128,7 @@ export default function DashboardProfilePage() {
     setSaving(true);
     const { error } = await supabase
       .from("users")
-      .update({ full_name: trimmedName })
+      .update({ full_name: safeName })
       .eq("id", profile.id);
 
     if (error) {
@@ -135,7 +137,7 @@ export default function DashboardProfilePage() {
       return;
     }
 
-    setProfile({ ...profile, full_name: trimmedName });
+    setProfile({ ...profile, full_name: safeName });
     setEditingName(false);
     toast.success("Name updated successfully.");
     setSaving(false);
@@ -149,7 +151,7 @@ export default function DashboardProfilePage() {
   const saveLevel = async () => {
     if (!profile) return;
 
-    const parsed = Number(editedLevel);
+    const parsed = Number(sanitizeNumericText(editedLevel, 4));
     if (!Number.isInteger(parsed) || parsed < 200 || parsed > 500) {
       toast.error("Enter a valid level between 200 and 500.");
       return;
@@ -187,8 +189,8 @@ export default function DashboardProfilePage() {
     try {
       const avatarUrl = await uploadToCloudinary(file);
       await saveAvatarUrl(avatarUrl);
-    } catch (error) {
-      console.error(error);
+    } catch {
+      console.error("Profile image upload failed.");
       toast.error("Could not upload that image. Try another file.");
     } finally {
       setUploading(false);

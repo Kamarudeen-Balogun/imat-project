@@ -526,16 +526,19 @@ export default function Home() {
         className="py-14"
       >
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <div className="relative overflow-hidden rounded-3xl border border-borderDark bg-gradient-to-r from-bg2 to-bg p-6 sm:flex-row sm:items-center sm:p-8">
+          <div className="relative overflow-hidden rounded-3xl border border-borderDark bg-gradient-to-r from-bg2 to-bg p-6 sm:p-8">
             <div className="absolute -right-20 top-0 h-40 w-40 rounded-full bg-accent/10 blur-[60px]" />
-            <div className="relative">
-              <p className="mb-1 text-xs font-mono font-semibold uppercase tracking-[0.16em] text-accent">Move From Complaint To Closure</p>
-              <h3 className="text-2xl font-bold text-textDefault">Ready to log a campus defect with evidence?</h3>
+            <div className="relative flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+              <div className="max-w-2xl">
+                <p className="mb-2 text-xs font-mono font-semibold uppercase tracking-[0.16em] text-accent">Move From Complaint To Closure</p>
+                <h3 className="text-2xl font-bold text-textDefault lg:text-[1.7rem] lg:leading-tight">Ready to log a campus defect with evidence?</h3>
+              </div>
+
+              <Link href="/report" className="inline-flex w-fit items-center gap-2 rounded-xl border-2 border-success bg-success px-5 py-3 text-sm font-bold text-white transition-all hover:bg-success/90 hover:shadow-glow-success focus-visible:ring-2 focus-visible:ring-success focus-visible:ring-offset-2 btn-press lg:px-4 lg:py-2.5 lg:text-[13px]">
+                Submit Report
+                <ArrowRight size={15} />
+              </Link>
             </div>
-            <Link href="/report" className="mt-4 sm:mt-0 inline-flex items-center gap-2 rounded-xl border-2 border-success bg-success px-5 py-3 text-sm font-bold text-white transition-all hover:bg-success/90 hover:shadow-glow-success focus-visible:ring-2 focus-visible:ring-success focus-visible:ring-offset-2 btn-press">
-              Submit Report
-              <ArrowRight size={15} />
-            </Link>
           </div>
         </div>
       </motion.section>

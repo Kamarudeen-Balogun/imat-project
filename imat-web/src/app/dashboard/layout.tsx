@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { createSupabaseClient } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { LayoutDashboard, Users, Map, BookOpen, LogOut, Loader2, FileText, BarChart2, Megaphone, Activity, Menu, X, User, Share2, Moon, Sun } from "lucide-react";
 import Image from "next/image";
@@ -28,6 +28,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const supabase = useMemo(() => createSupabaseClient(), []);
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     setMounted(true);
@@ -84,6 +85,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const initials = (profile?.full_name || profile?.email || "M").slice(0, 1).toUpperCase();
 
+  const isActiveNavItem = (href: string) => {
+    if (href === "/dashboard") return pathname === href;
+    return pathname === href || pathname.startsWith(`${href}/`);
+  };
+
+  const navItemClassName = (itemHref: string, baseClasses: string) => {
+    const active = isActiveNavItem(itemHref);
+    const activeClasses = active
+      ? "bg-primary/10 text-primary ring-1 ring-primary/20 shadow-[0_0_0_1px_rgba(59,130,246,0.12)]"
+      : baseClasses;
+
+    return `flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-sm transition-colors ${activeClasses}`;
+  };
+
   const navItems = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, classes: "bg-primary/10 text-primary font-bold" },
     { href: "/dashboard/defects", label: "Defect Masterlist", icon: Map, classes: "text-text2 hover:text-textDefault hover:bg-bg3" },
@@ -103,15 +118,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <OfflineBanner />
       <aside className="hidden w-64 flex-col border-r border-soft bg-surfaceStrong md:flex">
          <div className="flex items-center gap-3 border-b border-soft p-6">
-            <Image
-              src="/images/imatlogo.png"
-              alt="IMAT"
-              width={32}
-              height={32}
-              loading="eager"
-              style={{ width: "32px", height: "32px" }}
-              className="rounded"
-            />
+            <span className="relative inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-slate-950/55 via-slate-900/45 to-black/30 shadow-[0_10px_24px_rgba(0,0,0,0.35)]">
+              <Image
+                src="/images/logo.png"
+                alt="IMAT"
+                width={32}
+                height={32}
+                loading="eager"
+                style={{ width: "32px", height: "32px" }}
+                className="rounded-xl object-contain"
+              />
+            </span>
             <div>
               <div className="font-bold text-textDefault tracking-tight">IMAT Portal</div>
               <div className="text-[10px] text-text3 font-mono uppercase truncate">{profile?.role.replace("_", " ")}</div>
@@ -119,7 +136,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
          </div>
          <nav className="flex-grow space-y-2 p-4">
             {navItems.map((item) => (
-              <Link key={item.href} href={item.href} className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-sm transition-colors ${item.classes}`}>
+              <Link
+                key={item.href}
+                href={item.href}
+                aria-current={isActiveNavItem(item.href) ? "page" : undefined}
+                className={navItemClassName(item.href, item.classes)}
+              >
                 <item.icon size={18} /> {item.label}
               </Link>
             ))}
@@ -127,7 +149,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <div className="pt-2 pb-1 px-4 text-[10px] font-mono text-text3 uppercase tracking-wider">Field Operations</div>
             
             {['admin', 'field_officer', 'technical_officer'].includes(profile?.role || '') && (
-               <Link href="/dashboard/defects/new" className="flex items-center gap-3 px-4 py-3 text-warning hover:text-warning hover:bg-warning/10 rounded-lg font-bold text-sm transition-colors">
+              <Link href="/dashboard/defects/new" className="flex items-center gap-3 px-4 py-3 text-warning hover:text-warning hover:bg-warning/10 rounded-lg font-bold text-sm transition-colors">
                  + New Assessment
                </Link>
             )}
@@ -219,7 +241,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       key={item.href}
                       href={item.href}
                       onClick={() => setMenuOpen(false)}
-                      className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-sm transition-colors ${item.classes}`}
+                      aria-current={isActiveNavItem(item.href) ? "page" : undefined}
+                      className={navItemClassName(item.href, item.classes)}
                     >
                       <item.icon size={18} /> {item.label}
                     </Link>

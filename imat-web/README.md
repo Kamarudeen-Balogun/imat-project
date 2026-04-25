@@ -1,35 +1,37 @@
 # IMAT Web Platform
 
+## Live Demo (Quick View)
+
+For quick portfolio review and recruiter access:
+
+- **Production URL**: https://imat-futa.vercel.app
+
 IMAT is the Infrastructure Maintenance Awareness Team platform for FUTA. The site helps students and IMAT members report campus defects, publish and track engineering reports, share newsroom updates, manage wiki knowledge, and monitor operational activity from one dashboard.
 
 The public side covers the homepage, about page, evidence gallery, issue tracker, report form, apply page, login, and newsroom. The authenticated side covers the dashboard, defects, reports, campaigns, wiki pages, analytics, and activity tracking.
 
-## What The Project Does
+## Product Highlights
 
-- Lets students and members report infrastructure defects with photos and location details.
-- Lets authorized staff generate, view, and manage PDF reports.
-- Lets approved officers publish newsroom updates and notify subscribed users.
-- Lets members browse public broadcasts, issue history, and evidence.
-- Lets authorized roles manage wiki pages and operational notes.
-- Logs important actions for accountability and audit history.
+- End-to-end defect reporting workflow with media, location details, and status tracking.
+- Role-aware operations dashboard for newsroom, reports, defects, wiki, and activity oversight.
+- Public newsroom with browser notifications and visibility-aware content delivery.
+- Before/after evidence gallery backed by Supabase data.
+- PDF report generation pipeline for structured maintenance documentation.
+- Secure-by-default architecture with Supabase RLS and server-side input sanitization.
 
-## Roles And Access
+## Security And Offline Flow
 
-IMAT uses role-based access across the website and dashboard.
+- Public report and apply forms now use Cloudflare Turnstile, honeypots, and rate limiting before server-side inserts are accepted.
+- Public reports can still be queued locally when the device is offline, then resumed later after the browser is back online and a fresh Turnstile check is completed.
+- Turnstile environment variables should be written as plain `KEY=value` pairs with no spaces around the equals sign.
+- If the Cloudflare widget setup will not accept `localhost`, the deployed Vercel hostname is sufficient for production; local testing can still use a supported preview or loopback host that Turnstile accepts.
+- Local development now bypasses Turnstile by default (non-production only) so forms remain testable on localhost.
+- To force Turnstile during local testing, set `NEXT_PUBLIC_TURNSTILE_DEV_BYPASS=false` in `.env.local` and restart the dev server.
+- Production never uses the bypass path; full Turnstile verification remains enforced server-side.
 
-- `admin`: full control over the website, content, user-facing data, and database-backed actions.
-- `president`: can publish, update, and delete managed content; also handles high-level oversight.
-- `vice_president`: supports leadership and can access member-facing leadership areas, but does not manage content unless granted a role that allows it.
-- `advocacy_officer`: can publish and update newsroom content and manage notifications for broadcasts.
-- `documentation_officer`: can create and update reports, wiki pages, and documentation content.
-- `technical_officer`: can manage technical and operational records where allowed.
-- `field_officer`: can create and update field/defect records and related operational entries.
-- `faculty_advisor` and `works_dept`: can access their approved areas and review operational data relevant to their duties.
-- `member`: a standard logged-in member with member-level access only.
+## Access Model
 
-Basic members can view the parts of the website that are available to authenticated users, read published and member-only content that they are allowed to see, and receive notifications if enabled. They cannot update or delete website data unless they are assigned a role that explicitly grants those permissions.
-
-Not every logged-in user will have a staff role. Users without a staff position are treated as basic `member` accounts and only have the standard member privileges.
+IMAT uses role-based access control for dashboard operations. Core governance roles include `admin`, `president`, `advocacy_officer`, `documentation_officer`, `technical_officer`, and `field_officer`, while non-staff accounts remain `member` with standard read-level privileges.
 
 ## Tech Stack
 
@@ -41,45 +43,6 @@ Not every logged-in user will have a staff role. Users without a staff position 
 - `@react-pdf/renderer` for report generation
 - Framer Motion for animations
 - Lucide React for icons
-
-## Full Redesign Program (2026)
-
-IMAT is currently undergoing a complete visual and UX redesign with a futuristic, high-clarity interface direction.
-
-- Design system plan: `docs/redesign-plan.md`
-- Updated shell and homepage now use layered glass surfaces, animated grid atmosphere, and stronger mobile-first hierarchy.
-- Installed `@tailwindcss/forms` for cleaner, more consistent form controls across the redesigned app.
-- Homepage now uses a clean no-image hero layout with clear text hierarchy.
-- Color direction now prioritizes electric blue, amber, and mint accents over deep navy bases for a modern operations dashboard feel.
-
-## Security Skills Integration
-
-Security tooling is now part of project workflow and CI.
-
-- GitHub Actions workflow: `.github/workflows/security-checks.yml`
-- Secret scanning: Gitleaks
-- Static analysis: GitHub CodeQL
-- Dependency checks: `npm audit` high-level gating
-
-Local commands:
-
-```bash
-npm run security:audit
-npm run security:full
-```
-
-## AI Long-Chat Memory Structure
-
-To support robust long-chat memory and structured context handling, the project now includes a typed memory schema layer.
-
-- File: `src/lib/ai/memorySchema.ts`
-- Tiers: `working`, `episodic`, `semantic`
-- Includes helpers for:
-	- bounded message windows
-	- memory snapshot normalization
-	- structured prompt input generation for summarization/memory extraction
-
-This schema is the foundation for future assistant/chat modules in the platform.
 
 ## Running The Project
 
@@ -101,6 +64,10 @@ Required keys include:
 - `NEXT_PUBLIC_VAPID_PUBLIC_KEY`
 - `VAPID_PRIVATE_KEY`
 - `VAPID_SUBJECT`
+- `NEXT_PUBLIC_TURNSTILE_SITE_KEY`
+- `TURNSTILE_SECRET_KEY`
+- `NEXT_PUBLIC_TURNSTILE_DEV_BYPASS` (optional, defaults to bypass in non-production unless set to `false`)
+- `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` (optional, but recommended for stronger rate limiting)
 
 You can also keep optional keys (such as Redis and service role keys) in the same file if enabled in your deployment setup.
 
@@ -148,33 +115,7 @@ CREATE TABLE IF NOT EXISTS public.push_subscriptions (
 );
 ```
 
-## Recent Updates
+## Documentation
 
-- Added a full before/after Evidence Gallery system backed by Supabase (`evidence_gallery`) with responsive side-by-side comparison cards.
-- Added Evidence Gallery Manager in the dashboard for `admin` and `documentation_officer` roles to edit titles, descriptions, categories, before/after images, active state, and ordering.
-- Updated homepage evidence preview to use live gallery data and shorter mobile-first card flow.
-- Added optional/automatic `sort_order` behavior for evidence items while keeping manual ordering for pin-to-top control.
-- Added richer profile management page with editable name, editable level (200L-500L), avatar upload/remove, and member metadata summary.
-- Added collapsible newsroom notification history panel for signed-in members.
-- Added shared role hierarchy utility and animated role presentation improvements in homepage organizational teaser.
-- Replaced native browser confirms with styled confirmation modals for delete actions in newsroom management and activity moderation flows.
-- Added admin-only delete controls on the Activity Timeline and removed activity edit capability to keep the audit trail strict.
-- Fixed Next.js 16 dynamic route param handling on affected dashboard pages (`params` Promise handling), removing runtime route errors.
-- Added live site stats wiring (homepage + dashboard) via shared API/hook so counters reflect current database state.
-- Added public report draft persistence and clear-form control for safer mobile/public submissions.
-- Added GPS coordinate capture and persistence in the public defect reporting flow.
-- Consolidated newsroom schema compatibility updates into `supabase_schema.sql` for cleaner one-pass setup.
-
-## Main Areas
-
-- Public site: homepage, about, evidence gallery, issue tracker, apply page, login, and newsroom.
-- Dashboard: defects, reports, campaigns, wiki, analytics, member directory, and activity timeline.
-- Newsroom: public broadcasts with opt-in notifications and edit tracking.
-- Reports: PDF report generation with desktop preview and mobile-safe download flow.
-
-## Notes
-
-- The app uses WebP-optimized public images.
-- Mobile browsers are treated as a limited PDF-preview environment, so the safe path is download/open instead of inline preview.
-- The dev server uses a smarter host/port launcher that can fall back to the next available port if the requested one is busy.
-- Keep local debug artifacts (for example ad-hoc API test scripts and JSON dumps) out of commits to avoid noisy deploys.
+- Detailed implementation history and technical timeline: [history.md](history.md)
+- Database schema and policies: [../supabase_schema.sql](../supabase_schema.sql)

@@ -59,7 +59,21 @@ if (port !== basePort) {
 console.log("To override bind host, set NEXT_DEV_HOST before npm run dev.\n");
 
 const nextBin = path.resolve(process.cwd(), "node_modules", "next", "dist", "bin", "next");
-const args = [nextBin, "dev", "--hostname", bindHost, "--port", String(port), ...process.argv.slice(2)];
+const useTurbopack = process.env.NEXT_DEV_USE_TURBOPACK === "1";
+const args = [
+  nextBin,
+  "dev",
+  "--hostname",
+  bindHost,
+  "--port",
+  String(port),
+  ...(useTurbopack ? [] : ["--webpack"]),
+  ...process.argv.slice(2),
+];
+
+if (!useTurbopack) {
+  console.log("Using webpack dev server mode (set NEXT_DEV_USE_TURBOPACK=1 to opt into Turbopack).\n");
+}
 
 const child = spawn(process.execPath, args, {
   stdio: "inherit",

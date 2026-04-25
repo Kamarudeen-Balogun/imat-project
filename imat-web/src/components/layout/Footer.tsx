@@ -99,7 +99,7 @@ export function Footer() {
             Infrastructure Maintenance Awareness Team
           </p>
           <h3 className="mb-4 text-xl font-bold text-textDefault">
-            <span className="bg-gradient-to-r from-accent to-primary bg-clip-text text-transparent">IMAT</span> <span className="text-text2">FUTA</span>
+            <span className="text-text2">FUTA</span>
           </h3>
           <p className="max-w-sm text-sm leading-relaxed text-text2">
             Student-led infrastructure advocacy body within the Civil Engineering Department at the Federal University of Technology, Akure.

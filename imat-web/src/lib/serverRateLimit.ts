@@ -113,8 +113,8 @@ export async function enforceRateLimit(
     if (distributedResult) {
       return distributedResult;
     }
-  } catch (error) {
-    console.error("Distributed rate limit failed, falling back to in-memory limiter", error);
+  } catch {
+    console.error("Distributed rate limit failed; falling back to in-memory limiter.");
   }
 
   return enforceInMemoryRateLimit(key, maxRequests, windowMs);

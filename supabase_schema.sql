@@ -1,6 +1,11 @@
 -- ========================================================
 -- IMAT Database Schema & Setup
--- Execute this entirely in your Supabase SQL Editor..
+-- Execute this file in full in your Supabase SQL editor.
+--
+-- Professional rerun guarantees:
+-- - Safe to rerun on existing environments (idempotent statements are used).
+-- - Safe on fresh clones (dependency order is enforced for functions/triggers).
+-- - Data seed blocks use conflict-safe inserts where applicable.
 -- ========================================================
 
 -- Enable required extensions
@@ -47,6 +52,36 @@ CREATE TABLE IF NOT EXISTS users (
 
 ALTER TABLE users
 ADD COLUMN IF NOT EXISTS avatar_url TEXT;
+
+CREATE INDEX IF NOT EXISTS users_status_idx ON users(status);
+CREATE INDEX IF NOT EXISTS users_status_notifications_idx ON users(status, notifications_enabled);
+CREATE INDEX IF NOT EXISTS users_role_status_idx ON users(role, status);
+
+-- Utility Function: Get current user's role
+CREATE OR REPLACE FUNCTION get_my_role()
+RETURNS TEXT LANGUAGE SQL STABLE SECURITY DEFINER AS $$
+  SELECT role FROM public.users WHERE id = auth.uid() LIMIT 1;
+$$;
+
+CREATE OR REPLACE FUNCTION protect_user_self_updates()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  IF get_my_role() <> 'admin' THEN
+    IF NEW.id <> OLD.id
+      OR NEW.email <> OLD.email
+      OR NEW.role <> OLD.role
+      OR NEW.status <> OLD.status
+      OR NEW.joined_at <> OLD.joined_at
+      OR NEW.created_at <> OLD.created_at THEN
+      RAISE EXCEPTION 'Protected user fields cannot be modified by the account owner.';
+    END IF;
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
 
 
 -- 3. INTAKE CYCLES
@@ -291,15 +326,7 @@ CREATE TRIGGER update_evidence_gallery_updated_at
 BEFORE UPDATE ON evidence_gallery
 FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
 
-INSERT INTO evidence_gallery (title, description, category, before_image_url, after_image_url, sort_order)
-VALUES
-  ('Blocked Drain Grate', 'Drainage obstruction recorded near the walk path. The before image shows the blocked grate, while the after slot can be updated once the fix is verified.', 'Drainage', '/images/Blocked drain grate.webp', NULL, 1),
-  ('Cracked Concrete Walkway', 'Surface cracking along the walkway approaching the academic block.', 'Walkways', '/images/Crack concrete walkway.webp', NULL, 2),
-  ('Damaged Interlocking Drainage', 'Broken interlocking drain segment requiring attention and follow-up.', 'Drainage', '/images/Damaged interlocking drainage.webp', NULL, 3)
-ON CONFLICT DO NOTHING;
-
-
--- 11. VOLUNTEER LOGS
+-- 12. VOLUNTEER LOGS
 CREATE TABLE IF NOT EXISTS volunteer_logs (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   member_id UUID REFERENCES users(id) ON DELETE CASCADE,
@@ -312,7 +339,7 @@ CREATE TABLE IF NOT EXISTS volunteer_logs (
 );
 
 
--- 12. WIKI PAGES
+-- 13. WIKI PAGES
 CREATE TABLE IF NOT EXISTS wiki_pages (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   title TEXT NOT NULL,
@@ -325,7 +352,7 @@ CREATE TABLE IF NOT EXISTS wiki_pages (
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
--- 13. ACTIVITY LOGS (automatic operational timeline)
+-- 14. ACTIVITY LOGS (automatic operational timeline)
 CREATE TABLE IF NOT EXISTS activity_logs (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   event_type TEXT NOT NULL,
@@ -340,7 +367,7 @@ CREATE TABLE IF NOT EXISTS activity_logs (
 
 CREATE INDEX IF NOT EXISTS activity_logs_created_at_idx ON activity_logs(created_at DESC);
 
--- 14. NOTIFICATIONS (in-app delivery feed)
+-- 15. NOTIFICATIONS (in-app delivery feed)
 CREATE TABLE IF NOT EXISTS notifications (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   recipient_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -358,7 +385,7 @@ CREATE TABLE IF NOT EXISTS notifications (
 CREATE INDEX IF NOT EXISTS notifications_recipient_created_at_idx ON notifications(recipient_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS notifications_recipient_is_read_idx ON notifications(recipient_id, is_read);
 
--- 15. SITE SOCIAL LINKS (public footer dock)
+-- 16. SITE SOCIAL LINKS (public footer dock)
 CREATE TABLE IF NOT EXISTS site_social_links (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   platform TEXT NOT NULL UNIQUE CHECK (platform IN ('twitter', 'instagram', 'github', 'linkedin', 'youtube', 'facebook')),
@@ -402,6 +429,7 @@ BEGIN
 END;
 $$;
 
+-- 17. MAINTENANCE FUNCTIONS
 CREATE OR REPLACE FUNCTION cleanup_activity_logs()
 RETURNS INTEGER
 LANGUAGE plpgsql
@@ -456,12 +484,6 @@ ALTER TABLE intake_cycles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE wiki_pages FORCE ROW LEVEL SECURITY;
 ALTER TABLE activity_logs FORCE ROW LEVEL SECURITY;
 ALTER TABLE notifications FORCE ROW LEVEL SECURITY;
-
--- Utility Function: Get current user's role
-CREATE OR REPLACE FUNCTION get_my_role()
-RETURNS TEXT LANGUAGE SQL STABLE SECURITY DEFINER AS $$
-  SELECT role FROM public.users WHERE id = auth.uid() LIMIT 1;
-$$;
 
 -- Allow public read access to essential reference tables
 DROP POLICY IF EXISTS "Public read access to campus_zones" ON campus_zones;
@@ -518,6 +540,11 @@ DROP POLICY IF EXISTS "Anyone can read active members" ON users;
 DROP POLICY IF EXISTS "Users can edit their own profile" ON users;
 CREATE POLICY "Anyone can read active members" ON users FOR SELECT USING (status = 'active');
 CREATE POLICY "Users can edit their own profile" ON users FOR UPDATE USING (id = auth.uid());
+
+DROP TRIGGER IF EXISTS protect_user_self_updates_before_update ON users;
+CREATE TRIGGER protect_user_self_updates_before_update
+BEFORE UPDATE ON users
+FOR EACH ROW EXECUTE PROCEDURE protect_user_self_updates();
 
 -- Intake cycles: public can view active cycles; authorized roles can manage cycles.
 DROP POLICY IF EXISTS "Public can view active intake cycles" ON intake_cycles;
@@ -595,6 +622,19 @@ CREATE POLICY "Users can insert news notifications" ON notifications FOR INSERT 
   AND type = 'news_update'
   AND recipient_id IN (
     SELECT id FROM users WHERE notifications_enabled = true AND status = 'active'
+  )
+  AND (
+    announcement_id IS NULL
+    OR EXISTS (
+      SELECT 1
+      FROM announcements a
+      JOIN users u ON u.id = recipient_id
+      WHERE a.id = announcement_id
+      AND (
+        a.visibility = 'public'
+        OR (a.visibility = 'members_only' AND u.role <> 'applicant')
+      )
+    )
   )
 );
 CREATE POLICY "Users can update own notifications" ON notifications FOR UPDATE USING (auth.uid() = recipient_id) WITH CHECK (auth.uid() = recipient_id);

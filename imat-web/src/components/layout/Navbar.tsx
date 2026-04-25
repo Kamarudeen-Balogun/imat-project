@@ -44,18 +44,19 @@ export function Navbar() {
     <nav className="sticky top-0 z-50 border-b border-borderDark bg-bg/80 backdrop-blur-xl supports-[backdrop-filter]:bg-bg/70">
       <div className="mx-auto grid h-16 max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-3 px-4 sm:px-6">
         <div className="flex min-w-0 items-center">
-          <Link href="/" className="group flex min-w-0 items-center gap-2.5 font-mono text-xl font-bold tracking-tight text-textDefault">
-            <Image
-              src="/images/imatlogo.png"
-              alt="IMAT Logo"
-              width={36}
-              height={36}
-              loading="eager"
-              style={{ width: "36px", height: "36px" }}
-              className="shrink-0 rounded-xl shadow-glow"
-            />
-            <span className="truncate bg-gradient-to-r from-accent to-primary bg-clip-text text-transparent transition-all group-hover:shadow-glow">IMAT</span>
-          </Link>
+<Link href="/" className="group flex min-w-0 items-center gap-2.5 font-mono text-xl font-bold tracking-tight text-textDefault">
+              <span className="relative inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-slate-950/55 via-slate-900/45 to-black/30 shadow-[0_10px_24px_rgba(0,0,0,0.35)]">
+                <Image
+                  src="/images/logo.png"
+                  alt="IMAT Logo"
+                  width={36}
+                  height={36}
+                  loading="eager"
+                  style={{ width: "36px", height: "36px" }}
+                  className="shrink-0 rounded-xl object-contain"
+                />
+              </span>
+            </Link>
         </div>
 
         <div className="hidden items-center justify-center gap-1 md:flex">

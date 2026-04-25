@@ -1,5 +1,11 @@
 # IMAT - Infrastructure Maintenance Awareness Team
 
+## Live Demo (Quick View)
+
+For quick portfolio review and live product access:
+
+- **Production URL**: https://imat-futa.vercel.app
+
 ## Overview
 
 **IMAT** (Infrastructure Maintenance Awareness Team) is a comprehensive civic operations platform designed to streamline infrastructure maintenance workflows and empower student-led advocacy for campus infrastructure improvement.
@@ -15,6 +21,16 @@ Built at the **Federal University of Technology, Akure (FUTA)** within the Civil
 - **Activity Timeline** - Track organizational actions and milestones
 - **News & Announcements** - Keep the community informed about infrastructure updates
 - **Smart Wiki System** - Collaborative knowledge base for maintenance procedures
+
+## Recent Implementation Highlights
+
+- Newsroom alerts and public history now support guest access (no sign-in required for local browser opt-in and public announcement history).
+- Internal versus public announcement visibility is now enforced in both app logic and database policy (member-only delivery for internal posts).
+- Input sanitization was rolled out across major submission/update flows (public reports, applications, profile/newsroom updates, and related dashboard forms).
+- Database hardening added trigger-based protection for users self-updates on privileged fields.
+- Evidence schema setup was corrected by removing legacy demo seed inserts that could re-create sample rows on schema reruns.
+- Dashboard navigation was standardized with breadcrumbs and persistent active sidebar state.
+- Branding assets were migrated to the new IMAT logo and metadata references were updated accordingly.
 
 ## 🚀 Getting Started
 

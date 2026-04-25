@@ -3,15 +3,17 @@
 import { useState, FormEvent } from "react";
 import { CheckCircle2 } from "lucide-react";
 import Link from "next/link";
-import { createSupabaseClient } from "@/lib/supabase/client";
 import { toast } from "react-hot-toast";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
-
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzeIK6drlHbG278eWTXNKdBKtRcJxGsJdMj6aqeeTVfhDLRNAwCabqNAioZloYW4DrEuQ/exec";
+import { sanitizePlainText, sanitizeEmail, sanitizePhoneNumber, sanitizeNumericText } from "@/lib/inputSanitizer";
+import TurnstileWidget from "@/components/security/TurnstileWidget";
+import { TURNSTILE_DEV_BYPASS_TOKEN, isTurnstileDevBypassEnabled } from "@/lib/turnstile";
 
 export default function ApplyPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const [honeypot, setHoneypot] = useState("");
   
   // States to handle dynamic visibility and logic
   const [selectedLevel, setSelectedLevel] = useState("");
@@ -30,66 +32,62 @@ export default function ApplyPage() {
     const getVal = (name: string) => (formDataObj.get(name) as string) || "";
     const getMultiple = (name: string) => formDataObj.getAll(name).map(v => v.toString());
 
+    const bypassToken = isTurnstileDevBypassEnabled() ? TURNSTILE_DEV_BYPASS_TOKEN : "";
+
     const dataPayload = {
-      fullName: getVal("fullName"),
-      matricNumber: getVal("matricNumber"),
-      gender: getVal("gender"),
-      level: getVal("level"),
-      email: getVal("email"),
-      phone: getVal("phone"),
-      address: getVal("address"),
-      cgpa: getVal("cgpa"),
-      graduationYear: getVal("graduationYear"),
-      leadership: getVal("leadership"),
-      leadershipDetail: getVal("leadershipDetailsText"),
+      fullName: sanitizePlainText(getVal("fullName"), 120),
+      matricNumber: sanitizePlainText(getVal("matricNumber"), 40),
+      gender: sanitizePlainText(getVal("gender"), 20),
+      level: sanitizeNumericText(getVal("level"), 4),
+      email: sanitizeEmail(getVal("email")),
+      phone: sanitizePhoneNumber(getVal("phone")),
+      address: sanitizePlainText(getVal("address"), 200),
+      cgpa: sanitizePlainText(getVal("cgpa"), 8),
+      graduationYear: sanitizeNumericText(getVal("graduationYear"), 4),
+      leadership: sanitizePlainText(getVal("leadership"), 10),
+      leadershipDetail: sanitizePlainText(getVal("leadershipDetailsText"), 1000),
       workingGroups: getMultiple("workingGroups"),
       positions: getMultiple("positions"),
       skills: getMultiple("skills"),
-      otherSkills: getVal("otherSkills"),
-      motivation: getVal("motivation"),
-      timeCommitment: getVal("timeCommitment"),
-      refereeName: getVal("refereeName"),
-      refereeDept: getVal("refereeDept"),
-      refereeEmail: getVal("refereeEmail"),
-      refereePhone: getVal("refereePhone"),
+      otherSkills: sanitizePlainText(getVal("otherSkills"), 300),
+      motivation: sanitizePlainText(getVal("motivation"), 4000),
+      timeCommitment: sanitizePlainText(getVal("timeCommitment"), 100),
+      refereeName: sanitizePlainText(getVal("refereeName"), 120),
+      refereeDept: sanitizePlainText(getVal("refereeDept"), 120),
+      refereeEmail: sanitizeEmail(getVal("refereeEmail")),
+      refereePhone: sanitizePhoneNumber(getVal("refereePhone")),
       agreement: getVal("agreement") === "on" ? "Yes, I agree" : "",
-      signature: getVal("signature"),
-      signatureDate: getVal("signatureDate") || today
+      signature: sanitizePlainText(getVal("signature"), 120),
+      signatureDate: sanitizePlainText(getVal("signatureDate") || today, 20),
+      honeypot: sanitizePlainText(getVal("website"), 120),
+      turnstileToken: turnstileToken.trim() || bypassToken,
     };
 
-    try {
-      // 1. Submit to Google Apps Script
-      fetch(WEB_APP_URL, {
-        method: "POST",
-        mode: "no-cors",
-        headers: {
-          "Content-Type": "text/plain"
-        },
-        body: JSON.stringify(dataPayload)
-      }).catch(err => {
-        console.error("GAS Error:", err);
-      }); // fire and forget for no-cors
+    if (!dataPayload.turnstileToken) {
+      toast.error("Please complete the bot check before submitting.");
+      setIsSubmitting(false);
+      return;
+    }
 
-      // 2. Also save core data to our Supabase table just in case!
-      const supabase = createSupabaseClient();
-      await supabase.from("applications").insert([{
-        full_name: dataPayload.fullName,
-        matric_number: dataPayload.matricNumber,
-        email: dataPayload.email,
-        phone: dataPayload.phone,
-        department: "Civil Engineering", // Pre-assumed based on eligibility
-        level: parseInt(dataPayload.level) || 0,
-        cgpa: dataPayload.cgpa === "Yes" ? 3.5 : 2.5, // approximate mapping for db
-        preferred_role1: dataPayload.positions.length > 0 ? dataPayload.positions[0] : "",
-        preferred_role2: dataPayload.positions.length > 1 ? dataPayload.positions[1] : "",
-        motivation_statement: dataPayload.motivation,
-        status: "pending"
-      }]);
+    try {
+      const response = await fetch("/api/apply", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(dataPayload),
+      });
+
+      const responseData = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(responseData?.error || "Application submission failed.");
+      }
 
       setSubmitSuccess(true);
       toast.success("Application successfully submitted!");
-    } catch (error) {
-      console.error(error);
+    } catch {
+      console.error("Application submit failed.");
       toast.error("Something went wrong saving your application. Please check your connection.");
     } finally {
       setIsSubmitting(false);
@@ -126,6 +124,25 @@ export default function ApplyPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="glass-panel space-y-12 overflow-hidden rounded-xl p-6 md:p-10">
+        <input
+          type="text"
+          name="website"
+          autoComplete="off"
+          tabIndex={-1}
+          value={honeypot}
+          onChange={(event) => setHoneypot(event.target.value)}
+          className="hidden"
+          aria-hidden="true"
+        />
+        <div className="max-w-md rounded-xl border border-borderDark bg-bg2/70 p-4">
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-textDefault">Quick safety check</h3>
+          <p className="mt-1 text-xs text-text3">This simple check protects the form from spam and should only take a moment.</p>
+          <TurnstileWidget
+            onTokenChange={setTurnstileToken}
+            onError={() => toast.error("Security check unavailable. Please refresh and try again.")}
+            className="mt-3"
+          />
+        </div>
         
         {/* SECTION A */}
         <section>

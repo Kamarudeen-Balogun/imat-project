@@ -32,14 +32,14 @@ export async function logActivityEvent(
     // Compatibility fallback for databases that have not yet added the is_relevant column.
     const { error: fallbackError } = await supabase.from("activity_logs").insert(basePayload);
 
-    if (fallbackError) {
-      console.warn("activity log insert failed", fallbackError.message);
+      if (fallbackError) {
+        console.warn("Activity log insert failed.");
     }
     return;
   }
 
   // Keep core flows resilient: activity logging failures should not block the main action.
-  if (error) {
-    console.warn("activity log insert failed", error.message);
+    if (error) {
+      console.warn("Activity log insert failed.");
   }
 }

@@ -9,6 +9,7 @@
     ".vscode/css_custom_data.json"
   ],
   "files.associations": {
-    "*.css": "tailwindcss"
+    "*.css": "tailwindcss",
+    "supabase_schema.sql": "pgsql"
   }
 }

@@ -57,7 +57,7 @@ export default function DefectDetailsPage() {
       if (data && !error) {
         setDefect(data as unknown as DetailedDefect);
       } else {
-        console.error(error);
+        console.error("Defect details load failed.");
       }
       setLoading(false);
     };
@@ -88,7 +88,7 @@ export default function DefectDetailsPage() {
        .eq("id", defect.id);
 
     if (error) {
-       console.error("Error updating status:", error);
+       console.error("Error updating status.");
        toast.error("Failed to update status. Check logs.");
     } else {
        const { data: { session } } = await supabase.auth.getSession();

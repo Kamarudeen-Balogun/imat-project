@@ -5,11 +5,12 @@ import { useRouter } from "next/navigation";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import { canEditEvidenceGallery } from "@/lib/access";
 import { toast } from "react-hot-toast";
-import { ArrowLeft, Check, Edit3, Loader2, Plus, Trash2, Upload } from "lucide-react";
+import { Check, Edit3, Loader2, Plus, Trash2, Upload } from "lucide-react";
 import Link from "next/link";
 import EvidenceGalleryGrid, { type EvidenceGalleryItem } from "@/components/evidence/EvidenceGalleryGrid";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import { sanitizePlainText, sanitizeUrl } from "@/lib/inputSanitizer";
 
 const emptyItem: EvidenceGalleryItem = {
   id: "new-item",
@@ -113,8 +114,8 @@ export default function DashboardEvidencePage() {
         setItems((current) => current.map((item) => (item.id === id ? { ...item, after_image_url: url } : item)));
       }
       toast.success("Image uploaded.");
-    } catch (error) {
-      console.error(error);
+    } catch {
+      console.error("Evidence upload failed.");
       toast.error("Could not upload image.");
     } finally {
       setUploading(null);
@@ -122,7 +123,12 @@ export default function DashboardEvidencePage() {
   };
 
   const saveItem = async (item: EvidenceGalleryItem, isNew = false) => {
-    if (!item.title.trim() || !item.description.trim() || !item.before_image_url.trim()) {
+    const safeTitle = sanitizePlainText(item.title, 120);
+    const safeDescription = sanitizePlainText(item.description, 4000);
+    const safeBeforeImageUrl = sanitizeUrl(item.before_image_url.trim());
+    const safeAfterImageUrl = item.after_image_url ? sanitizeUrl(item.after_image_url.trim()) : null;
+
+    if (!safeTitle || !safeDescription || !safeBeforeImageUrl) {
       toast.error("Title, description, and before image are required.");
       return;
     }
@@ -154,11 +160,11 @@ export default function DashboardEvidencePage() {
       is_active: boolean;
       updated_at: string;
     } = {
-      title: item.title.trim(),
-      description: item.description.trim(),
+      title: safeTitle,
+      description: safeDescription,
       category: item.category.trim() || "Other",
-      before_image_url: item.before_image_url.trim(),
-      after_image_url: item.after_image_url?.trim() || null,
+      before_image_url: safeBeforeImageUrl,
+      after_image_url: safeAfterImageUrl,
       is_active: Boolean(item.is_active),
       updated_at: new Date().toISOString(),
     };
@@ -233,10 +239,7 @@ export default function DashboardEvidencePage() {
    return (
      <div className="mx-auto max-w-6xl space-y-8 px-4 pb-16 pt-6 animate-in fade-in duration-500 sm:px-6">
        <Breadcrumbs className="mb-8" />
-       <div className="flex flex-wrap items-center justify-between gap-4">
-        <Link href="/dashboard" className="inline-flex items-center gap-2 text-text3 hover:text-primary transition-colors text-sm font-mono">
-          <ArrowLeft size={16} /> Back to Dashboard
-        </Link>
+       <div className="flex flex-wrap items-center justify-end gap-4">
         <Link href="/evidence" className="text-sm font-semibold text-accent hover:text-accent2 transition-colors">
           View public gallery
         </Link>

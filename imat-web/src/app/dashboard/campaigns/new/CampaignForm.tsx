@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import { logActivityEvent } from "@/lib/activity/logEvent";
 import { createAnnouncementSlug, getAnnouncementHref } from "@/lib/news";
+import { sanitizePlainText, sanitizeUrl } from "@/lib/inputSanitizer";
 import Image from "next/image";
 import { Send, Loader2, Globe, Lock, Image as ImageIcon, Eye, X } from "lucide-react";
 import { toast } from "react-hot-toast";
@@ -104,31 +105,35 @@ export default function CampaignForm({ userId }: { userId: string }) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim() || !body.trim()) {
+    const safeTitle = sanitizePlainText(title, 120);
+    const safeBody = sanitizePlainText(body, 6000);
+    const safeImageUrl = sanitizeUrl(imageUrl.trim());
+
+    if (!safeTitle || !safeBody) {
       toast.error("Title and body are required");
       return;
     }
 
     setIsSubmitting(true);
     const supabase = createSupabaseClient();
-    let uploadedImageUrl = imageUrl.trim();
+    let uploadedImageUrl = safeImageUrl;
 
     if (selectedImage) {
       try {
         uploadedImageUrl = await uploadImage();
-      } catch (error) {
-        console.error(error);
+      } catch {
+        console.error("Broadcast image upload failed.");
         toast.error("Image upload failed. Check Cloudinary preset/CSP settings or try again.");
         setIsSubmitting(false);
         return;
       }
     }
 
-    const slug = createAnnouncementSlug(title);
+    const slug = createAnnouncementSlug(safeTitle);
 
     const { data: announcement, error } = await supabase.from("announcements").insert({
-      title,
-      body,
+      title: safeTitle,
+      body: safeBody,
       slug,
       visibility,
       author_id: userId,
@@ -137,15 +142,19 @@ export default function CampaignForm({ userId }: { userId: string }) {
     }).select("id, slug").single();
 
     if (error) {
-      console.error(error);
+      console.error("Broadcast publish failed.");
       toast.error("Failed to publish broadcast. Check database permissions.");
       setIsSubmitting(false);
     } else {
-      const { data: recipients } = await supabase
+      const recipientsQuery = supabase
         .from("users")
         .select("id")
         .eq("status", "active")
         .eq("notifications_enabled", true);
+
+      const { data: recipients } = visibility === "members_only"
+        ? await recipientsQuery.neq("role", "applicant")
+        : await recipientsQuery;
 
       if (recipients && recipients.length > 0) {
         const notificationRows = recipients.map((recipient) => ({
@@ -153,15 +162,15 @@ export default function CampaignForm({ userId }: { userId: string }) {
           created_by: userId,
           announcement_id: announcement?.id ?? null,
           type: "news_update",
-          title,
-          body: body.trim().replace(/\s+/g, " ").slice(0, 180) || title,
+          title: safeTitle,
+          body: safeBody.trim().replace(/\s+/g, " ").slice(0, 180) || safeTitle,
           href: getAnnouncementHref(announcement?.slug ?? slug),
         }));
 
         const { error: notificationError } = await supabase.from("notifications").insert(notificationRows);
 
         if (notificationError) {
-          console.warn("notification fan-out failed", notificationError.message);
+          console.warn("Notification fan-out failed.");
         }
       }
 
@@ -169,7 +178,7 @@ export default function CampaignForm({ userId }: { userId: string }) {
         eventType: "announcement_published",
         entityType: "announcement",
         entityId: announcement?.id ?? null,
-        title: `Published broadcast: ${title}`,
+        title: `Published broadcast: ${safeTitle}`,
         actorId: userId,
         details: {
           visibility,

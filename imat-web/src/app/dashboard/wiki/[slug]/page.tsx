@@ -1,7 +1,7 @@
 import { createSupabaseClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, BookOpen, User } from "lucide-react";
+import { BookOpen, User } from "lucide-react";
 import { format } from "date-fns";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 
@@ -69,9 +69,6 @@ export default async function WikiPageDetail({ params }: { params: Promise<{ slu
   return (
     <div className="max-w-4xl mx-auto animate-in fade-in duration-500 pb-20">
       <Breadcrumbs className="mb-8" />
-      <Link href="/dashboard/wiki" className="inline-flex items-center gap-2 text-text3 hover:text-primary transition-colors text-sm font-mono mb-8">
-        <ArrowLeft size={16} /> Back to Knowledge Base
-      </Link>
 
       <div className="bg-bg2 border border-soft rounded-2xl p-8">
         <div className="inline-flex items-center gap-2 text-primary font-mono text-xs uppercase tracking-wider bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/20 mb-5 w-fit">

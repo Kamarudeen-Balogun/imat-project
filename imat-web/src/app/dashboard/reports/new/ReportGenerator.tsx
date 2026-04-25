@@ -129,7 +129,7 @@ export default function ReportGenerator() {
 
     if (error) {
       toast.error("Failed to save report to database.");
-      console.error(error);
+      console.error("Report generation failed.");
     } else {
       await logActivityEvent(supabase, {
         eventType: "report_published",

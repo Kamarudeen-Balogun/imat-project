@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowLeft, ArrowRight, Calendar, Edit3, Megaphone, Plus } from "lucide-react";
+import { ArrowRight, Calendar, Edit3, Megaphone, Plus } from "lucide-react";
 import { format } from "date-fns";
 import { createSupabaseClient } from "@/lib/supabase/server";
 import { canEditContent } from "@/lib/access";
+import { getAnnouncementHref } from "@/lib/news";
 import Image from "next/image";
 import DeleteAnnouncementButton from "./DeleteAnnouncementButton";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
@@ -50,10 +51,74 @@ async function toggleAnnouncementVisibility(formData: FormData) {
     redirect("/dashboard");
   }
 
+  const { data: existingAnnouncement } = await supabase
+    .from("announcements")
+    .select("id, slug, title, body, visibility")
+    .eq("id", announcementId)
+    .single();
+
+  if (!existingAnnouncement) {
+    redirect("/dashboard/news");
+  }
+
+  const previousVisibility = existingAnnouncement.visibility;
+
   await supabase
     .from("announcements")
     .update({ visibility, updated_at: new Date().toISOString() })
     .eq("id", announcementId);
+
+  if (previousVisibility === "members_only" && visibility === "public") {
+    const { data: recipients } = await supabase
+      .from("users")
+      .select("id")
+      .eq("status", "active")
+      .eq("notifications_enabled", true);
+
+    if (recipients && recipients.length > 0) {
+      const { data: existingNotifications } = await supabase
+        .from("notifications")
+        .select("recipient_id")
+        .eq("announcement_id", announcementId)
+        .eq("type", "news_update");
+
+      const alreadyNotified = new Set((existingNotifications ?? []).map((row) => row.recipient_id));
+
+      const notificationRows = recipients
+        .filter((recipient) => !alreadyNotified.has(recipient.id))
+        .map((recipient) => ({
+          recipient_id: recipient.id,
+          created_by: user.id,
+          announcement_id: announcementId,
+          type: "news_update",
+          title: existingAnnouncement.title,
+          body: existingAnnouncement.body.trim().replace(/\s+/g, " ").slice(0, 180) || existingAnnouncement.title,
+          href: getAnnouncementHref(existingAnnouncement.slug ?? announcementId),
+        }));
+
+      if (notificationRows.length > 0) {
+        await supabase.from("notifications").insert(notificationRows);
+      }
+    }
+  }
+
+  if (previousVisibility === "public" && visibility === "members_only") {
+    const { data: applicantUsers } = await supabase
+      .from("users")
+      .select("id")
+      .eq("status", "active")
+      .eq("role", "applicant");
+
+    const applicantIds = (applicantUsers ?? []).map((row) => row.id);
+    if (applicantIds.length > 0) {
+      await supabase
+        .from("notifications")
+        .delete()
+        .eq("announcement_id", announcementId)
+        .eq("type", "news_update")
+        .in("recipient_id", applicantIds);
+    }
+  }
 
   redirect("/dashboard/news");
 }
@@ -118,10 +183,7 @@ export default async function DashboardNewsPage() {
    return (
      <div className="mx-auto max-w-6xl animate-in fade-in duration-500 px-4 pb-16 pt-6 sm:px-6">
        <Breadcrumbs className="mb-8" />
-       <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
-        <Link href="/dashboard" className="inline-flex items-center gap-2 text-text3 hover:text-primary transition-colors text-sm font-mono">
-          <ArrowLeft size={16} /> Back to Dashboard
-        </Link>
+       <div className="flex flex-wrap items-center justify-end gap-4 mb-8">
         <Link href="/dashboard/campaigns/new" className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500 transition-colors">
           <Plus size={16} /> New Broadcast
         </Link>

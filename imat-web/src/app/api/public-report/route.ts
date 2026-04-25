@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { enforceRateLimit } from "@/lib/serverRateLimit";
+import { sanitizePlainText, sanitizeUrlList } from "@/lib/inputSanitizer";
+import { verifyTurnstileToken } from "@/lib/turnstile";
 
 const bodySchema = z.object({
   title: z.string().trim().min(5).max(80),
@@ -14,6 +16,8 @@ const bodySchema = z.object({
   location_lng: z.number().min(-180).max(180).nullable(),
   description: z.string().trim().min(10).max(3000),
   photos: z.array(z.string().url()).max(4),
+  turnstileToken: z.string().trim().min(1),
+  honeypot: z.string().optional().default(""),
 });
 
 const WINDOW_MS = 60 * 1000;
@@ -58,10 +62,29 @@ export async function POST(request: NextRequest) {
     }
 
     const payload = await request.json();
-    const parsed = bodySchema.safeParse(payload);
+    const normalizedPayload = {
+      ...payload,
+      title: typeof payload.title === "string" ? sanitizePlainText(payload.title, 80) : payload.title,
+      defect_type: typeof payload.defect_type === "string" ? sanitizePlainText(payload.defect_type, 80) : payload.defect_type,
+      description: typeof payload.description === "string" ? sanitizePlainText(payload.description, 3000) : payload.description,
+      photos: Array.isArray(payload.photos) ? sanitizeUrlList(payload.photos, 4) : payload.photos,
+      honeypot: typeof payload.honeypot === "string" ? sanitizePlainText(payload.honeypot, 120) : "",
+      turnstileToken: typeof payload.turnstileToken === "string" ? payload.turnstileToken : "",
+    };
+
+    const parsed = bodySchema.safeParse(normalizedPayload);
 
     if (!parsed.success) {
       return NextResponse.json({ error: "Invalid report payload." }, { status: 400 });
+    }
+
+    if (parsed.data.honeypot) {
+      return NextResponse.json({ error: "Invalid report payload." }, { status: 400 });
+    }
+
+    const verified = await verifyTurnstileToken(parsed.data.turnstileToken, getClientIp(request));
+    if (!verified) {
+      return NextResponse.json({ error: "Bot verification failed. Please try again." }, { status: 403 });
     }
 
     const supabase = getSupabaseAdminClient();
@@ -81,13 +104,13 @@ export async function POST(request: NextRequest) {
     ]);
 
     if (error) {
-      console.error("Public report insert failed", error);
+      console.error("Public report insert failed.");
       return NextResponse.json({ error: "Failed to save report." }, { status: 500 });
     }
 
     return NextResponse.json({ ok: true }, { status: 201 });
-  } catch (error) {
-    console.error("Public report API error", error);
+  } catch {
+    console.error("Public report API error.");
     return NextResponse.json({ error: "Unexpected server error." }, { status: 500 });
   }
 }

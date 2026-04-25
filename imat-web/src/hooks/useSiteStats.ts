@@ -34,8 +34,8 @@ export function useSiteStats(refreshIntervalMs = 30000) {
         resolved: Number(data.resolved ?? 0),
         activeMembers: Number(data.activeMembers ?? 0),
       });
-    } catch (error) {
-      console.error(error);
+    } catch {
+      console.error("Failed to fetch site stats.");
     } finally {
       setLoading(false);
     }

@@ -8,7 +8,23 @@ export async function proxy(request: NextRequest) {
     },
   })
 
-  // Create an unmodified supabase client for proxy use
+  const hasSupabaseAuthCookie = request.cookies
+    .getAll()
+    .some((cookie) => /^sb-.*-auth-token$/i.test(cookie.name))
+
+  const isDashboardRoute = request.nextUrl.pathname.startsWith('/dashboard')
+  const isPortalRoute = request.nextUrl.pathname.startsWith('/portal')
+
+  if (!isDashboardRoute && !isPortalRoute) {
+    return response
+  }
+
+  if (!hasSupabaseAuthCookie) {
+    const loginUrl = new URL('/login', request.url)
+    return NextResponse.redirect(loginUrl)
+  }
+
+  // Create an unmodified supabase client for proxy use only when a protected route needs it.
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -40,43 +56,22 @@ export async function proxy(request: NextRequest) {
     }
   )
 
-  const hasSupabaseAuthCookie = request.cookies
-    .getAll()
-    .some((cookie) => /^sb-.*-auth-token$/i.test(cookie.name))
-
-  // Call getUser() to securely check session validity.
-  // If Supabase auth verification fails transiently, allow the request through and let
-  // the client-side session check handle the final redirect.
+  // Call getUser() only for protected routes with an auth cookie.
+  // If Supabase verification fails transiently, allow the request through and let the
+  // client-side session check handle the final redirect.
   let user = null
 
   try {
     const result = await supabase.auth.getUser()
     user = result.data.user
-  } catch (error) {
-    console.warn("Proxy auth check failed; allowing request through:", error)
+  } catch {
+    console.warn("Proxy auth check failed; allowing request through.")
   }
-
-  const isDashboardRoute = request.nextUrl.pathname.startsWith('/dashboard')
-  const isPortalRoute = request.nextUrl.pathname.startsWith('/portal')
 
   if (isDashboardRoute || isPortalRoute) {
     if (!user) {
-      if (isDashboardRoute && hasSupabaseAuthCookie) {
-        return response
-      }
-
       const loginUrl = new URL('/login', request.url)
       return NextResponse.redirect(loginUrl)
-    }
-  }
-
-  const shouldCleanupActivityLogs = isDashboardRoute || isPortalRoute || request.nextUrl.pathname.startsWith('/newsroom')
-
-  if (shouldCleanupActivityLogs) {
-    try {
-      await supabase.rpc('cleanup_activity_logs')
-    } catch (error) {
-      console.warn("Activity log cleanup failed:", error)
     }
   }
 

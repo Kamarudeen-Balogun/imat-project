@@ -21,6 +21,10 @@ export type QueuedReportUpload = {
   createdAt: string;
   payload: QueuedReportPayload;
   photos: QueuedReportPhoto[];
+  verification: {
+    turnstileToken: string;
+    honeypot: string;
+  };
   config: {
     cloudinaryCloudName: string;
     cloudinaryUploadPreset: string;
@@ -60,4 +64,64 @@ export async function enqueueReportUpload(item: QueuedReportUpload): Promise<voi
   });
 
   db.close();
+}
+
+export async function getQueuedUploadCount(): Promise<number> {
+  const db = await openQueueDb();
+
+  const count = await new Promise<number>((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, "readonly");
+    const request = tx.objectStore(STORE_NAME).count();
+
+    request.onsuccess = () => resolve(request.result ?? 0);
+    request.onerror = () => reject(request.error);
+  });
+
+  db.close();
+  return count;
+}
+
+export async function setTurnstileTokenForNextQueuedUpload(token: string, honeypot: string): Promise<boolean> {
+  if (!token.trim()) {
+    return false;
+  }
+
+  const db = await openQueueDb();
+
+  const updated = await new Promise<boolean>((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, "readwrite");
+    const store = tx.objectStore(STORE_NAME);
+    const request = store.getAll();
+
+    request.onsuccess = () => {
+      const items = (request.result ?? []) as QueuedReportUpload[];
+      if (!items.length) {
+        resolve(false);
+        return;
+      }
+
+      const sorted = items
+        .slice()
+        .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+
+      const nextItem = sorted[0];
+      const patched: QueuedReportUpload = {
+        ...nextItem,
+        verification: {
+          turnstileToken: token.trim(),
+          honeypot,
+        },
+      };
+
+      store.put(patched);
+      resolve(true);
+    };
+
+    request.onerror = () => reject(request.error);
+    tx.onerror = () => reject(tx.error);
+    tx.onabort = () => reject(tx.error);
+  });
+
+  db.close();
+  return updated;
 }

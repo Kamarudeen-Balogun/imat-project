@@ -3,12 +3,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Loader2, Save, Trash2 } from "lucide-react";
+import { Loader2, Save, Trash2 } from "lucide-react";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import { logActivityEvent } from "@/lib/activity/logEvent";
 import { toast } from "react-hot-toast";
 import { canEditWiki, canDeleteWiki } from "@/lib/access";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import { sanitizePlainText } from "@/lib/inputSanitizer";
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 
 function toSlug(value: string) {
   return value
@@ -126,16 +128,21 @@ export default function EditWikiPage() {
     e.preventDefault();
     if (!userId || !pageId) return;
 
+    const safeTitle = sanitizePlainText(title, 160);
+    const safeSlug = sanitizePlainText(slugPreview, 160);
+    const safeCategory = sanitizePlainText(category, 80);
+    const safeContent = sanitizePlainText(content, 20000);
+
     setSaving(true);
 
     const { error } = await supabase
       .from("wiki_pages")
       .update({
-        title: title.trim(),
-        slug: slugPreview,
-        category,
+        title: safeTitle,
+        slug: safeSlug,
+        category: safeCategory,
         last_edited_by: userId,
-        content_tiptap_json: textToTiptap(content),
+        content_tiptap_json: textToTiptap(safeContent),
       })
       .eq("id", pageId);
 
@@ -149,11 +156,11 @@ export default function EditWikiPage() {
       eventType: "wiki_updated",
       entityType: "wiki_page",
       entityId: pageId,
-      title: `Updated wiki page: ${title.trim()}`,
+      title: `Updated wiki page: ${safeTitle}`,
       actorId: userId,
       details: {
-        slug: slugPreview,
-        category,
+        slug: safeSlug,
+        category: safeCategory,
       },
       isRelevant: true,
     });
@@ -203,9 +210,7 @@ export default function EditWikiPage() {
 
   return (
     <div className="max-w-4xl mx-auto animate-in fade-in duration-500 pb-16">
-      <Link href={`/dashboard/wiki/${params.slug}`} className="inline-flex items-center gap-2 text-text3 hover:text-primary transition-colors text-sm font-mono mb-8">
-        <ArrowLeft size={16} /> Back to Page
-      </Link>
+      <Breadcrumbs className="mb-8" />
 
       <div className="mb-8">
         <h1 className="text-2xl md:text-3xl font-bold text-textDefault mb-2">Edit Knowledge Page</h1>

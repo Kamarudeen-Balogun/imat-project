@@ -3,16 +3,23 @@
 import { useEffect, useState } from "react";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import { BellRing, Check, Sparkles } from "lucide-react";
-import Link from "next/link";
 import { toast } from "react-hot-toast";
 
+const ALERTS_STORAGE_KEY = "imat_news_alerts_enabled";
+
 export default function NewsroomNotificationSettings() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [enabled, setEnabled] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const init = async () => {
+      if (typeof window !== "undefined") {
+        const stored = window.localStorage.getItem(ALERTS_STORAGE_KEY);
+        if (stored === "true" || stored === "false") {
+          setEnabled(stored === "true");
+        }
+      }
+
       const supabase = createSupabaseClient();
       const { data } = await supabase.auth.getSession();
 
@@ -21,15 +28,17 @@ export default function NewsroomNotificationSettings() {
         return;
       }
 
-      setIsAuthenticated(true);
-
       const { data: profile } = await supabase
         .from("users")
         .select("notifications_enabled")
         .eq("id", data.session.user.id)
         .single();
 
-      setEnabled(Boolean(profile?.notifications_enabled));
+      const profileEnabled = Boolean(profile?.notifications_enabled);
+      setEnabled(profileEnabled);
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(ALERTS_STORAGE_KEY, String(profileEnabled));
+      }
       setLoading(false);
     };
 
@@ -40,21 +49,32 @@ export default function NewsroomNotificationSettings() {
     const supabase = createSupabaseClient();
     const { data } = await supabase.auth.getSession();
 
-    if (!data.session) {
-      toast.error("Sign in to manage news notifications.");
-      return;
-    }
-
     const willEnable = !enabled;
     setEnabled(willEnable);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(ALERTS_STORAGE_KEY, String(willEnable));
+    }
 
     if (willEnable && typeof window !== "undefined" && "Notification" in window && Notification.permission === "default") {
       const permission = await Notification.requestPermission();
       if (permission !== "granted") {
         setEnabled(false);
+        window.localStorage.setItem(ALERTS_STORAGE_KEY, "false");
         toast.error("Browser notification permission was not granted.");
         return;
       }
+    }
+
+    if (willEnable && typeof window !== "undefined" && "Notification" in window && Notification.permission === "denied") {
+      setEnabled(false);
+      window.localStorage.setItem(ALERTS_STORAGE_KEY, "false");
+      toast.error("Browser notifications are blocked. Please allow them in browser settings.");
+      return;
+    }
+
+    if (!data.session) {
+      toast.success(willEnable ? "News alerts enabled on this browser." : "News alerts turned off on this browser.");
+      return;
     }
 
     const { error } = await supabase
@@ -64,26 +84,17 @@ export default function NewsroomNotificationSettings() {
 
     if (error) {
       setEnabled(!willEnable);
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(ALERTS_STORAGE_KEY, String(!willEnable));
+      }
       toast.error("Could not save your notification preference.");
       return;
     }
 
-    toast.success(willEnable ? "News alerts enabled for this account." : "News alerts turned off.");
+    toast.success(willEnable ? "News alerts enabled on this browser." : "News alerts turned off.");
   };
 
   if (loading) return null;
-
-  if (!isAuthenticated) {
-    return (
-      <Link
-        href="/login"
-        className="inline-flex items-center gap-2 rounded-full border border-borderDark bg-bg2 px-4 py-2 text-xs sm:text-sm font-semibold text-textDefault hover:border-primary hover:text-primary transition-colors"
-      >
-        <BellRing size={16} />
-        Sign in for news alerts
-      </Link>
-    );
-  }
 
   return (
     <button

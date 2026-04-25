@@ -18,7 +18,7 @@ type ThemeContextValue = {
 
 const ThemeContext = React.createContext<ThemeContextValue | undefined>(undefined);
 
-export function ThemeProvider({ children, defaultTheme = "dark", enableSystem = true }: ThemeProviderProps) {
+export function ThemeProvider({ children, defaultTheme = "light", enableSystem = false }: ThemeProviderProps) {
   const [theme, setThemeState] = React.useState<Theme>(defaultTheme);
 
   React.useEffect(() => {

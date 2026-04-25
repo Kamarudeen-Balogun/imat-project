@@ -4,19 +4,22 @@ import { useEffect, useState } from "react";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import { ChevronDown, History, Bell } from "lucide-react";
 import { format } from "date-fns";
+import Link from "next/link";
 
 type Notification = {
   id: string;
   title: string;
   body: string;
   created_at: string;
+  href?: string;
 };
 
 export default function NotificationsHistoryPanel() {
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [panelTitle, setPanelTitle] = useState("Notification History");
+  const [panelLabel, setPanelLabel] = useState("Showing last 50 notifications");
 
   useEffect(() => {
     const init = async () => {
@@ -24,16 +27,35 @@ export default function NotificationsHistoryPanel() {
       const { data } = await supabase.auth.getSession();
 
       if (!data.session) {
+        const { data: publicNews, error } = await supabase
+          .from("announcements")
+          .select("id, slug, title, body, published_at")
+          .eq("visibility", "public")
+          .order("published_at", { ascending: false })
+          .limit(50);
+
+        if (!error) {
+          setNotifications(
+            (publicNews ?? []).map((item) => ({
+              id: item.id,
+              title: item.title,
+              body: item.body,
+              created_at: item.published_at,
+              href: `/newsroom/${item.slug ?? item.id}`,
+            }))
+          );
+        }
+
+        setPanelTitle("News History");
+        setPanelLabel("Showing last 50 public newsroom posts");
         setLoading(false);
         return;
       }
 
-      setIsAuthenticated(true);
-
       // Fetch notifications for the current user
       const { data: notifData, error } = await supabase
         .from("notifications")
-        .select("id, title, body, created_at")
+        .select("id, title, body, created_at, href")
         .eq("recipient_id", data.session.user.id)
         .order("created_at", { ascending: false })
         .limit(50);
@@ -42,13 +64,16 @@ export default function NotificationsHistoryPanel() {
         setNotifications((notifData ?? []) as Notification[]);
       }
 
+      setPanelTitle("Notification History");
+      setPanelLabel("Showing last 50 notifications");
+
       setLoading(false);
     };
 
     void init();
   }, []);
 
-  if (loading || !isAuthenticated) {
+  if (loading) {
     return null;
   }
 
@@ -61,7 +86,7 @@ export default function NotificationsHistoryPanel() {
           className="w-full flex items-center justify-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-6 py-3 text-sm font-semibold text-primary hover:bg-primary/20 transition-colors shadow-lg"
         >
           <History size={16} />
-          Notification History ({notifications.length})
+          {panelTitle} ({notifications.length})
         </button>
       )}
 
@@ -72,7 +97,7 @@ export default function NotificationsHistoryPanel() {
           <div className="flex items-center justify-between gap-3 px-6 py-4 border-b border-borderDark bg-gradient-to-r from-primary/10 to-transparent">
             <div className="flex items-center gap-2">
               <Bell size={18} className="text-primary" />
-              <h3 className="font-bold text-textDefault">Notification History</h3>
+              <h3 className="font-bold text-textDefault">{panelTitle}</h3>
               <span className="text-xs text-text3 bg-bg3 rounded-full px-2 py-1">
                 {notifications.length}
               </span>
@@ -91,13 +116,14 @@ export default function NotificationsHistoryPanel() {
             {notifications.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-8 px-4 text-text3">
                 <Bell size={32} className="opacity-50 mb-2" />
-                <p className="text-sm">No notifications yet</p>
+                <p className="text-sm">No history yet</p>
               </div>
             ) : (
               notifications.map((notif) => (
-                <div
+                <Link
                   key={notif.id}
-                  className="px-6 py-4 hover:bg-bg3 transition-colors cursor-pointer group"
+                  href={notif.href ?? "#"}
+                  className="block px-6 py-4 hover:bg-bg3 transition-colors cursor-pointer group"
                 >
                   <div className="flex items-start gap-3">
                     <div className="w-2 h-2 rounded-full bg-primary mt-2 flex-shrink-0" />
@@ -113,14 +139,14 @@ export default function NotificationsHistoryPanel() {
                       </p>
                     </div>
                   </div>
-                </div>
+                </Link>
               ))
             )}
           </div>
 
           {/* Footer */}
           <div className="px-6 py-3 border-t border-borderDark bg-bg3 text-center">
-            <p className="text-xs text-text3">Showing last 50 notifications</p>
+            <p className="text-xs text-text3">{panelLabel}</p>
           </div>
         </div>
       )}

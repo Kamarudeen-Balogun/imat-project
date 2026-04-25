@@ -5,9 +5,10 @@ import { useRouter } from "next/navigation";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import { logActivityEvent } from "@/lib/activity/logEvent";
 import { toast } from "react-hot-toast";
-import { UploadCloud, MapPin, X, ArrowLeft } from "lucide-react";
-import Link from "next/link";
+import { UploadCloud, MapPin, X } from "lucide-react";
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 import Image from "next/image";
+import { sanitizePlainText, sanitizeNumericText } from "@/lib/inputSanitizer";
 
 type Zone = { id: string; name: string };
 
@@ -75,8 +76,8 @@ export default function NewAssessmentPage() {
           setLocating(false);
           toast.success("GPS Coordinate captured!");
         },
-        (err) => {
-          console.error(err);
+        () => {
+          console.error("Location capture failed.");
           toast.error("Failed to get location. Please enable GPS permissions.");
           setLocating(false);
         },
@@ -142,8 +143,8 @@ export default function NewAssessmentPage() {
       }
       setUploadingPhotos(false);
       return uploadedUrls;
-    } catch (err) {
-      console.error(err);
+    } catch {
+      console.error("Defect photo upload failed.");
       toast.error("Failed to upload structural evidence photos.");
       setUploadingPhotos(false);
       return [];
@@ -156,6 +157,12 @@ export default function NewAssessmentPage() {
       toast.error("Authentication required.");
       return;
     }
+
+    const safeTitle = sanitizePlainText(title, 120);
+    const safeDescription = sanitizePlainText(description, 4000);
+    const safeCategory = sanitizePlainText(category, 20);
+    const safeDefectType = sanitizePlainText(defectType, 120);
+    const safeAffectedArea = sanitizeNumericText(affectedArea, 16);
     
     setLoading(true);
     
@@ -166,12 +173,12 @@ export default function NewAssessmentPage() {
       const { data: defect, error: defectError } = await supabase
         .from("defects")
         .insert({
-          title,
-          description,
-          category,
-          defect_type: defectType,
+          title: safeTitle,
+          description: safeDescription,
+          category: safeCategory,
+          defect_type: safeDefectType,
           severity: parseInt(severity),
-          affected_area_sqm: affectedArea ? parseFloat(affectedArea) : null,
+          affected_area_sqm: safeAffectedArea ? parseFloat(safeAffectedArea) : null,
           campus_zone_id: campusZoneId,
           location_lat: location?.lat || null,
           location_lng: location?.lng || null,
@@ -190,8 +197,8 @@ export default function NewAssessmentPage() {
         .insert({
           defect_id: defect.id,
           officer_id: userId,
-          field_notes: description,
-          measurement_data: { affected_area: affectedArea },
+          field_notes: safeDescription,
+          measurement_data: { affected_area: safeAffectedArea },
           photos: photosArray
         });
 
@@ -201,11 +208,11 @@ export default function NewAssessmentPage() {
         eventType: "defect_created",
         entityType: "defect",
         entityId: defect.id,
-        title: `Created defect ${defect.id}: ${title}`,
+        title: `Created defect ${defect.id}: ${safeTitle}`,
         actorId: userId,
         details: {
-          category,
-          defectType,
+          category: safeCategory,
+          defectType: safeDefectType,
           severity: parseInt(severity),
           campusZoneId,
         },
@@ -214,9 +221,9 @@ export default function NewAssessmentPage() {
 
       toast.success("Field assessment logged successfully!");
       router.push("/dashboard");
-    } catch (err) {
-      console.error(err);
-      toast.error((err as Error).message || "Failed to log assessment.");
+    } catch {
+      console.error("Defect submission failed.");
+      toast.error("Failed to log assessment.");
     } finally {
       setLoading(false);
     }
@@ -224,9 +231,7 @@ export default function NewAssessmentPage() {
 
   return (
     <div className="max-w-4xl mx-auto animate-in fade-in duration-500 pb-20">
-      <Link href="/dashboard" className="inline-flex items-center gap-2 text-text3 hover:text-primary transition-colors text-sm font-mono mb-8">
-        <ArrowLeft size={16} /> Back to Dashboard
-      </Link>
+      <Breadcrumbs className="mb-8" />
       
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-textDefault flex items-center gap-3">

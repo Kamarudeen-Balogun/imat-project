@@ -89,6 +89,13 @@ async function uploadPhotosToCloudinary(item) {
 }
 
 async function postDefectToApi(item, photos) {
+  const token = item?.verification?.turnstileToken || "";
+  const honeypot = item?.verification?.honeypot || "";
+
+  if (!token) {
+    throw new Error("Turnstile verification is required before uploading queued report.");
+  }
+
   const response = await fetch("/api/public-report", {
     method: "POST",
     headers: {
@@ -96,11 +103,17 @@ async function postDefectToApi(item, photos) {
     },
     body: JSON.stringify({
       ...item.payload,
+      turnstileToken: token,
+      honeypot,
       photos,
     }),
   });
 
   if (!response.ok) {
+    if (response.status === 403) {
+      throw new Error("Turnstile verification expired. Please complete verification again.");
+    }
+
     const payload = await response.text().catch(() => "");
     throw new Error(`Public report API failed: ${payload || response.statusText}`);
   }
@@ -112,13 +125,23 @@ async function processQueue() {
 
   for (const item of items) {
     try {
+      const token = item?.verification?.turnstileToken || "";
+      if (!token) {
+        await notifyClients({ type: "REPORT_UPLOAD_SYNC_NEEDS_VERIFICATION" });
+        continue;
+      }
+
       const photos = await uploadPhotosToCloudinary(item);
       await postDefectToApi(item, photos);
       await deleteQueuedUpload(item.id);
       await notifyClients({ type: "REPORT_UPLOAD_SYNC_SUCCESS" });
     } catch (error) {
-      console.error("Queued report upload failed", error);
-      await notifyClients({ type: "REPORT_UPLOAD_SYNC_PENDING" });
+      const message = error instanceof Error ? error.message : "Queued report upload failed";
+      if (/Turnstile verification/i.test(message)) {
+        await notifyClients({ type: "REPORT_UPLOAD_SYNC_NEEDS_VERIFICATION" });
+      } else {
+        await notifyClients({ type: "REPORT_UPLOAD_SYNC_PENDING" });
+      }
     }
   }
 }

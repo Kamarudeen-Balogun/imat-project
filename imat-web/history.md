@@ -258,6 +258,46 @@ This is the living implementation history for the IMAT web platform.
 - Added clsx dependency for cleaner className composition.
 - Verification: lint passes with 0 errors.
 
+### 22) Newsroom Access Expansion, Policy Enforcement, And Documentation Split
+
+- Expanded newsroom notifications to support guest usage:
+  - local browser opt-in without sign-in
+  - public announcement history fallback for unsigned users
+- Strengthened internal/public visibility behavior for announcements:
+  - internal announcements are delivered to members only
+  - visibility flips reconcile notification records to avoid stale recipient history
+- Hardened database enforcement in `supabase_schema.sql`:
+  - notification recipient policy tightened with visibility-aware checks
+  - added users-table self-update protection trigger for privileged fields
+- Removed legacy evidence seed inserts from schema to stop repeat demo-row regeneration on reruns.
+- Added shared input sanitization utilities and wired them into major write paths:
+  - public reporting
+  - applications
+  - newsroom/campaign updates
+  - profile updates and related dashboard forms
+- Standardized dashboard navigation by replacing scattered "Back to Dashboard" links with breadcrumb pathways.
+- Added persistent active-state behavior for selected dashboard sidebar entries.
+- Completed branding asset migration to `public/images/imatfutalogo.png` and removed old logo references.
+- Updated README strategy:
+  - main README is now concise and hiring-focused
+  - implementation-heavy details are maintained in this history file
+
+### 23) Turnstile Protection, Offline Resume Flow, And Console Hardening
+
+- Added Cloudflare Turnstile protection to the public report and apply forms.
+- Kept offline reporting available by queuing submissions locally and allowing them to resume later with a fresh Turnstile verification.
+- Updated the service worker queue to stop before Cloudinary upload when a queued item does not yet have verification attached.
+- Added a manual resume path for queued reports so the browser can attach a fresh verification token and continue processing.
+- Removed raw error-object logging from the public reporting, apply, and several dashboard flows so browser console output stays generic.
+- Documented the Turnstile setup details in the README, including the no-spaces env-var formatting note and the production-domain hostname requirement.
+
+### 24) Localhost Testing Bypass And Friendlier Bot-Check UX
+
+- Updated Turnstile behavior so non-production environments bypass verification by default, allowing localhost form testing without Cloudflare hostname constraints.
+- Added an explicit opt-out switch (`NEXT_PUBLIC_TURNSTILE_DEV_BYPASS=false`) for teams that want to force full Turnstile behavior during local testing.
+- Kept production verification strict by hard-disabling bypass behavior when `NODE_ENV=production`.
+- Added clearer “Quick safety check” sections on report/apply forms so users understand the anti-spam check without getting blocked by confusing wording.
+
 ## Operational Notes
 
 - Current image strategy uses WebP for optimized public assets.

@@ -5,8 +5,11 @@ import { AlertTriangle, UploadCloud, X, MapPin } from "lucide-react";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import { toast } from "react-hot-toast";
 import Image from "next/image";
-import { enqueueReportUpload, QueuedReportPayload } from "@/lib/reportUploadQueue";
+import { enqueueReportUpload, getQueuedUploadCount, QueuedReportPayload, setTurnstileTokenForNextQueuedUpload } from "@/lib/reportUploadQueue";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
+import { sanitizePlainText } from "@/lib/inputSanitizer";
+import TurnstileWidget from "@/components/security/TurnstileWidget";
+import { TURNSTILE_DEV_BYPASS_TOKEN, isTurnstileDevBypassEnabled } from "@/lib/turnstile";
 
 type Zone = { id: string; name: string };
 const UPLOAD_SYNC_TAG = "imat-report-upload-sync";
@@ -47,16 +50,26 @@ const DEFECT_TYPES: Record<string, string[]> = {
 export default function ReportPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploadingPhotos, setIsUploadingPhotos] = useState(false);
+  const [pendingQueuedReports, setPendingQueuedReports] = useState(0);
+  const [needsVerificationToResume, setNeedsVerificationToResume] = useState(false);
   const [zones, setZones] = useState<Zone[]>([]);
   const [draft, setDraft] = useState<ReportDraft>(DEFAULT_DRAFT);
   const [locating, setLocating] = useState(false);
   const [selectedPhotos, setSelectedPhotos] = useState<File[]>([]);
   const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const [honeypot, setHoneypot] = useState("");
 
   const category = draft.category;
 
+  const refreshQueuedReportCount = useCallback(async () => {
+    const count = await getQueuedUploadCount().catch(() => 0);
+    setPendingQueuedReports(count);
+    setNeedsVerificationToResume(count > 0);
+  }, []);
+
   const supportsBackgroundSync = useCallback(() => {
-    return typeof window !== "undefined" && "serviceWorker" in navigator && "SyncManager" in window;
+    return typeof window !== "undefined" && "serviceWorker" in navigator;
   }, []);
 
   const registerAndScheduleBackgroundSync = useCallback(async (): Promise<boolean> => {
@@ -65,32 +78,33 @@ export default function ReportPage() {
     try {
       await navigator.serviceWorker.register("/upload-sync-sw.js");
 
-      // Ensure a service worker is active before attempting Background Sync registration.
       const registration = await navigator.serviceWorker.ready;
-      if (!("sync" in registration) || !registration.active) {
+      if (!registration.active) {
         return false;
       }
 
-      const syncManager = (registration as ServiceWorkerRegistration & {
-        sync: { register: (tag: string) => Promise<void> };
-      }).sync;
+      if ("sync" in registration) {
+        const syncManager = (registration as ServiceWorkerRegistration & {
+          sync: { register: (tag: string) => Promise<void> };
+        }).sync;
 
-      try {
-        await syncManager.register(UPLOAD_SYNC_TAG);
-      } catch (error) {
-        if (error instanceof DOMException && error.name === "InvalidStateError") {
-          await new Promise((resolve) => window.setTimeout(resolve, 300));
+        try {
           await syncManager.register(UPLOAD_SYNC_TAG);
-        } else {
-          throw error;
+        } catch (error) {
+          if (error instanceof DOMException && error.name === "InvalidStateError") {
+            await new Promise((resolve) => window.setTimeout(resolve, 300));
+            await syncManager.register(UPLOAD_SYNC_TAG);
+          } else {
+            throw error;
+          }
         }
       }
 
       registration.active.postMessage({ type: "PROCESS_UPLOAD_QUEUE" });
 
       return true;
-    } catch (error) {
-      console.error("Failed to register background sync", error);
+    } catch {
+      console.error("Failed to register background sync.");
       return false;
     }
   }, [supportsBackgroundSync]);
@@ -107,6 +121,10 @@ export default function ReportPage() {
   }, []);
 
   useEffect(() => {
+    void refreshQueuedReportCount();
+  }, [refreshQueuedReportCount]);
+
+  useEffect(() => {
     if (typeof window === "undefined") return;
 
     try {
@@ -119,8 +137,8 @@ export default function ReportPage() {
         ...parsed,
       }));
       toast("Restored your saved draft.");
-    } catch (error) {
-      console.error("Failed to restore report draft", error);
+    } catch {
+      console.error("Failed to restore report draft.");
     }
   }, []);
 
@@ -152,6 +170,16 @@ export default function ReportPage() {
     const handleServiceWorkerMessage = (event: MessageEvent) => {
       if (event.data?.type === "REPORT_UPLOAD_SYNC_SUCCESS") {
         toast.success("Queued report uploaded successfully.");
+        void refreshQueuedReportCount();
+      }
+
+      if (event.data?.type === "REPORT_UPLOAD_SYNC_NEEDS_VERIFICATION") {
+        setNeedsVerificationToResume(true);
+        void refreshQueuedReportCount();
+      }
+
+      if (event.data?.type === "REPORT_UPLOAD_SYNC_PENDING") {
+        void refreshQueuedReportCount();
       }
     };
 
@@ -167,7 +195,7 @@ export default function ReportPage() {
       navigator.serviceWorker.removeEventListener("message", handleServiceWorkerMessage as EventListener);
       window.removeEventListener("online", handleOnline);
     };
-  }, [registerAndScheduleBackgroundSync]);
+  }, [registerAndScheduleBackgroundSync, refreshQueuedReportCount]);
 
   const clearSelectedPhotos = () => {
     photoPreviews.forEach((preview) => URL.revokeObjectURL(preview));
@@ -182,6 +210,8 @@ export default function ReportPage() {
       defect_type: DEFECT_TYPES.road[0],
     });
     clearSelectedPhotos();
+    setTurnstileToken("");
+    setHoneypot("");
     if (typeof window !== "undefined") {
       window.localStorage.removeItem(REPORT_DRAFT_KEY);
     }
@@ -205,8 +235,8 @@ export default function ReportPage() {
         setLocating(false);
         toast.success("GPS coordinates captured.");
       },
-      (error) => {
-        console.error(error);
+      () => {
+        console.error("Location capture failed.");
         setLocating(false);
         toast.error("Unable to capture location. Please allow location access and try again.");
       },
@@ -280,18 +310,19 @@ export default function ReportPage() {
 
       return uploadedUrls;
     } catch (error) {
-      console.error(error);
+      console.error("Image upload failed.");
       throw error;
     } finally {
       setIsUploadingPhotos(false);
     }
   };
 
-  const queueReportForBackgroundUpload = async (payload: QueuedReportPayload, photos: File[]) => {
+  const queueReportForLaterUpload = async (payload: QueuedReportPayload, photos: File[]) => {
     const cloudinaryCloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
     const cloudinaryUploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET_PHOTOS;
 
     if (!cloudinaryCloudName || !cloudinaryUploadPreset) {
+      toast.error("Offline queueing is not configured yet.");
       return false;
     }
 
@@ -308,16 +339,51 @@ export default function ReportPage() {
         type: file.type,
         blob: file,
       })),
+      verification: {
+        turnstileToken: "",
+        honeypot: "",
+      },
       config: {
         cloudinaryCloudName,
         cloudinaryUploadPreset,
       },
     });
 
-    return await registerAndScheduleBackgroundSync();
+    await refreshQueuedReportCount();
+    return true;
   };
 
-  const submitReportImmediately = async (payload: QueuedReportPayload, photos: File[]) => {
+  const resumeQueuedUploads = async () => {
+    if (!navigator.onLine) {
+      toast.error("You need an internet connection to resume queued uploads.");
+      return;
+    }
+
+    const bypassToken = isTurnstileDevBypassEnabled() ? TURNSTILE_DEV_BYPASS_TOKEN : "";
+    const token = turnstileToken.trim() || bypassToken;
+    if (!token) {
+      toast.error("Complete the bot check first so the queued report can be verified.");
+      return;
+    }
+
+    const updated = await setTurnstileTokenForNextQueuedUpload(token, honeypot.trim());
+    if (!updated) {
+      toast.error("There is no queued report waiting to resume.");
+      await refreshQueuedReportCount();
+      return;
+    }
+
+    const scheduled = await registerAndScheduleBackgroundSync();
+    if (scheduled) {
+      setNeedsVerificationToResume(false);
+      toast.success("Queued report sent back for verification and upload.");
+      await refreshQueuedReportCount();
+    } else {
+      toast.error("Unable to schedule the queued upload right now.");
+    }
+  };
+
+  const submitReportImmediately = async (payload: QueuedReportPayload, photos: File[], token: string, honeypotValue: string) => {
     const uploadedPhotoUrls = await uploadPhotos(photos);
 
     const response = await fetch("/api/public-report", {
@@ -327,6 +393,8 @@ export default function ReportPage() {
       },
       body: JSON.stringify({
         ...payload,
+        turnstileToken: token,
+        honeypot: honeypotValue,
         photos: uploadedPhotoUrls,
       }),
     });
@@ -348,60 +416,44 @@ export default function ReportPage() {
     const parsedArea = areaValue ? Number.parseFloat(areaValue) : null;
 
     const dataPayload: QueuedReportPayload = {
-      title: formDataObj.get("title") as string,
-      category: formDataObj.get("category") as string,
-      defect_type: formDataObj.get("defect_type") as string,
+      title: sanitizePlainText(formDataObj.get("title") as string, 120),
+      category: sanitizePlainText(formDataObj.get("category") as string, 20),
+      defect_type: sanitizePlainText(formDataObj.get("defect_type") as string, 120),
       severity: Number.parseInt(formDataObj.get("severity") as string, 10),
       campus_zone_id: campusZone,
       affected_area_sqm: Number.isNaN(parsedArea as number) ? null : parsedArea,
-      description: formDataObj.get("description") as string,
+      description: sanitizePlainText(formDataObj.get("description") as string, 3000),
       location_lat: draft.location_lat,
       location_lng: draft.location_lng,
     };
 
+    const bypassToken = isTurnstileDevBypassEnabled() ? TURNSTILE_DEV_BYPASS_TOKEN : "";
+    const turnstileValue = turnstileToken.trim() || bypassToken;
+    const honeypotValue = honeypot.trim();
+
     try {
       if (!navigator.onLine) {
-        if (supportsBackgroundSync()) {
-          const queued = await queueReportForBackgroundUpload(dataPayload, selectedPhotos);
-          if (queued) {
-            toast.success("Network is bad. Report saved and will upload automatically when connection improves.", { duration: 6500 });
-            clearFormDraft();
-          } else {
-            toast.error("Unable to queue this report right now. Please try again when network is stable.");
-          }
-        } else {
-          toast.error("Network is bad and this browser cannot queue uploads. Please upload when you have good network.");
+        const queued = await queueReportForLaterUpload(dataPayload, selectedPhotos);
+        if (queued) {
+          toast.success("Report saved locally. Come back online and complete the bot check to finish uploading.", { duration: 6500 });
+          clearFormDraft();
         }
-
         return;
       }
 
-      await submitReportImmediately(dataPayload, selectedPhotos);
+      if (!turnstileValue) {
+        toast.error("Please complete the bot check before submitting.");
+        return;
+      }
+
+      await submitReportImmediately(dataPayload, selectedPhotos, turnstileValue, honeypotValue);
 
       toast.success("Defect successfully reported! Thank you for your vigilance.", { duration: 6000 });
       clearFormDraft();
-    } catch (error) {
-      console.error(error);
+    } catch {
+      console.error("Report upload failed.");
 
-      const isNetworkRelated =
-        !navigator.onLine ||
-        error instanceof TypeError ||
-        (error instanceof Error && /network|fetch|failed/i.test(error.message));
-
-      if (isNetworkRelated && supportsBackgroundSync()) {
-        const queued = await queueReportForBackgroundUpload(dataPayload, selectedPhotos);
-        if (queued) {
-          toast.success("Network became unstable. Report saved and will upload automatically once network is good.", { duration: 6500 });
-          clearFormDraft();
-          return;
-        }
-      }
-
-      if (isNetworkRelated) {
-        toast.error("Network is bad. Please upload when you have good network.");
-      } else {
-        toast.error("Failed to submit the report. Please try again.");
-      }
+      toast.error("Failed to submit the report. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -426,7 +478,39 @@ export default function ReportPage() {
         </div>
       </div>
 
+      {pendingQueuedReports > 0 && (
+        <div className="mb-8 rounded-xl border border-primary/20 bg-primary/5 p-4 text-sm text-textDefault">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <strong className="block text-sm">{pendingQueuedReports} offline report{pendingQueuedReports > 1 ? "s" : ""} saved locally</strong>
+              <span className="text-text2">Complete the bot check while online, then resume the queue to upload it safely.</span>
+            </div>
+            <button
+              type="button"
+              onClick={resumeQueuedUploads}
+              className="inline-flex items-center justify-center rounded-lg border border-primary/30 bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+              disabled={isSubmitting || isUploadingPhotos}
+            >
+              Resume queued upload
+            </button>
+          </div>
+          {needsVerificationToResume && (
+            <p className="mt-2 text-xs text-text3">Queued reports need a fresh Turnstile token before the server will accept them.</p>
+          )}
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="glass-panel space-y-8 rounded-xl p-6 md:p-10">
+        <input
+          type="text"
+          name="website"
+          autoComplete="off"
+          tabIndex={-1}
+          value={honeypot}
+          onChange={(event) => setHoneypot(event.target.value)}
+          className="hidden"
+          aria-hidden="true"
+        />
         
         {/* WHAT HAPPENED */}
         <section>
@@ -582,6 +666,17 @@ export default function ReportPage() {
         </section>
 
         <div className="pt-8 flex flex-col-reverse md:flex-row md:justify-end gap-3">
+          <div className="md:mr-auto w-full md:max-w-md">
+            <div className="rounded-xl border border-borderDark bg-bg2/70 p-4">
+              <h3 className="text-sm font-semibold uppercase tracking-wide text-textDefault">Quick safety check</h3>
+              <p className="mt-1 text-xs text-text3">One quick click helps block spam reports while keeping real reports easy to submit.</p>
+              <TurnstileWidget
+                onTokenChange={setTurnstileToken}
+                onError={() => toast.error("Security check unavailable. Please refresh and try again.")}
+                className="mt-3"
+              />
+            </div>
+          </div>
           <button
             type="button"
             onClick={clearFormDraft}

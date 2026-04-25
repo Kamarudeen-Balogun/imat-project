@@ -35,7 +35,7 @@ export default function LoginPage() {
       toast.success("Login successful!");
       window.location.replace("/dashboard");
     } catch (error) {
-      console.error("Login failed:", (error as Error).message);
+      console.error("Login failed.");
       toast.error((error as Error).message || "Invalid login credentials. Please try again.");
     } finally {
       setIsLoading(false);

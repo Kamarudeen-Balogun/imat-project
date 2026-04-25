@@ -18,9 +18,9 @@ export const metadata: Metadata = {
   title: "IMAT · Infrastructure Maintenance Awareness Team",
   description: "FUTA Civil Engineering Infrastructure Maintenance Awareness Team",
   icons: {
-    icon: "/images/imatlogo.png",
-    shortcut: "/images/imatlogo.png",
-    apple: "/images/imatlogo.png",
+    icon: "/icon.png?v=20260425-1",
+    shortcut: "/icon.png?v=20260425-1",
+    apple: "/apple-icon.png?v=20260425-1",
   },
 };
 
@@ -40,7 +40,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${ibmPlexSans.variable} ${ibmPlexMono.variable} font-sans antialiased text-textDefault flex min-h-screen flex-col transition-colors duration-300`}>
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
           <SiteShell>{children}</SiteShell>
           <ClientToaster />
         </ThemeProvider>

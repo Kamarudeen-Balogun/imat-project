@@ -1,13 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import { logActivityEvent } from "@/lib/activity/logEvent";
 import { getAnnouncementHref } from "@/lib/news";
+import { sanitizePlainText, sanitizeUrl } from "@/lib/inputSanitizer";
 import { toast } from "react-hot-toast";
-import { Loader2, Save, Trash2, ArrowLeft, FileText, Globe, Lock, AlertTriangle, X } from "lucide-react";
+import { Loader2, Save, Trash2, FileText, Globe, Lock, AlertTriangle, X } from "lucide-react";
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 
 type Announcement = {
   id: string;
@@ -40,18 +42,27 @@ export default function AnnouncementEditor({
   const [deleting, setDeleting] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
-  const notificationBody = useMemo(() => body.trim().replace(/\s+/g, " ").slice(0, 180) || title.trim(), [body, title]);
-
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
 
+    const safeTitle = sanitizePlainText(title, 120);
+    const safeBody = sanitizePlainText(body, 6000);
+    const safeImageUrl = sanitizeUrl(imageUrl.trim());
+    const safeNotificationBody = safeBody.trim().replace(/\s+/g, " ").slice(0, 180) || safeTitle;
+
+    if (!safeTitle || !safeBody) {
+      toast.error("Headline and body are required.");
+      setSaving(false);
+      return;
+    }
+
     const { error } = await supabase
       .from("announcements")
       .update({
-        title: title.trim(),
-        body: body.trim(),
-        image_url: imageUrl.trim() || null,
+        title: safeTitle,
+        body: safeBody,
+        image_url: safeImageUrl || null,
         visibility,
       })
       .eq("id", announcement.id);
@@ -65,8 +76,8 @@ export default function AnnouncementEditor({
     await supabase
       .from("notifications")
       .update({
-        title: title.trim(),
-        body: notificationBody,
+        title: safeTitle,
+        body: safeNotificationBody,
         href: getAnnouncementHref(announcement.slug ?? announcement.id),
       })
       .eq("announcement_id", announcement.id);
@@ -75,7 +86,7 @@ export default function AnnouncementEditor({
       eventType: "announcement_updated",
       entityType: "announcement",
       entityId: announcement.id,
-      title: `Updated broadcast: ${title.trim()}`,
+      title: `Updated broadcast: ${safeTitle}`,
       actorId: currentUserId,
       details: {
         slug: announcement.slug,
@@ -124,9 +135,7 @@ export default function AnnouncementEditor({
 
   return (
     <div className="max-w-4xl mx-auto animate-in fade-in duration-500 pb-16">
-      <Link href="/dashboard/news" className="inline-flex items-center gap-2 text-text3 hover:text-primary transition-colors text-sm font-mono mb-8">
-        <ArrowLeft size={16} /> Back to Newsroom Manager
-      </Link>
+      <Breadcrumbs className="mb-8" />
 
       <div className="mb-8">
         <div className="inline-flex items-center gap-2 rounded-full border border-soft bg-bg2 px-3 py-1 text-xs font-mono uppercase tracking-wider text-text3 mb-4">
