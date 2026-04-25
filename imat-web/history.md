@@ -319,6 +319,11 @@ This is the living implementation history for the IMAT web platform.
 - Updated the public report client to surface server error messages directly in the toast instead of always showing a generic failure.
 - Further reduced the report action button sizing for improved visual balance on mobile and desktop.
 
+### 28) Report Title Validation And Desktop Action Row Fix
+
+- Relaxed public report `title` minimum length from 5 to 3 to avoid rejecting valid short issue titles.
+- Prevented desktop action-row stretch so Clear/Submit buttons no longer inherit the Turnstile card height.
+
 ## Operational Notes
 
 - Current image strategy uses WebP for optimized public assets.

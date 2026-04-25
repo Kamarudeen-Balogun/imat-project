@@ -678,7 +678,7 @@ export default function ReportPage() {
           </div>
         </section>
 
-        <div className="pt-8 flex flex-col-reverse md:flex-row md:justify-end gap-3">
+        <div className="pt-8 flex flex-col-reverse md:flex-row md:items-start md:justify-end gap-3">
           <div className="md:mr-auto w-full md:max-w-md">
             <div className="rounded-xl border border-borderDark bg-bg2/70 p-4">
               <h3 className="text-sm font-semibold uppercase tracking-wide text-textDefault">Quick safety check</h3>

@@ -6,7 +6,7 @@ import { sanitizePlainText, sanitizeUrlList } from "@/lib/inputSanitizer";
 import { verifyTurnstileToken } from "@/lib/turnstile";
 
 const bodySchema = z.object({
-  title: z.string().trim().min(5).max(80),
+  title: z.string().trim().min(3).max(80),
   category: z.enum(["drainage", "road", "walkway", "structure", "other"]),
   defect_type: z.string().trim().min(2).max(80),
   severity: z.coerce.number().int().min(1).max(5),
