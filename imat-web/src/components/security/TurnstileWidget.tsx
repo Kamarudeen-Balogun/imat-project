@@ -39,7 +39,14 @@ function loadTurnstileScript() {
     const existingScript = document.querySelector<HTMLScriptElement>('script[data-turnstile="true"]');
     if (existingScript) {
       existingScript.addEventListener("load", () => resolve(), { once: true });
-      existingScript.addEventListener("error", () => reject(new Error("Turnstile script failed to load")), { once: true });
+      existingScript.addEventListener(
+        "error",
+        () => {
+          turnstileScriptPromise = null;
+          reject(new Error("Turnstile script failed to load"));
+        },
+        { once: true }
+      );
       return;
     }
 
@@ -49,7 +56,11 @@ function loadTurnstileScript() {
     script.defer = true;
     script.dataset.turnstile = "true";
     script.onload = () => resolve();
-    script.onerror = () => reject(new Error("Turnstile script failed to load"));
+    script.onerror = () => {
+      turnstileScriptPromise = null;
+      script.remove();
+      reject(new Error("Turnstile script failed to load"));
+    };
     document.head.appendChild(script);
   });
 
@@ -59,13 +70,23 @@ function loadTurnstileScript() {
 export default function TurnstileWidget({ onTokenChange, onError, theme = "auto", className = "" }: TurnstileWidgetProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const widgetIdRef = useRef<string | null>(null);
+  const onTokenChangeRef = useRef<TurnstileWidgetProps["onTokenChange"]>(onTokenChange);
+  const onErrorRef = useRef<TurnstileWidgetProps["onError"]>(onError);
   const elementId = useId();
   const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
   const devBypassEnabled = isTurnstileDevBypassEnabled();
 
   useEffect(() => {
+    onTokenChangeRef.current = onTokenChange;
+  }, [onTokenChange]);
+
+  useEffect(() => {
+    onErrorRef.current = onError;
+  }, [onError]);
+
+  useEffect(() => {
     if (devBypassEnabled) {
-      onTokenChange?.(TURNSTILE_DEV_BYPASS_TOKEN);
+      onTokenChangeRef.current?.(TURNSTILE_DEV_BYPASS_TOKEN);
       return;
     }
 
@@ -87,13 +108,13 @@ export default function TurnstileWidget({ onTokenChange, onError, theme = "auto"
         widgetIdRef.current = window.turnstile.render(containerRef.current, {
           sitekey: siteKey,
           theme,
-          callback: (token: string) => onTokenChange?.(token),
-          "error-callback": () => onError?.(),
-          "expired-callback": () => onTokenChange?.(""),
+          callback: (token: string) => onTokenChangeRef.current?.(token),
+          "error-callback": () => onErrorRef.current?.(),
+          "expired-callback": () => onTokenChangeRef.current?.(""),
         });
       } catch {
-        onTokenChange?.("");
-        onError?.();
+        onTokenChangeRef.current?.("");
+        onErrorRef.current?.();
       }
     };
 
@@ -105,7 +126,7 @@ export default function TurnstileWidget({ onTokenChange, onError, theme = "auto"
         window.turnstile.remove(widgetIdRef.current);
       }
     };
-  }, [devBypassEnabled, onError, onTokenChange, siteKey, theme]);
+  }, [devBypassEnabled, siteKey, theme]);
 
   if (devBypassEnabled) {
     return (
