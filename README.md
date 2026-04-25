@@ -51,7 +51,7 @@ npm install
 npm run dev
 ```
 
-Visit `http://localhost:3000` to view the application.
+Visit `http://localhost:3001` to view the application.
 
 ## 🎨 Technology Stack
 
