@@ -9,11 +9,51 @@ const bodySchema = z.object({
   title: z.string().trim().min(5).max(80),
   category: z.enum(["drainage", "road", "walkway", "structure", "other"]),
   defect_type: z.string().trim().min(2).max(80),
-  severity: z.number().int().min(1).max(5),
-  campus_zone_id: z.string().uuid().nullable(),
-  affected_area_sqm: z.number().positive().nullable(),
-  location_lat: z.number().min(-90).max(90).nullable(),
-  location_lng: z.number().min(-180).max(180).nullable(),
+  severity: z.coerce.number().int().min(1).max(5),
+  campus_zone_id: z.preprocess(
+    (value) => {
+      if (typeof value !== "string") return value;
+      const trimmed = value.trim();
+      return trimmed.length === 0 ? null : trimmed;
+    },
+    z.string().uuid().nullable()
+  ),
+  affected_area_sqm: z.preprocess(
+    (value) => {
+      if (value === null || value === undefined || value === "") return null;
+      if (typeof value === "number") return Number.isFinite(value) ? value : null;
+      if (typeof value === "string") {
+        const parsed = Number.parseFloat(value);
+        return Number.isFinite(parsed) ? parsed : null;
+      }
+      return null;
+    },
+    z.number().positive().nullable()
+  ),
+  location_lat: z.preprocess(
+    (value) => {
+      if (value === null || value === undefined || value === "") return null;
+      if (typeof value === "number") return Number.isFinite(value) ? value : null;
+      if (typeof value === "string") {
+        const parsed = Number.parseFloat(value);
+        return Number.isFinite(parsed) ? parsed : null;
+      }
+      return null;
+    },
+    z.number().min(-90).max(90).nullable()
+  ),
+  location_lng: z.preprocess(
+    (value) => {
+      if (value === null || value === undefined || value === "") return null;
+      if (typeof value === "number") return Number.isFinite(value) ? value : null;
+      if (typeof value === "string") {
+        const parsed = Number.parseFloat(value);
+        return Number.isFinite(parsed) ? parsed : null;
+      }
+      return null;
+    },
+    z.number().min(-180).max(180).nullable()
+  ),
   description: z.string().trim().min(10).max(3000),
   photos: z.array(z.string().url()).max(4),
   turnstileToken: z.string().trim().min(1),
@@ -75,7 +115,9 @@ export async function POST(request: NextRequest) {
     const parsed = bodySchema.safeParse(normalizedPayload);
 
     if (!parsed.success) {
-      return NextResponse.json({ error: "Invalid report payload." }, { status: 400 });
+      const firstIssue = parsed.error.issues[0];
+      const fieldPath = firstIssue?.path?.join(".") || "payload";
+      return NextResponse.json({ error: `Invalid report payload (${fieldPath}).` }, { status: 400 });
     }
 
     if (parsed.data.honeypot) {

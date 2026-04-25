@@ -401,8 +401,20 @@ export default function ReportPage() {
     });
 
     if (!response.ok) {
-      const payloadText = await response.text().catch(() => "");
-      throw new Error(payloadText || `Request failed with status ${response.status}`);
+      let errorMessage = `Request failed with status ${response.status}`;
+      try {
+        const errorPayload = (await response.json()) as { error?: string };
+        if (errorPayload?.error) {
+          errorMessage = errorPayload.error;
+        }
+      } catch {
+        const payloadText = await response.text().catch(() => "");
+        if (payloadText) {
+          errorMessage = payloadText;
+        }
+      }
+
+      throw new Error(errorMessage);
     }
   };
 
@@ -451,10 +463,10 @@ export default function ReportPage() {
 
       toast.success("Defect successfully reported! Thank you for your vigilance.", { duration: 6000 });
       clearFormDraft();
-    } catch {
+    } catch (error) {
       console.error("Report upload failed.");
-
-      toast.error("Failed to submit the report. Please try again.");
+      const message = error instanceof Error ? error.message : "Failed to submit the report. Please try again.";
+      toast.error(message);
     } finally {
       setIsSubmitting(false);
     }
@@ -682,11 +694,11 @@ export default function ReportPage() {
             type="button"
             onClick={clearFormDraft}
             disabled={isSubmitting || isUploadingPhotos}
-            className="w-full md:w-auto px-5 py-3 bg-bg border border-borderDark hover:border-text3 text-text2 font-semibold rounded-lg transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+            className="w-full md:w-auto px-4 py-2.5 bg-bg border border-borderDark hover:border-text3 text-text2 font-semibold rounded-lg transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
           >
             Clear Form
           </button>
-          <button type="submit" disabled={isSubmitting || isUploadingPhotos} className="w-full md:w-auto px-6 py-3 bg-primary hover:bg-blue-500 text-white font-bold rounded-lg text-base md:text-lg transition-transform hover:-translate-y-1 shadow-xl flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed">
+          <button type="submit" disabled={isSubmitting || isUploadingPhotos} className="w-full md:w-auto px-5 py-2.5 bg-primary hover:bg-blue-500 text-white font-bold rounded-lg text-sm md:text-base transition-transform hover:-translate-y-1 shadow-xl flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed">
             {isUploadingPhotos ? <span className="animate-pulse">Uploading images...</span> : isSubmitting ? <span className="animate-pulse">Submitting Report...</span> : "Submit Public Report"}
           </button>
         </div>

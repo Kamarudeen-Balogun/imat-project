@@ -312,6 +312,13 @@ This is the living implementation history for the IMAT web platform.
 - Moved the application Turnstile check to the bottom of the form so the bot check appears just before submission.
 - Reduced the oversized submit/reset controls on the public report and application forms for a tighter mobile and desktop layout.
 
+### 27) Public Report 400 Hardening And Better Error Feedback
+
+- Hardened `/api/public-report` validation with safe coercion for numeric and optional fields, reducing false 400 responses from minor payload shape differences.
+- Improved invalid payload responses to include the failing field path (for example `payload (severity)`), making production diagnosis faster.
+- Updated the public report client to surface server error messages directly in the toast instead of always showing a generic failure.
+- Further reduced the report action button sizing for improved visual balance on mobile and desktop.
+
 ## Operational Notes
 
 - Current image strategy uses WebP for optimized public assets.
