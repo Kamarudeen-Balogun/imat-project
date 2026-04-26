@@ -1,4 +1,5 @@
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
+import AboutContactForm from "./AboutContactForm";
 
 export default function AboutPage() {
   return (
@@ -92,6 +93,8 @@ export default function AboutPage() {
           ))}
         </div>
       </div>
+
+      <AboutContactForm />
     </div>
   );
 }

@@ -15,8 +15,33 @@ const ibmPlexMono = localFont({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://imat-futa.vercel.app"),
   title: "IMAT · Infrastructure Maintenance Awareness Team",
   description: "FUTA Civil Engineering Infrastructure Maintenance Awareness Team",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: "IMAT · Infrastructure Maintenance Awareness Team",
+    description: "Track, report, and advocate for better campus infrastructure at FUTA.",
+    url: "/",
+    siteName: "IMAT FUTA",
+    type: "website",
+    images: [
+      {
+        url: "/images/logo.png",
+        width: 1200,
+        height: 630,
+        alt: "IMAT FUTA",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "IMAT · Infrastructure Maintenance Awareness Team",
+    description: "Track, report, and advocate for better campus infrastructure at FUTA.",
+    images: ["/images/logo.png"],
+  },
   icons: {
     icon: "/icon.png?v=20260425-1",
     shortcut: "/icon.png?v=20260425-1",

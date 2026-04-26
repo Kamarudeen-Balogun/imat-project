@@ -67,9 +67,32 @@ Required keys include:
 - `NEXT_PUBLIC_TURNSTILE_SITE_KEY`
 - `TURNSTILE_SECRET_KEY`
 - `NEXT_PUBLIC_TURNSTILE_DEV_BYPASS` (optional, defaults to bypass in non-production unless set to `false`)
+- `NEXT_PUBLIC_SITE_URL` (for canonical URLs, sitemap, and robots host)
+- `GOOGLE_APPS_SCRIPT_CONTACT_URL` (Web App URL for About contact submissions)
 - `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` (optional, but recommended for stronger rate limiting)
 
 You can also keep optional keys (such as Redis and service role keys) in the same file if enabled in your deployment setup.
+
+### Google Sheet Contact Automation
+
+The About page contact form submits to `POST /api/contact`, which forwards to your Google Apps Script Web App.
+
+Expected payload sent to Apps Script:
+
+```json
+{
+	"name": "Jane Doe",
+	"email": "jane@example.com",
+	"subject": "Partnership Request",
+	"message": "Can we collaborate with IMAT?",
+	"source": "imat-web-about-contact",
+	"page": "/about",
+	"submittedAt": "2026-04-26T12:00:00.000Z",
+	"userAgent": "..."
+}
+```
+
+Your Apps Script should append these fields to a Google Sheet row and return an HTTP 200 response.
 
 3. Run the development server:
 
