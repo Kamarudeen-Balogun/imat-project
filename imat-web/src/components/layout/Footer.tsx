@@ -99,6 +99,7 @@ export function Footer() {
             Infrastructure Maintenance Awareness Team
           </p>
           <h3 className="mb-4 text-xl font-bold text-textDefault">
+            <span className="bg-gradient-to-r from-primary via-accent to-success bg-clip-text text-transparent">IMAT</span>{" "}
             <span className="text-text2">FUTA</span>
           </h3>
           <p className="max-w-sm text-sm leading-relaxed text-text2">
