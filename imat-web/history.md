@@ -324,6 +324,51 @@ This is the living implementation history for the IMAT web platform.
 - Relaxed public report `title` minimum length from 5 to 3 to avoid rejecting valid short issue titles.
 - Prevented desktop action-row stretch so Clear/Submit buttons no longer inherit the Turnstile card height.
 
+### 29) About Contact Automation And Form UX Expansion
+
+- Added a dedicated About-page contact form component and wired it into the public About page.
+- Added a secure `POST /api/contact` endpoint that validates input with Zod, sanitizes payload values, and forwards clean data to Google Apps Script.
+- Added contact-purpose categorization in the form and backend payload with the following options:
+  - partnership
+  - media_inquiries
+  - infrastructure_related_concern
+  - meetings
+  - contact_developer
+- Added anti-spam protections for contact flow:
+  - hidden honeypot field
+  - IP-based rate limiting using shared rate-limit utility
+- Improved contact form visuals and dark-mode readability:
+  - deeper field backgrounds for dark theme
+  - stronger contrast text/placeholder values
+  - custom dropdown caret and theme-aware select styling
+- Removed automation wording from the public contact text as requested, while preserving Google Sheet automation in backend flow.
+
+### 30) SEO Foundation, Structured Data, And Google Integration
+
+- Added global SEO metadata improvements in root layout:
+  - `metadataBase`
+  - canonical defaults
+  - Open Graph and Twitter card metadata
+  - Google site verification support via env-driven metadata token
+- Added optional Google Analytics 4 integration through a dedicated component that loads only when `NEXT_PUBLIC_GA_MEASUREMENT_ID` is provided.
+- Added structured data for richer crawl context:
+  - global `Organization` schema
+  - global `WebSite` schema
+  - newsroom detail `Article` schema
+- Extended newsroom detail metadata generation with article-level Open Graph fields and canonical handling.
+- Added route-based crawl files:
+  - `src/app/sitemap.ts`
+  - `src/app/robots.ts`
+
+### 31) Search Console Crawlability Fix (Sitemap/Robots URL Normalization)
+
+- Resolved Search Console sitemap fetch failures caused by accidental double-slash URL emission when `NEXT_PUBLIC_SITE_URL` included a trailing slash.
+- Normalized site URL handling in sitemap and robots generators using trailing-slash trimming.
+- Verified live output after deployment:
+  - clean sitemap URLs (`/about` instead of `//about`)
+  - clean robots sitemap pointer (`/sitemap.xml`)
+- Search Console status moved to successful processing after redeploy and resubmission.
+
 ## Operational Notes
 
 - Current image strategy uses WebP for optimized public assets.

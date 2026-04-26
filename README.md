@@ -1,120 +1,91 @@
 # IMAT - Infrastructure Maintenance Awareness Team
 
-## Live Demo (Quick View)
+IMAT is a full-stack campus infrastructure operations platform built for FUTA Civil Engineering. The goal is simple: stop treating infrastructure complaints like noise, and handle them like trackable engineering work.
 
-For quick portfolio review and live product access:
+Production: https://imat-futa.vercel.app
 
-- **Production URL**: https://imat-futa.vercel.app
+## What This Project Solves
 
-## Overview
+Most campus issue reporting systems fail at follow-through. People report problems, but there is no clean workflow from report to evidence to closure.
 
-**IMAT** (Infrastructure Maintenance Awareness Team) is a comprehensive civic operations platform designed to streamline infrastructure maintenance workflows and empower student-led advocacy for campus infrastructure improvement.
+This app fixes that with one connected system:
 
-Built at the **Federal University of Technology, Akure (FUTA)** within the Civil Engineering Department, IMAT enables transparent tracking, reporting, and collaborative resolution of infrastructure issues across campus.
+- Public issue reporting and tracking
+- Evidence collection with before/after proof
+- Structured reporting and PDF exports
+- Team operations dashboard with role-based access
+- Newsroom and alerts for transparent communication
+- Activity timeline for accountability
 
-## 🌟 Key Features
+## Why It Matters
 
-- **Public Issue Tracking** - Report and track infrastructure defects in real-time
-- **Evidence Gallery** - Document infrastructure issues with photo evidence
-- **Member Dashboard** - Comprehensive portal for team management and coordination
-- **Report Generation** - Create detailed maintenance reports with analytics
-- **Activity Timeline** - Track organizational actions and milestones
-- **News & Announcements** - Keep the community informed about infrastructure updates
-- **Smart Wiki System** - Collaborative knowledge base for maintenance procedures
+This is not just another form app. It is designed like an operations product:
 
-## Recent Implementation Highlights
+- every major action is logged
+- write paths are sanitized and rate-limited
+- permissions are enforced with Supabase RLS and role checks
+- public and internal content visibility are separated
 
-- Newsroom alerts and public history now support guest access (no sign-in required for local browser opt-in and public announcement history).
-- Internal versus public announcement visibility is now enforced in both app logic and database policy (member-only delivery for internal posts).
-- Input sanitization was rolled out across major submission/update flows (public reports, applications, profile/newsroom updates, and related dashboard forms).
-- Database hardening added trigger-based protection for users self-updates on privileged fields.
-- Evidence schema setup was corrected by removing legacy demo seed inserts that could re-create sample rows on schema reruns.
-- Dashboard navigation was standardized with breadcrumbs and persistent active sidebar state.
-- Branding assets were migrated to the new IMAT logo and metadata references were updated accordingly.
+## Core Features
 
-## 🚀 Getting Started
+- Public defect report flow with optional offline recovery
+- Issues listing and defect lifecycle management
+- Evidence gallery manager with ordering and visibility toggles
+- Newsroom with public/member visibility and notification history
+- Dashboard modules for defects, reports, wiki, activity, and profile
+- Contact form integration to Google Apps Script + Google Sheets
+- SEO baseline: sitemap, robots, canonical metadata, structured data
 
-### Prerequisites
-- Node.js 18+ 
-- npm or yarn
+## Technical Snapshot
 
-### Installation
+- Framework: Next.js 16 App Router + React 18 + TypeScript
+- UI: Tailwind CSS + Framer Motion + custom design tokens
+- Backend: Supabase (Auth + Postgres + RLS)
+- Security: Turnstile, server rate limiting, sanitization utilities
+- Docs/Analytics: Search Console verification + GA4 hook + schema markup
+- Deployment: Vercel
+
+## Quick Start
+
+Prerequisites:
+
+- Node.js 18+
+- npm
+
+Run locally:
 
 ```bash
 cd imat-web
 npm install
-```
-
-### Development
-
-```bash
 npm run dev
 ```
 
-Visit `http://localhost:3001` to view the application.
+Open the local URL printed in terminal (the project currently defaults to port 3001 when available).
 
-## 🎨 Technology Stack
+## Repo Structure
 
-- **Frontend**: Next.js with TypeScript
-- **Styling**: Tailwind CSS with custom design system
-- **Animations**: Framer Motion
-- **Icons**: Lucide React
-- **Database**: Supabase (PostgreSQL)
-- **Deployment**: Optimized for modern web standards
-
-## 📁 Project Structure
-
-```
-imat/
-├── imat-web/              # Next.js application
-│   ├── src/
-│   │   ├── app/          # Next.js App Router pages
-│   │   ├── components/   # Reusable React components
-│   │   ├── hooks/        # Custom React hooks
-│   │   └── lib/          # Utility functions and services
-│   ├── public/           # Static assets
-│   └── docs/             # Documentation
-└── supabase_schema.sql   # Database schema
+```text
+IMAT/
+|-- imat-web/
+|   |-- src/
+|   |   |-- app/
+|   |   |-- components/
+|   |   |-- hooks/
+|   |   `-- lib/
+|   |-- public/
+|   `-- README.md
+`-- supabase_schema.sql
 ```
 
-## 🎯 Color Palette
+## Documentation Guide
 
-- **Primary Blue**: `#29abff` - Action and trust
-- **Accent Amber**: `#ffb64e` - Focus and calls to action  
-- **Support Green**: `#33d8b6` - Progress and resolved states
-- **Base Navy**: Deep navy with layered translucent surfaces
+- Product + setup documentation: imat-web/README.md
+- Full implementation timeline: imat-web/history.md
+- Database schema and policies: supabase_schema.sql
 
-## 🔒 Security
+## Contact
 
-- Static code analysis with GitHub CodeQL
-- Secret scanning with Gitleaks
-- Dependency vulnerability checks with npm audit
-- Security headers configured in Next.js
+- Email: codeflowx1@gmail.com
+- Issues: https://github.com/Kamarudeen-Balogun/imat-project/issues
 
-## 📱 Responsive Design
-
-- Mobile-first approach
-- Fluid spacing and typography scales
-- Shared glass-panel utilities for consistency
-- No desktop-only interactions
-- Respects user motion preferences
-
-## 🤝 Contributing
-
-We welcome contributions from the FUTA community and beyond. Please see our [CONTRIBUTING.md](./imat-web/README.md) for guidelines.
-
-## 📄 License
-
-This project is maintained by IMAT FUTA. See individual module documentation for specific licensing details.
-
-## 💬 Contact & Support
-
-For issues, feature requests, or general inquiries:
-- **Email**: codeflowx1@gmail.com
-- **GitHub Issues**: [Report an issue](https://github.com/Kamarudeen-Balogun/imat-project/issues)
-
----
-
-**Built with ❤️ by [codeflowx1@gmail.com](mailto:codeflowx1@gmail.com)**
-
-*Empowering civic infrastructure advocacy through technology*
+Built by a FUTA Civil Engineering student who wanted infrastructure advocacy to move from noise to measurable action.

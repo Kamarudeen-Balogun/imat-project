@@ -1,121 +1,169 @@
-# IMAT Web Platform
+# IMAT Web Platform (Detailed Documentation)
 
-## Live Demo (Quick View)
+This README explains the technical thinking behind IMAT, not just how to run it.
 
-For quick portfolio review and recruiter access:
+Live site: https://imat-futa.vercel.app
 
-- **Production URL**: https://imat-futa.vercel.app
+## 1. Product Context
 
-IMAT is the Infrastructure Maintenance Awareness Team platform for FUTA. The site helps students and IMAT members report campus defects, publish and track engineering reports, share newsroom updates, manage wiki knowledge, and monitor operational activity from one dashboard.
+IMAT (Infrastructure Maintenance Awareness Team) is a campus operations platform for FUTA.
 
-The public side covers the homepage, about page, evidence gallery, issue tracker, report form, apply page, login, and newsroom. The authenticated side covers the dashboard, defects, reports, campaigns, wiki pages, analytics, and activity tracking.
+What we are solving:
 
-## Product Highlights
+- Students report serious infrastructure issues, but follow-up is usually scattered.
+- Evidence is not structured, so issue priority becomes subjective.
+- Teams need one system where reporting, review, publication, and accountability are connected.
 
-- End-to-end defect reporting workflow with media, location details, and status tracking.
-- Role-aware operations dashboard for newsroom, reports, defects, wiki, and activity oversight.
-- Public newsroom with browser notifications and visibility-aware content delivery.
-- Before/after evidence gallery backed by Supabase data.
-- PDF report generation pipeline for structured maintenance documentation.
-- Secure-by-default architecture with Supabase RLS and server-side input sanitization.
+IMAT connects these flows end-to-end.
 
-## Security And Offline Flow
+## 2. Functional Scope
 
-- Public report and apply forms now use Cloudflare Turnstile, honeypots, and rate limiting before server-side inserts are accepted.
-- Public reports can still be queued locally when the device is offline, then resumed later after the browser is back online and a fresh Turnstile check is completed.
-- Turnstile environment variables should be written as plain `KEY=value` pairs with no spaces around the equals sign.
-- If the Cloudflare widget setup will not accept `localhost`, the deployed Vercel hostname is sufficient for production; local testing can still use a supported preview or loopback host that Turnstile accepts.
-- Local development now bypasses Turnstile by default (non-production only) so forms remain testable on localhost.
-- To force Turnstile during local testing, set `NEXT_PUBLIC_TURNSTILE_DEV_BYPASS=false` in `.env.local` and restart the dev server.
-- Production never uses the bypass path; full Turnstile verification remains enforced server-side.
+Public-facing:
 
-## Access Model
+- Home, About, Members
+- Issue tracker and evidence gallery
+- Report issue flow
+- Apply-to-join flow
+- Newsroom and article details
+- Contact form wired to Google Apps Script/Google Sheets
 
-IMAT uses role-based access control for dashboard operations. Core governance roles include `admin`, `president`, `advocacy_officer`, `documentation_officer`, `technical_officer`, and `field_officer`, while non-staff accounts remain `member` with standard read-level privileges.
+Authenticated dashboard:
 
-## Tech Stack
+- Defects management
+- Reports and report publishing
+- Newsroom management
+- Wiki management
+- Activity timeline/audit trail
+- Profile and social link management
 
-- Next.js 16.2.4 with the App Router
-- React 18
-- TypeScript
-- Tailwind CSS
-- Supabase for auth, data, and row-level security
-- `@react-pdf/renderer` for report generation
-- Framer Motion for animations
-- Lucide React for icons
+## 3. Engineering Approach
 
-## Running The Project
+### 3.1 Architecture choices
 
-1. Install dependencies:
+- Next.js App Router: chosen for route-level control, metadata, and SSR support.
+- Supabase: chosen for managed Postgres, auth, and RLS in one platform.
+- TypeScript everywhere: reduces runtime mistakes in API and UI contracts.
 
-```bash
-npm install
-```
+### 3.2 Security-first defaults
 
-2. Create `.env.local` and fill in your environment variables.
+- Input sanitization on write paths.
+- Turnstile + honeypot + rate limiting on public forms.
+- Role-based guards in app logic and RLS policies.
+- Restricted visibility rules for internal vs public newsroom content.
 
-Required keys include:
+### 3.3 Reliability choices
 
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`
-- `NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET_PHOTOS`
-- `NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET_ANNOUNCEMENTS`
-- `NEXT_PUBLIC_VAPID_PUBLIC_KEY`
-- `VAPID_PRIVATE_KEY`
-- `VAPID_SUBJECT`
-- `NEXT_PUBLIC_TURNSTILE_SITE_KEY`
-- `TURNSTILE_SECRET_KEY`
-- `NEXT_PUBLIC_TURNSTILE_DEV_BYPASS` (optional, defaults to bypass in non-production unless set to `false`)
-- `NEXT_PUBLIC_SITE_URL` (for canonical URLs, sitemap, and robots host)
-- `NEXT_PUBLIC_GA_MEASUREMENT_ID` (optional, enables Google Analytics 4)
-- `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` (optional, adds Search Console verification meta tag)
-- `GOOGLE_APPS_SCRIPT_CONTACT_URL` (Web App URL for About contact submissions)
-- `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` (optional, but recommended for stronger rate limiting)
+- Offline-safe report queue behavior for unstable network conditions.
+- Realtime + polling fallback for newsroom notifications.
+- Clear error messages on form/API failures to reduce silent breakage.
 
-You can also keep optional keys (such as Redis and service role keys) in the same file if enabled in your deployment setup.
+### 3.4 UX choices
 
-### Google Sheet Contact Automation
+- Mobile-first layouts for student users.
+- Consistent design tokens across public and dashboard pages.
+- Theme-aware controls with improved dark-mode readability.
 
-The About page contact form submits to `POST /api/contact`, which forwards to your Google Apps Script Web App.
+## 4. SEO And Discoverability Setup
 
-Expected payload sent to Apps Script:
+Implemented in app:
+
+- Dynamic sitemap route
+- Robots route
+- Canonical metadata base
+- Search Console verification support via metadata
+- Structured data:
+  - Organization
+  - WebSite
+  - Article (news detail pages)
+
+Why this matters:
+
+- Better crawlability
+- Cleaner canonical URLs
+- Richer SERP understanding for articles and site identity
+
+## 5. Google Integrations
+
+### 5.1 Search Console
+
+- Use URL-prefix property for https://imat-futa.vercel.app
+- Verification token is injected using env variable
+
+### 5.2 Google Analytics 4
+
+- GA script loader is optional and only runs when measurement ID exists
+
+### 5.3 Google Sheets Contact Automation
+
+Flow:
+
+1. About form submits to local API route
+2. API validates + sanitizes payload
+3. API forwards payload to Apps Script Web App
+4. Apps Script appends to Google Sheet
+
+Payload fields forwarded:
 
 ```json
 {
-	"name": "Jane Doe",
-	"email": "jane@example.com",
-	"purpose": "partnership",
-	"subject": "Partnership Request",
-	"message": "Can we collaborate with IMAT?",
-	"source": "imat-web-about-contact",
-	"page": "/about",
-	"submittedAt": "2026-04-26T12:00:00.000Z",
-	"userAgent": "..."
+  "name": "Jane Doe",
+  "email": "jane@example.com",
+  "purpose": "partnership",
+  "subject": "Partnership Request",
+  "message": "Can we collaborate with IMAT?",
+  "source": "imat-web-about-contact",
+  "page": "/about",
+  "submittedAt": "2026-04-26T12:00:00.000Z",
+  "userAgent": "..."
 }
 ```
 
-Your Apps Script should append these fields to a Google Sheet row and return an HTTP 200 response.
-
 Suggested sheet headers:
 
-`submittedAt | name | email | purpose | subject | message | source | page | userAgent`
+submittedAt | name | email | purpose | subject | message | source | page | userAgent
 
-### Search Console And Analytics
+## 6. Environment Variables
 
-- For `https://imat-futa.vercel.app`, use **URL prefix** verification in Search Console.
-- Set `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` to your verification token value (the part after `google-site-verification=`).
-- Set `NEXT_PUBLIC_GA_MEASUREMENT_ID` (for example `G-XXXXXXXXXX`) to enable GA4 tracking.
+Required core keys:
 
-3. Run the development server:
+- NEXT_PUBLIC_SUPABASE_URL
+- NEXT_PUBLIC_SUPABASE_ANON_KEY
+- NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
+- NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET_PHOTOS
+- NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET_ANNOUNCEMENTS
+- NEXT_PUBLIC_VAPID_PUBLIC_KEY
+- VAPID_PRIVATE_KEY
+- VAPID_SUBJECT
+- NEXT_PUBLIC_TURNSTILE_SITE_KEY
+- TURNSTILE_SECRET_KEY
+
+SEO/analytics/integration keys:
+
+- NEXT_PUBLIC_SITE_URL
+- NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
+- NEXT_PUBLIC_GA_MEASUREMENT_ID
+- GOOGLE_APPS_SCRIPT_CONTACT_URL
+
+Optional resilience key:
+
+- UPSTASH_REDIS_REST_URL
+- UPSTASH_REDIS_REST_TOKEN
+
+Local testing note:
+
+- Turnstile bypass is enabled by default outside production.
+- To force local Turnstile testing, set NEXT_PUBLIC_TURNSTILE_DEV_BYPASS=false.
+
+## 7. Local Development
+
+Install and run:
 
 ```bash
+npm install
 npm run dev
 ```
 
-4. Open the local URL printed in the terminal. The dev launcher also prints a LAN URL if one is available.
-
-## Useful Scripts
+Useful scripts:
 
 ```bash
 npm run dev
@@ -127,31 +175,36 @@ npm run build:clean
 npm run optimize:images
 ```
 
-## Supabase Setup
+## 8. Database Setup
 
-Run the SQL in [supabase_schema.sql](../supabase_schema.sql) in your Supabase SQL editor before using the app.
+Run the SQL in ../supabase_schema.sql before first use.
 
-That schema defines the core tables, RLS policies, notifications, activity logs, announcements, wiki pages, and report-related records used by the platform.
+The schema contains:
 
-For existing projects, re-run the latest schema safely (it uses `IF NOT EXISTS`/`DROP POLICY IF EXISTS` patterns) so role policies stay aligned with current dashboard behavior.
+- users and role policies
+- defects and reports
+- announcements and notifications
+- activity logs
+- wiki and related content tables
 
-If you are enabling profile pictures and push subscriptions on an existing project, ensure your database has these updates:
+For existing projects, rerun the latest schema safely since it uses idempotent patterns where possible.
 
-```sql
-ALTER TABLE public.users
-ADD COLUMN IF NOT EXISTS avatar_url text;
+## 9. Project Files Worth Reading
 
-CREATE TABLE IF NOT EXISTS public.push_subscriptions (
-	id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	user_id uuid NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
-	endpoint text NOT NULL UNIQUE,
-	p256dh text NOT NULL,
-	auth text NOT NULL,
-	created_at timestamptz DEFAULT now()
-);
-```
+- history.md for implementation timeline
+- src/app for route structure
+- src/lib for business logic and safety helpers
+- src/components for reusable UI modules
 
-## Documentation
+## 10. Why I Built It This Way
 
-- Detailed implementation history and technical timeline: [history.md](history.md)
-- Database schema and policies: [../supabase_schema.sql](../supabase_schema.sql)
+I wanted IMAT to feel like a serious operations product, not just a school project with forms. The major design decision was to prioritize reliability and clarity first, then polish.
+
+That is why the platform is structured around:
+
+- verifiable evidence
+- role-aware actions
+- audit-friendly logs
+- search visibility for public transparency
+
+This approach helps stakeholders trust what the system is saying and what actions are actually being taken.
