@@ -6,6 +6,13 @@ import { enforceRateLimit } from "@/lib/serverRateLimit";
 const contactSchema = z.object({
   name: z.string().min(2).max(80),
   email: z.string().email().max(120),
+  purpose: z.enum([
+    "partnership",
+    "media_inquiries",
+    "infrastructure_related_concern",
+    "meetings",
+    "contact_developer",
+  ]),
   subject: z.string().min(3).max(120),
   message: z.string().min(10).max(2000),
   website: z.string().max(200).optional().default(""),
@@ -62,6 +69,7 @@ export async function POST(request: Request) {
   const payload = {
     name: sanitizePlainText(parsed.data.name, 80),
     email: sanitizeEmail(parsed.data.email),
+    purpose: sanitizePlainText(parsed.data.purpose, 64),
     subject: sanitizePlainText(parsed.data.subject, 120),
     message: sanitizePlainText(parsed.data.message, 2000),
     source: "imat-web-about-contact",

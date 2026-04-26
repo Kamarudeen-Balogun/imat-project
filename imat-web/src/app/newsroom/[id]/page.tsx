@@ -154,9 +154,30 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
   if (!data) return { title: "Not Found | IMAT FUTA" };
 
+  const canonicalHref = getAnnouncementHref(data.slug ?? data.id);
+
   return {
     title: `${data.title} | IMAT FUTA Newsroom`,
     description: data.body.substring(0, 160) + "...",
+    alternates: {
+      canonical: canonicalHref,
+    },
+    openGraph: {
+      type: "article",
+      title: data.title,
+      description: data.body.substring(0, 160) + "...",
+      url: canonicalHref,
+      publishedTime: data.published_at,
+      modifiedTime: data.updated_at,
+      images: data.image_url
+        ? [
+            {
+              url: data.image_url,
+              alt: data.title,
+            },
+          ]
+        : undefined,
+    },
   };
 }
 
@@ -171,11 +192,36 @@ export default async function NewsPostPage({ params }: { params: Promise<{ id: s
 
   const post = data as unknown as Announcement;
   const canonicalHref = getAnnouncementHref(post.slug ?? post.id);
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://imat-futa.vercel.app";
+  const canonicalUrl = `${siteUrl}${canonicalHref}`;
   const canonicalSegment = canonicalHref.split("/").pop() ?? "";
   const hasBeenUpdated = new Date(post.updated_at).getTime() > new Date(post.published_at).getTime();
   const authorName = post.author_id
     ? (await contentSupabase.from("users").select("full_name").eq("id", post.author_id).maybeSingle()).data?.full_name ?? "IMAT Official"
     : "IMAT Official";
+
+  const articleSchema = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: post.title,
+    description: post.body.substring(0, 160),
+    image: post.image_url ? [post.image_url] : [`${siteUrl}/images/logo.png`],
+    datePublished: post.published_at,
+    dateModified: post.updated_at,
+    author: {
+      "@type": "Person",
+      name: authorName,
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "IMAT FUTA",
+      logo: {
+        "@type": "ImageObject",
+        url: `${siteUrl}/images/logo.png`,
+      },
+    },
+    mainEntityOfPage: canonicalUrl,
+  };
 
   // Normalize legacy long links and UUID paths to the compact canonical URL.
   if (canonicalSegment && id.toLowerCase() !== canonicalSegment.toLowerCase()) {
@@ -184,6 +230,10 @@ export default async function NewsPostPage({ params }: { params: Promise<{ id: s
 
   return (
     <div className="min-h-screen bg-bg">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
+      />
       {/* Hero */}
       <div className="bg-bg2 border-b border-borderDark pt-6 pb-10 sm:pt-10 sm:pb-16">
         <div className="mx-auto w-full max-w-3xl px-4 sm:px-6 lg:px-8">

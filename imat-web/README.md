@@ -68,6 +68,8 @@ Required keys include:
 - `TURNSTILE_SECRET_KEY`
 - `NEXT_PUBLIC_TURNSTILE_DEV_BYPASS` (optional, defaults to bypass in non-production unless set to `false`)
 - `NEXT_PUBLIC_SITE_URL` (for canonical URLs, sitemap, and robots host)
+- `NEXT_PUBLIC_GA_MEASUREMENT_ID` (optional, enables Google Analytics 4)
+- `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` (optional, adds Search Console verification meta tag)
 - `GOOGLE_APPS_SCRIPT_CONTACT_URL` (Web App URL for About contact submissions)
 - `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` (optional, but recommended for stronger rate limiting)
 
@@ -83,6 +85,7 @@ Expected payload sent to Apps Script:
 {
 	"name": "Jane Doe",
 	"email": "jane@example.com",
+	"purpose": "partnership",
 	"subject": "Partnership Request",
 	"message": "Can we collaborate with IMAT?",
 	"source": "imat-web-about-contact",
@@ -93,6 +96,16 @@ Expected payload sent to Apps Script:
 ```
 
 Your Apps Script should append these fields to a Google Sheet row and return an HTTP 200 response.
+
+Suggested sheet headers:
+
+`submittedAt | name | email | purpose | subject | message | source | page | userAgent`
+
+### Search Console And Analytics
+
+- For `https://imat-futa.vercel.app`, use **URL prefix** verification in Search Console.
+- Set `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` to your verification token value (the part after `google-site-verification=`).
+- Set `NEXT_PUBLIC_GA_MEASUREMENT_ID` (for example `G-XXXXXXXXXX`) to enable GA4 tracking.
 
 3. Run the development server:
 

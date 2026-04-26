@@ -2,10 +2,12 @@
 
 import { FormEvent, useState } from "react";
 import toast from "react-hot-toast";
+import { ChevronDown } from "lucide-react";
 
 type ContactPayload = {
   name: string;
   email: string;
+  purpose: string;
   subject: string;
   message: string;
   website: string;
@@ -14,6 +16,7 @@ type ContactPayload = {
 const INITIAL_FORM: ContactPayload = {
   name: "",
   email: "",
+  purpose: "",
   subject: "",
   message: "",
   website: "",
@@ -56,14 +59,14 @@ export default function AboutContactForm() {
   };
 
   return (
-    <section className="mt-16 rounded-2xl border border-borderDark bg-surface p-6 sm:p-8">
+    <section className="mt-16 rounded-2xl border border-primary/20 bg-gradient-to-br from-bg2 via-bg to-bg p-6 shadow-sm ring-1 ring-white/10 dark:from-[#070d18] dark:via-[#030712] dark:to-[#02040a] dark:ring-primary/15 sm:p-8">
       <div className="mb-6">
         <p className="mb-2 inline-flex rounded-full border border-success/35 bg-success/10 px-3 py-1 text-[11px] font-mono uppercase tracking-[0.16em] text-success">
           Contact IMAT
         </p>
         <h2 className="text-2xl font-bold text-textDefault sm:text-3xl">Reach Out To The Team</h2>
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-text2 sm:text-base">
-          Send us partnership requests, media inquiries, or infrastructure-related concerns. Your message is captured directly in our operations sheet for automated follow-up.
+          Send us partnership requests, media inquiries, infrastructure-related concerns, meetings, or developer requests.
         </p>
       </div>
 
@@ -80,7 +83,7 @@ export default function AboutContactForm() {
             required
             minLength={2}
             maxLength={80}
-            className="w-full rounded-xl border border-borderDark bg-bg px-3 py-2.5 text-sm text-textDefault outline-none transition-colors placeholder:text-text3 focus:border-primary"
+            className="w-full rounded-xl border border-borderDark bg-bg px-3 py-2.5 text-sm text-textDefault outline-none transition-colors placeholder:text-text3/90 focus:border-primary focus:ring-2 focus:ring-primary/25 dark:border-slate-700/80 dark:bg-[#050b16] dark:text-white dark:placeholder:text-slate-400"
             placeholder="Your name"
           />
         </div>
@@ -96,9 +99,35 @@ export default function AboutContactForm() {
             onChange={(event) => setForm((prev) => ({ ...prev, email: event.target.value }))}
             required
             maxLength={120}
-            className="w-full rounded-xl border border-borderDark bg-bg px-3 py-2.5 text-sm text-textDefault outline-none transition-colors placeholder:text-text3 focus:border-primary"
+            className="w-full rounded-xl border border-borderDark bg-bg px-3 py-2.5 text-sm text-textDefault outline-none transition-colors placeholder:text-text3/90 focus:border-primary focus:ring-2 focus:ring-primary/25 dark:border-slate-700/80 dark:bg-[#050b16] dark:text-white dark:placeholder:text-slate-400"
             placeholder="name@example.com"
           />
+        </div>
+
+        <div className="sm:col-span-2">
+          <label htmlFor="contact-purpose" className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.12em] text-text3">
+            Contact Purpose
+          </label>
+          <div className="relative">
+            <select
+              id="contact-purpose"
+              value={form.purpose}
+              onChange={(event) => setForm((prev) => ({ ...prev, purpose: event.target.value }))}
+              required
+              className="w-full appearance-none rounded-xl border border-borderDark bg-bg px-3 py-2.5 pr-10 text-sm text-textDefault outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/25 dark:border-slate-700/80 dark:bg-[#050b16] dark:text-white"
+            >
+              <option value="">Select purpose</option>
+              <option value="partnership">Partnership</option>
+              <option value="media_inquiries">Media Inquiries</option>
+              <option value="infrastructure_related_concern">Infrastructure Related Concern</option>
+              <option value="meetings">Meetings</option>
+              <option value="contact_developer">Contact Developer</option>
+            </select>
+            <ChevronDown
+              size={16}
+              className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-text3 dark:text-slate-300"
+            />
+          </div>
         </div>
 
         <div className="sm:col-span-2">
@@ -113,7 +142,7 @@ export default function AboutContactForm() {
             required
             minLength={3}
             maxLength={120}
-            className="w-full rounded-xl border border-borderDark bg-bg px-3 py-2.5 text-sm text-textDefault outline-none transition-colors placeholder:text-text3 focus:border-primary"
+            className="w-full rounded-xl border border-borderDark bg-bg px-3 py-2.5 text-sm text-textDefault outline-none transition-colors placeholder:text-text3/90 focus:border-primary focus:ring-2 focus:ring-primary/25 dark:border-slate-700/80 dark:bg-[#050b16] dark:text-white dark:placeholder:text-slate-400"
             placeholder="What would you like to discuss?"
           />
         </div>
@@ -130,7 +159,7 @@ export default function AboutContactForm() {
             minLength={10}
             maxLength={2000}
             rows={6}
-            className="w-full resize-y rounded-xl border border-borderDark bg-bg px-3 py-2.5 text-sm text-textDefault outline-none transition-colors placeholder:text-text3 focus:border-primary"
+            className="w-full resize-y rounded-xl border border-borderDark bg-bg px-3 py-2.5 text-sm text-textDefault outline-none transition-colors placeholder:text-text3/90 focus:border-primary focus:ring-2 focus:ring-primary/25 dark:border-slate-700/80 dark:bg-[#050b16] dark:text-white dark:placeholder:text-slate-400"
             placeholder="Share details about your request"
           />
         </div>
