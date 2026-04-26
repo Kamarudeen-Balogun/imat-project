@@ -288,12 +288,14 @@ export default function Home() {
             <div className="absolute inset-0 rounded-3xl bg-bg opacity-90" />
             <div className="relative rounded-3xl border border-borderDark bg-bg/80 p-6 sm:p-8 lg:p-10 backdrop-blur-sm">
               <div className="mb-5 flex gap-2">
-              <span className="inline-flex max-w-full items-center gap-1 rounded-full border border-accent/40 bg-accent/10 px-2.5 py-1 text-[10px] font-mono font-semibold uppercase tracking-[0.12em] whitespace-nowrap text-accent sm:gap-1.5 sm:px-3 sm:text-[11px] sm:tracking-[0.16em]">
-                <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
-                {typewriter.displayText}
-                <span className={`${typewriter.showCursor ? 'opacity-100' : 'opacity-0'} text-accent animate-pulse`}>|</span>
-              </span>
-            </div>
+                <span className="inline-flex w-fit max-w-full items-center gap-1 rounded-full border border-accent/40 bg-accent/10 px-2.5 py-1 text-[10px] font-mono font-semibold uppercase tracking-[0.12em] text-accent sm:gap-1.5 sm:px-3 sm:text-[11px] sm:tracking-[0.16em]">
+                  <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
+                  <span className="max-w-[15.5rem] text-balance whitespace-normal leading-tight sm:max-w-none">
+                    {typewriter.displayText}
+                  </span>
+                  <span className={`${typewriter.showCursor ? 'opacity-100' : 'opacity-0'} text-accent animate-pulse`}>|</span>
+                </span>
+              </div>
 
               <h1 className="text-balance mb-4 max-w-4xl text-4xl font-bold leading-[0.95] text-textDefault sm:text-5xl lg:text-6xl">
                 Campus Problems,
