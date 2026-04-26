@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { MouseEvent, useEffect, useState } from "react";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import { ChevronDown, History, Bell } from "lucide-react";
 import { format } from "date-fns";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 type Notification = {
   id: string;
@@ -12,18 +13,24 @@ type Notification = {
   body: string;
   created_at: string;
   href?: string;
+  is_read?: boolean;
 };
 
 export default function NotificationsHistoryPanel() {
+  const [supabase] = useState(() => createSupabaseClient());
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
+  const [recipientId, setRecipientId] = useState<string | null>(null);
   const [panelTitle, setPanelTitle] = useState("Notification History");
   const [panelLabel, setPanelLabel] = useState("Showing last 50 notifications");
+  const unreadCount = recipientId
+    ? notifications.filter((notif) => notif.is_read === false).length
+    : 0;
 
   useEffect(() => {
     const init = async () => {
-      const supabase = createSupabaseClient();
       const { data } = await supabase.auth.getSession();
 
       if (!data.session) {
@@ -42,6 +49,7 @@ export default function NotificationsHistoryPanel() {
               body: item.body,
               created_at: item.published_at,
               href: `/newsroom/${item.slug ?? item.id}`,
+              is_read: true,
             }))
           );
         }
@@ -52,10 +60,12 @@ export default function NotificationsHistoryPanel() {
         return;
       }
 
+      setRecipientId(data.session.user.id);
+
       // Fetch notifications for the current user
       const { data: notifData, error } = await supabase
         .from("notifications")
-        .select("id, title, body, created_at, href")
+        .select("id, title, body, created_at, href, is_read")
         .eq("recipient_id", data.session.user.id)
         .order("created_at", { ascending: false })
         .limit(50);
@@ -71,7 +81,39 @@ export default function NotificationsHistoryPanel() {
     };
 
     void init();
-  }, []);
+  }, [supabase]);
+
+  const handleNotificationClick = async (event: MouseEvent<HTMLAnchorElement>, notif: Notification) => {
+    if (!notif.href || notif.href === "#") {
+      return;
+    }
+
+    if (
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    ) {
+      return;
+    }
+
+    event.preventDefault();
+
+    if (recipientId && notif.is_read === false) {
+      setNotifications((current) =>
+        current.map((item) => (item.id === notif.id ? { ...item, is_read: true } : item))
+      );
+
+      await supabase
+        .from("notifications")
+        .update({ is_read: true, read_at: new Date().toISOString() })
+        .eq("id", notif.id)
+        .eq("recipient_id", recipientId);
+    }
+
+    router.push(notif.href);
+  };
 
   if (loading) {
     return null;
@@ -87,6 +129,11 @@ export default function NotificationsHistoryPanel() {
         >
           <History size={16} />
           {panelTitle} ({notifications.length})
+          {unreadCount > 0 && (
+            <span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold text-white">
+              {unreadCount} unread
+            </span>
+          )}
         </button>
       )}
 
@@ -123,14 +170,26 @@ export default function NotificationsHistoryPanel() {
                 <Link
                   key={notif.id}
                   href={notif.href ?? "#"}
+                  onClick={(event) => void handleNotificationClick(event, notif)}
                   className="block px-6 py-4 hover:bg-bg3 transition-colors cursor-pointer group"
                 >
                   <div className="flex items-start gap-3">
-                    <div className="w-2 h-2 rounded-full bg-primary mt-2 flex-shrink-0" />
+                    <div
+                      className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${
+                        recipientId && notif.is_read === false ? "bg-primary" : "bg-borderDark"
+                      }`}
+                    />
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-semibold text-sm text-textDefault group-hover:text-primary transition-colors line-clamp-2">
-                        {notif.title}
-                      </h4>
+                      <div className="flex items-start justify-between gap-2">
+                        <h4 className="font-semibold text-sm text-textDefault group-hover:text-primary transition-colors line-clamp-2">
+                          {notif.title}
+                        </h4>
+                        {recipientId && notif.is_read === false && (
+                          <span className="mt-0.5 rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
+                            Unread
+                          </span>
+                        )}
+                      </div>
                       <p className="text-xs text-text3 mt-1 line-clamp-2">
                         {notif.body}
                       </p>

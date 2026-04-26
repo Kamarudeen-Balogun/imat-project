@@ -185,35 +185,35 @@ export default async function NewsPostPage({ params }: { params: Promise<{ id: s
   return (
     <div className="min-h-screen bg-bg">
       {/* Hero */}
-      <div className="bg-bg2 border-b border-borderDark pt-10 pb-20">
-        <div className="max-w-3xl mx-auto px-6 sm:px-8">
-          <Breadcrumbs className="mb-8" />
+      <div className="bg-bg2 border-b border-borderDark pt-6 pb-10 sm:pt-10 sm:pb-16">
+        <div className="mx-auto w-full max-w-3xl px-4 sm:px-6 lg:px-8">
+          <Breadcrumbs className="mb-5 sm:mb-8" />
           <Link
             href="/newsroom"
-            className="inline-flex items-center gap-2 text-text3 hover:text-primary transition-colors text-sm font-mono mb-12"
+            className="mb-6 inline-flex items-center gap-2 text-xs font-mono text-text3 transition-colors hover:text-primary sm:mb-10 sm:text-sm"
           >
             <ArrowLeft size={16} /> Back to Newsroom
           </Link>
 
-          <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-mono uppercase tracking-wider text-primary mb-4">
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-[10px] font-mono uppercase tracking-wider text-primary sm:mb-4 sm:text-xs">
             {post.visibility === "public" ? "Public Broadcast" : "Members Only"}
           </div>
 
-          <h1 className="text-4xl md:text-5xl font-bold text-textDefault leading-tight mb-8">
+          <h1 className="mb-5 text-2xl font-bold leading-tight text-textDefault sm:mb-7 sm:text-4xl lg:text-5xl">
             {post.title}
           </h1>
 
-          <div className="flex flex-wrap items-center gap-6 text-sm font-mono text-text3 border-t border-b border-borderDark py-4">
-            <div className="flex items-center gap-2">
+          <div className="flex flex-col gap-3 border-y border-borderDark py-3 text-xs font-mono text-text3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-6 sm:py-4 sm:text-sm">
+            <div className="flex items-center gap-2 truncate">
               <Calendar size={16} />
               {format(new Date(post.published_at), "MMMM d, yyyy")}
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 truncate">
               <User size={16} />
               {authorName}
             </div>
             {hasBeenUpdated && (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 truncate">
                 <Calendar size={16} />
                 Updated {format(new Date(post.updated_at), "MMMM d, yyyy")}
               </div>
@@ -221,13 +221,13 @@ export default async function NewsPostPage({ params }: { params: Promise<{ id: s
           </div>
 
           {hasBeenUpdated && (
-            <div className="mt-4 rounded-xl border border-borderDark bg-bg px-4 py-3 text-sm text-text3">
+            <div className="mt-3 rounded-xl border border-borderDark bg-bg px-3 py-2 text-xs text-text3 sm:mt-4 sm:px-4 sm:py-3 sm:text-sm">
               <span className="font-semibold text-textDefault">Updated on:</span> {format(new Date(post.updated_at), "MMMM d, yyyy")}
             </div>
           )}
 
           {post.image_url && (
-            <div className="mt-10 overflow-hidden rounded-2xl border border-borderDark bg-bg">
+            <div className="mt-6 overflow-hidden rounded-xl border border-borderDark bg-bg sm:mt-8 sm:rounded-2xl">
               <Image
                 src={post.image_url}
                 alt={post.title}
@@ -236,23 +236,23 @@ export default async function NewsPostPage({ params }: { params: Promise<{ id: s
                 unoptimized
                 sizes="(max-width: 768px) 100vw, 960px"
                 quality={80}
-                className="h-auto w-full object-cover"
+                className="h-auto max-h-[52vh] w-full object-cover sm:max-h-[60vh]"
                 priority
               />
             </div>
           )}
 
-          <div className="mt-6 flex items-center gap-3 text-xs font-mono text-text3">
-            <span className="rounded-full border border-borderDark bg-bg px-3 py-1">{canonicalHref}</span>
+          <div className="mt-4 flex items-center gap-3 text-[10px] font-mono text-text3 sm:mt-6 sm:text-xs">
+            <span className="max-w-full truncate rounded-full border border-borderDark bg-bg px-2.5 py-1 sm:px-3">{canonicalHref}</span>
           </div>
         </div>
       </div>
 
       {/* Body */}
-      <div className="max-w-3xl mx-auto px-6 sm:px-8 py-16 space-y-6">
+      <div className="mx-auto w-full max-w-3xl space-y-4 px-4 py-8 sm:space-y-5 sm:px-6 sm:py-12 lg:px-8">
         {post.body.split("\n").map((paragraph, idx) =>
           paragraph.trim() ? (
-            <p key={idx} className="text-text2 leading-relaxed text-lg">
+            <p key={idx} className="text-base leading-7 text-text2 sm:text-lg sm:leading-relaxed">
               {paragraph}
             </p>
           ) : (
