@@ -5,7 +5,7 @@ import { sanitizeEmail, sanitizeNumericText, sanitizePlainText, sanitizePhoneNum
 import { enforceRateLimit } from "@/lib/serverRateLimit";
 import { verifyTurnstileToken } from "@/lib/turnstile";
 
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzeIK6drlHbG278eWTXNKdBKtRcJxGsJdMj6aqeeTVfhDLRNAwCabqNAioZloYW4DrEuQ/exec";
+const WEB_APP_URL = process.env.GOOGLE_APPS_SCRIPT_APPLY_URL;
 
 const bodySchema = z.object({
   fullName: z.string().min(1).max(120),
@@ -58,6 +58,13 @@ function getSupabaseClient() {
 
 export async function POST(request: NextRequest) {
   try {
+    if (!WEB_APP_URL) {
+      return NextResponse.json(
+        { error: "Application integration is not configured yet." },
+        { status: 503 }
+      );
+    }
+
     const ip = getClientIp(request);
     const rateLimit = await enforceRateLimit(`apply:${ip}`, 5, 60 * 1000);
 
