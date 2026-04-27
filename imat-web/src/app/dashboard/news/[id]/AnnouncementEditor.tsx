@@ -82,6 +82,76 @@ export default function AnnouncementEditor({
       })
       .eq("announcement_id", announcement.id);
 
+    if (announcement.visibility !== visibility && visibility === "public") {
+      const { data: recipients } = await supabase
+        .from("users")
+        .select("id")
+        .eq("status", "active")
+        .eq("notifications_enabled", true);
+
+      if (recipients && recipients.length > 0) {
+        const { data: existingNotifications } = await supabase
+          .from("notifications")
+          .select("recipient_id")
+          .eq("announcement_id", announcement.id)
+          .eq("type", "news_update");
+
+        const alreadyNotified = new Set((existingNotifications ?? []).map((row) => row.recipient_id));
+
+        const notificationRows = recipients
+          .filter((recipient) => !alreadyNotified.has(recipient.id))
+          .map((recipient) => ({
+            recipient_id: recipient.id,
+            created_by: currentUserId,
+            announcement_id: announcement.id,
+            type: "news_update",
+            title: safeTitle,
+            body: safeNotificationBody,
+            href: getAnnouncementHref(announcement.slug ?? announcement.id),
+          }));
+
+        if (notificationRows.length > 0) {
+          await supabase.from("notifications").insert(notificationRows);
+        }
+      }
+
+      try {
+        const pushResponse = await fetch("/api/announcements/push", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ announcementId: announcement.id }),
+        });
+
+        if (!pushResponse.ok) {
+          const payload = await pushResponse.text().catch(() => "");
+          console.warn("Push delivery failed.", payload);
+        }
+      } catch (pushError) {
+        console.warn("Push delivery failed.", pushError);
+      }
+    }
+
+    if (announcement.visibility !== visibility && visibility === "members_only") {
+      const { data: applicantUsers } = await supabase
+        .from("users")
+        .select("id")
+        .eq("status", "active")
+        .eq("role", "applicant");
+
+      const applicantIds = (applicantUsers ?? []).map((row) => row.id);
+
+      if (applicantIds.length > 0) {
+        await supabase
+          .from("notifications")
+          .delete()
+          .eq("announcement_id", announcement.id)
+          .eq("type", "news_update")
+          .in("recipient_id", applicantIds);
+      }
+    }
+
     await logActivityEvent(supabase, {
       eventType: "announcement_updated",
       entityType: "announcement",

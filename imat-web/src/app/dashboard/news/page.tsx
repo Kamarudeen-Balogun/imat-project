@@ -5,6 +5,7 @@ import { format } from "date-fns";
 import { createSupabaseClient } from "@/lib/supabase/server";
 import { canEditContent } from "@/lib/access";
 import { getAnnouncementHref } from "@/lib/news";
+import { sendAnnouncementPushNotifications } from "@/lib/push/server";
 import Image from "next/image";
 import DeleteAnnouncementButton from "./DeleteAnnouncementButton";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
@@ -99,6 +100,12 @@ async function toggleAnnouncementVisibility(formData: FormData) {
       if (notificationRows.length > 0) {
         await supabase.from("notifications").insert(notificationRows);
       }
+    }
+
+    try {
+      await sendAnnouncementPushNotifications(announcementId);
+    } catch (error) {
+      console.warn("Push notification delivery failed.", error);
     }
   }
 

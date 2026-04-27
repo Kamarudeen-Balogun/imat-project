@@ -2,6 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { createSupabaseClient } from "@/lib/supabase/client";
+import {
+  disableBrowserPushNotifications,
+  enableBrowserPushNotifications,
+  isPushNotificationSupported,
+} from "@/lib/push/client";
 import { BellRing, Check, Sparkles } from "lucide-react";
 import { toast } from "react-hot-toast";
 
@@ -50,48 +55,73 @@ export default function NewsroomNotificationSettings() {
     const { data } = await supabase.auth.getSession();
 
     const willEnable = !enabled;
+    const previousEnabled = enabled;
+
+    if (willEnable && !isPushNotificationSupported()) {
+      toast.error("This browser does not support push notifications.");
+      return;
+    }
+
     setEnabled(willEnable);
     if (typeof window !== "undefined") {
       window.localStorage.setItem(ALERTS_STORAGE_KEY, String(willEnable));
     }
 
-    if (willEnable && typeof window !== "undefined" && "Notification" in window && Notification.permission === "default") {
-      const permission = await Notification.requestPermission();
-      if (permission !== "granted") {
-        setEnabled(false);
-        window.localStorage.setItem(ALERTS_STORAGE_KEY, "false");
-        toast.error("Browser notification permission was not granted.");
-        return;
+    let profileUpdated = false;
+
+    try {
+      if (willEnable && typeof window !== "undefined" && "Notification" in window && Notification.permission === "default") {
+        const permission = await Notification.requestPermission();
+        if (permission !== "granted") {
+          throw new Error("Browser notification permission was not granted.");
+        }
       }
-    }
 
-    if (willEnable && typeof window !== "undefined" && "Notification" in window && Notification.permission === "denied") {
-      setEnabled(false);
-      window.localStorage.setItem(ALERTS_STORAGE_KEY, "false");
-      toast.error("Browser notifications are blocked. Please allow them in browser settings.");
+      if (willEnable && typeof window !== "undefined" && "Notification" in window && Notification.permission === "denied") {
+        throw new Error("Browser notifications are blocked. Please allow them in browser settings.");
+      }
+
+      if (data.session) {
+        const { error } = await supabase
+          .from("users")
+          .update({ notifications_enabled: willEnable })
+          .eq("id", data.session.user.id);
+
+        if (error) {
+          throw new Error("Could not save your notification preference.");
+        }
+
+        profileUpdated = true;
+      }
+
+      if (willEnable) {
+        await enableBrowserPushNotifications();
+      } else {
+        await disableBrowserPushNotifications();
+      }
+
+      toast.success(willEnable ? "News alerts enabled on this browser." : "News alerts turned off.");
       return;
-    }
+    } catch (error) {
+      if (willEnable) {
+        await disableBrowserPushNotifications().catch(() => undefined);
+      }
 
-    if (!data.session) {
-      toast.success(willEnable ? "News alerts enabled on this browser." : "News alerts turned off on this browser.");
-      return;
-    }
+      if (data.session && profileUpdated) {
+        await supabase
+          .from("users")
+          .update({ notifications_enabled: previousEnabled })
+          .eq("id", data.session.user.id);
+      }
 
-    const { error } = await supabase
-      .from("users")
-      .update({ notifications_enabled: willEnable })
-      .eq("id", data.session.user.id);
-
-    if (error) {
-      setEnabled(!willEnable);
+      setEnabled(previousEnabled);
       if (typeof window !== "undefined") {
-        window.localStorage.setItem(ALERTS_STORAGE_KEY, String(!willEnable));
+        window.localStorage.setItem(ALERTS_STORAGE_KEY, String(previousEnabled));
       }
-      toast.error("Could not save your notification preference.");
-      return;
-    }
 
-    toast.success(willEnable ? "News alerts enabled on this browser." : "News alerts turned off.");
+      const message = error instanceof Error ? error.message : "Could not update your notification preference.";
+      toast.error(message);
+    }
   };
 
   if (loading) return null;

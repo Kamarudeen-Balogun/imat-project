@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, useEffect, useRef } from "react";
 import { CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "react-hot-toast";
@@ -9,17 +9,141 @@ import { sanitizePlainText, sanitizeEmail, sanitizePhoneNumber, sanitizeNumericT
 import TurnstileWidget from "@/components/security/TurnstileWidget";
 import { TURNSTILE_DEV_BYPASS_TOKEN, isTurnstileDevBypassEnabled } from "@/lib/turnstile";
 
+const APPLY_DRAFT_STORAGE_KEY = "imat_apply_form_draft_v1";
+
+type DraftValue = string | string[];
+
+function parseDraft(raw: string): Record<string, DraftValue> | null {
+  try {
+    const parsed = JSON.parse(raw) as Record<string, unknown>;
+    const output: Record<string, DraftValue> = {};
+
+    for (const [key, value] of Object.entries(parsed)) {
+      if (typeof value === "string") {
+        output[key] = value;
+      } else if (Array.isArray(value)) {
+        const valid = value.filter((entry): entry is string => typeof entry === "string");
+        output[key] = valid;
+      }
+    }
+
+    return output;
+  } catch {
+    return null;
+  }
+}
+
+function buildDraftPayload(formDataObj: FormData): Record<string, DraftValue> {
+  const payload: Record<string, DraftValue> = {};
+  const skipKeys = new Set(["website", "turnstileToken"]);
+
+  for (const [key, value] of formDataObj.entries()) {
+    if (skipKeys.has(key) || typeof value !== "string") {
+      continue;
+    }
+
+    if (payload[key] === undefined) {
+      payload[key] = value;
+      continue;
+    }
+
+    const currentValue = payload[key];
+    if (Array.isArray(currentValue)) {
+      currentValue.push(value);
+    } else {
+      payload[key] = [currentValue, value];
+    }
+  }
+
+  return payload;
+}
+
 export default function ApplyPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState("");
   const [honeypot, setHoneypot] = useState("");
+  const formRef = useRef<HTMLFormElement | null>(null);
   
   // States to handle dynamic visibility and logic
   const [selectedLevel, setSelectedLevel] = useState("");
   const [hasLeadership, setHasLeadership] = useState("");
 
   const today = new Date().toISOString().split("T")[0];
+
+  const persistDraftFromForm = (form: HTMLFormElement) => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const draftPayload = buildDraftPayload(new FormData(form));
+    window.localStorage.setItem(APPLY_DRAFT_STORAGE_KEY, JSON.stringify(draftPayload));
+  };
+
+  const clearDraft = () => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    window.localStorage.removeItem(APPLY_DRAFT_STORAGE_KEY);
+  };
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !formRef.current) {
+      return;
+    }
+
+    const rawDraft = window.localStorage.getItem(APPLY_DRAFT_STORAGE_KEY);
+    if (!rawDraft) {
+      return;
+    }
+
+    const draft = parseDraft(rawDraft);
+    if (!draft) {
+      window.localStorage.removeItem(APPLY_DRAFT_STORAGE_KEY);
+      return;
+    }
+
+    const form = formRef.current;
+
+    for (const [name, value] of Object.entries(draft)) {
+      const elements = form.querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>(`[name="${name}"]`);
+      if (elements.length === 0) {
+        continue;
+      }
+
+      elements.forEach((element) => {
+        if (element instanceof HTMLInputElement && (element.type === "checkbox" || element.type === "radio")) {
+          if (Array.isArray(value)) {
+            element.checked = value.includes(element.value);
+          } else if (element.type === "checkbox") {
+            element.checked = value === element.value || value === "on";
+          } else {
+            element.checked = value === element.value;
+          }
+          return;
+        }
+
+        if (Array.isArray(value)) {
+          return;
+        }
+
+        element.value = value;
+      });
+    }
+
+    const restoredLevel = draft.level;
+    if (typeof restoredLevel === "string") {
+      setSelectedLevel(restoredLevel);
+    }
+
+    const restoredLeadership = draft.leadership;
+    if (typeof restoredLeadership === "string") {
+      setHasLeadership(restoredLeadership);
+    }
+
+    toast("Restored your saved application draft.");
+  }, []);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -84,11 +208,13 @@ export default function ApplyPage() {
         throw new Error(responseData?.error || "Application submission failed.");
       }
 
+      clearDraft();
       setSubmitSuccess(true);
       toast.success("Application successfully submitted!");
-    } catch {
-      console.error("Application submit failed.");
-      toast.error("Something went wrong saving your application. Please check your connection.");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Something went wrong saving your application.";
+      console.error("Application submit failed.", error);
+      toast.error(message);
     } finally {
       setIsSubmitting(false);
     }
@@ -123,7 +249,28 @@ export default function ApplyPage() {
         <strong>INSTRUCTIONS:</strong> Please fill out this form completely. All fields marked with <span className="text-danger">*</span> are mandatory.
       </div>
 
-      <form onSubmit={handleSubmit} className="glass-panel space-y-12 overflow-hidden rounded-xl p-6 md:p-10">
+      <form
+        ref={formRef}
+        onSubmit={handleSubmit}
+        onChange={(event) => {
+          const currentForm = event.currentTarget;
+          persistDraftFromForm(currentForm);
+
+          const levelValue = new FormData(currentForm).get("level");
+          setSelectedLevel(typeof levelValue === "string" ? levelValue : "");
+
+          const leadershipValue = new FormData(currentForm).get("leadership");
+          setHasLeadership(typeof leadershipValue === "string" ? leadershipValue : "");
+        }}
+        onReset={() => {
+          clearDraft();
+          setSelectedLevel("");
+          setHasLeadership("");
+          setTurnstileToken("");
+          setHoneypot("");
+        }}
+        className="glass-panel space-y-12 overflow-hidden rounded-xl p-6 md:p-10"
+      >
         <input
           type="text"
           name="website"
@@ -160,7 +307,7 @@ export default function ApplyPage() {
               <div className="flex flex-wrap gap-6 mt-3 text-textDefault">
                 {["200L", "300L", "400L", "500L"].map(lvl => (
                   <label key={lvl} className="flex items-center gap-2 cursor-pointer">
-                    <input type="radio" name="level" value={lvl} required className="w-4 h-4 cursor-pointer" onChange={(e) => setSelectedLevel(e.target.value)} /> {lvl}
+                    <input type="radio" name="level" value={lvl} required className="w-4 h-4 cursor-pointer" /> {lvl}
                   </label>
                 ))}
               </div>
@@ -201,8 +348,8 @@ export default function ApplyPage() {
             <div>
               <label className="block font-bold text-textDefault mb-2">Any Previous Leadership Experience?</label>
               <div className="flex gap-6 mt-3 text-textDefault">
-                <label className="flex items-center gap-2 cursor-pointer"><input type="radio" name="leadership" value="Yes" onChange={e => setHasLeadership(e.target.value)} className="w-4 h-4 cursor-pointer" /> Yes</label>
-                <label className="flex items-center gap-2 cursor-pointer"><input type="radio" name="leadership" value="No" onChange={e => setHasLeadership(e.target.value)} className="w-4 h-4 cursor-pointer" /> No</label>
+                <label className="flex items-center gap-2 cursor-pointer"><input type="radio" name="leadership" value="Yes" className="w-4 h-4 cursor-pointer" /> Yes</label>
+                <label className="flex items-center gap-2 cursor-pointer"><input type="radio" name="leadership" value="No" className="w-4 h-4 cursor-pointer" /> No</label>
               </div>
             </div>
             {hasLeadership === "Yes" && (

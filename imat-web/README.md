@@ -190,14 +190,38 @@ The schema contains:
 
 For existing projects, rerun the latest schema safely since it uses idempotent patterns where possible.
 
-## 9. Project Files Worth Reading
+## 9. News Alerts (Web Push)
+
+IMAT now supports browser push notifications for newsroom announcements.
+
+Implementation summary:
+
+- Browser subscriptions are stored in `push_subscriptions`.
+- Push delivery is sent from server code using VAPID keys.
+- Service worker handlers display notification cards and open newsroom links on click.
+
+Required setup:
+
+- Run the latest `supabase_schema.sql` so `push_subscriptions` and related policy updates exist.
+- Configure these environment variables:
+  - `NEXT_PUBLIC_VAPID_PUBLIC_KEY`
+  - `VAPID_PRIVATE_KEY`
+  - `VAPID_SUBJECT`
+
+Local/mobile testing notes:
+
+- Desktop localhost works as a secure context for Push and Notification APIs.
+- Mobile access over raw `http://LAN_IP:port` is not a secure context and may report that notifications are unsupported.
+- For mobile push testing, use an HTTPS origin (for example a secure tunnel or deployed preview) and allow notifications in browser/site settings.
+
+## 10. Project Files Worth Reading
 
 - history.md for implementation timeline
 - src/app for route structure
 - src/lib for business logic and safety helpers
 - src/components for reusable UI modules
 
-## 10. Why I Built It This Way
+## 11. Why I Built It This Way
 
 I wanted IMAT to feel like a serious operations product, not just a school project with forms. The major design decision was to prioritize reliability and clarity first, then polish.
 

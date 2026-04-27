@@ -385,7 +385,96 @@ CREATE TABLE IF NOT EXISTS notifications (
 CREATE INDEX IF NOT EXISTS notifications_recipient_created_at_idx ON notifications(recipient_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS notifications_recipient_is_read_idx ON notifications(recipient_id, is_read);
 
--- 16. SITE SOCIAL LINKS (public footer dock)
+-- 16. PUSH SUBSCRIPTIONS (browser push delivery)
+CREATE TABLE IF NOT EXISTS push_subscriptions (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  browser_key TEXT NOT NULL,
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  endpoint TEXT NOT NULL UNIQUE,
+  subscription JSONB NOT NULL,
+  is_enabled BOOLEAN NOT NULL DEFAULT true,
+  user_agent TEXT,
+  last_seen_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+ALTER TABLE push_subscriptions
+ADD COLUMN IF NOT EXISTS browser_key TEXT;
+
+ALTER TABLE push_subscriptions
+ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES users(id) ON DELETE CASCADE;
+
+ALTER TABLE push_subscriptions
+ALTER COLUMN user_id DROP NOT NULL;
+
+ALTER TABLE push_subscriptions
+ADD COLUMN IF NOT EXISTS endpoint TEXT;
+
+ALTER TABLE push_subscriptions
+ADD COLUMN IF NOT EXISTS subscription JSONB;
+
+ALTER TABLE push_subscriptions
+ADD COLUMN IF NOT EXISTS p256dh TEXT;
+
+ALTER TABLE push_subscriptions
+ADD COLUMN IF NOT EXISTS auth TEXT;
+
+ALTER TABLE push_subscriptions
+ADD COLUMN IF NOT EXISTS is_enabled BOOLEAN NOT NULL DEFAULT true;
+
+ALTER TABLE push_subscriptions
+ADD COLUMN IF NOT EXISTS user_agent TEXT;
+
+ALTER TABLE push_subscriptions
+ADD COLUMN IF NOT EXISTS last_seen_at TIMESTAMPTZ NOT NULL DEFAULT now();
+
+ALTER TABLE push_subscriptions
+ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT now();
+
+ALTER TABLE push_subscriptions
+ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT now();
+
+UPDATE push_subscriptions
+SET p256dh = COALESCE(p256dh, subscription -> 'keys' ->> 'p256dh')
+WHERE p256dh IS NULL;
+
+UPDATE push_subscriptions
+SET auth = COALESCE(auth, subscription -> 'keys' ->> 'auth')
+WHERE auth IS NULL;
+
+ALTER TABLE push_subscriptions
+ALTER COLUMN p256dh DROP NOT NULL;
+
+ALTER TABLE push_subscriptions
+ALTER COLUMN auth DROP NOT NULL;
+
+UPDATE push_subscriptions
+SET browser_key = COALESCE(browser_key, MD5(COALESCE(endpoint, id::text)))
+WHERE browser_key IS NULL;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'push_subscriptions_endpoint_key'
+      AND conrelid = 'push_subscriptions'::regclass
+  ) THEN
+    ALTER TABLE push_subscriptions
+    ADD CONSTRAINT push_subscriptions_endpoint_key UNIQUE (endpoint);
+  END IF;
+END $$;
+
+CREATE INDEX IF NOT EXISTS push_subscriptions_browser_key_idx ON push_subscriptions(browser_key);
+CREATE INDEX IF NOT EXISTS push_subscriptions_user_enabled_idx ON push_subscriptions(user_id, is_enabled);
+
+DROP TRIGGER IF EXISTS update_push_subscriptions_updated_at ON push_subscriptions;
+CREATE TRIGGER update_push_subscriptions_updated_at
+BEFORE UPDATE ON push_subscriptions
+FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
+
+-- 17. SITE SOCIAL LINKS (public footer dock)
 CREATE TABLE IF NOT EXISTS site_social_links (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   platform TEXT NOT NULL UNIQUE CHECK (platform IN ('twitter', 'instagram', 'github', 'linkedin', 'youtube', 'facebook')),
@@ -477,6 +566,7 @@ ALTER TABLE evidence_gallery ENABLE ROW LEVEL SECURITY;
 ALTER TABLE volunteer_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE wiki_pages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE activity_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE push_subscriptions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE site_social_links ENABLE ROW LEVEL SECURITY;
 ALTER TABLE applications ENABLE ROW LEVEL SECURITY;
@@ -638,6 +728,14 @@ CREATE POLICY "Users can insert news notifications" ON notifications FOR INSERT 
   )
 );
 CREATE POLICY "Users can update own notifications" ON notifications FOR UPDATE USING (auth.uid() = recipient_id) WITH CHECK (auth.uid() = recipient_id);
+
+-- Push subscriptions: users can manage their own browser subscriptions.
+DROP POLICY IF EXISTS "Users can manage own push subscriptions" ON push_subscriptions;
+CREATE POLICY "Users can manage own push subscriptions" ON push_subscriptions FOR ALL USING (
+  auth.uid() = user_id
+) WITH CHECK (
+  auth.uid() = user_id
+);
 
 -- Wiki pages: members can read; documentation/president/admin can write.
 DROP POLICY IF EXISTS "Members can view wiki pages" ON wiki_pages;

@@ -174,6 +174,23 @@ export default function CampaignForm({ userId }: { userId: string }) {
         }
       }
 
+      try {
+        const pushResponse = await fetch("/api/announcements/push", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ announcementId: announcement?.id ?? null }),
+        });
+
+        if (!pushResponse.ok) {
+          const payload = await pushResponse.text().catch(() => "");
+          console.warn("Push delivery failed.", payload);
+        }
+      } catch (error) {
+        console.warn("Push delivery failed.", error);
+      }
+
       await logActivityEvent(supabase, {
         eventType: "announcement_published",
         entityType: "announcement",

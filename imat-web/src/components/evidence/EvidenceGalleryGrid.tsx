@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { ImageOff, ArrowRight, ChevronsLeftRight } from "lucide-react";
+import { ImageOff, ArrowRight, ChevronsLeftRight, X } from "lucide-react";
 import { motion } from "framer-motion";
 
 export type EvidenceGalleryItem = {
@@ -72,6 +72,7 @@ export default function EvidenceGalleryGrid({
   const [showSwipeHint, setShowSwipeHint] = useState(false);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<EvidenceGalleryItem | null>(null);
 
   useEffect(() => {
     if (!mobileHorizontal) return;
@@ -97,6 +98,24 @@ export default function EvidenceGalleryGrid({
     };
   }, [items, mobileHorizontal]);
 
+  useEffect(() => {
+    if (!selectedItem) return;
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setSelectedItem(null);
+      }
+    };
+
+    document.addEventListener("keydown", handleEscape);
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+      document.body.style.overflow = "";
+    };
+  }, [selectedItem]);
+
   const containerClasses = mobileHorizontal
     ? "flex gap-4 overflow-x-auto pb-2 snap-x snap-mandatory md:grid md:grid-cols-2 lg:grid-cols-3 md:overflow-visible md:pb-0"
     : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6";
@@ -118,6 +137,7 @@ export default function EvidenceGalleryGrid({
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.2 }}
             transition={{ delay: index * 0.06, duration: 0.35 }}
+            onClick={() => setSelectedItem(item)}
             className={`group shrink-0 snap-start rounded-2xl border border-borderDark bg-gradient-to-b from-bg2 to-bg p-4 shadow-lg shadow-black/5 transition-all hover:-translate-y-1 hover:border-primary/40 ${
               mobileHorizontal ? "w-[82vw] sm:w-[420px] md:w-auto" : "w-full"
             }`}
@@ -153,14 +173,79 @@ export default function EvidenceGalleryGrid({
                 {item.description}
               </p>
               <div className="flex items-center justify-between border-t border-borderDark pt-3 text-[10px] font-mono uppercase tracking-wider text-text3">
-                <span className="inline-flex items-center gap-1 text-accent">
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setSelectedItem(item);
+                  }}
+                  className="inline-flex items-center gap-1 text-accent transition-colors hover:text-primary"
+                  aria-label={`View full details for ${item.title}`}
+                >
                   View <ArrowRight size={12} />
-                </span>
+                </button>
               </div>
             </div>
           </motion.article>
         ))}
       </div>
+
+      {selectedItem && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/45 backdrop-blur-sm p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Evidence details for ${selectedItem.title}`}
+          onClick={() => setSelectedItem(null)}
+        >
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className="w-full max-w-4xl overflow-hidden rounded-2xl border border-borderDark bg-bg shadow-2xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-4 border-b border-borderDark bg-bg2 px-5 py-4 sm:px-6">
+              <div className="min-w-0">
+                <span className="mb-2 inline-flex rounded-full border border-primary/25 bg-primary/10 px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-primary">
+                  {selectedItem.category}
+                </span>
+                <h3 className="text-xl font-bold text-textDefault sm:text-2xl">{selectedItem.title}</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedItem(null)}
+                className="rounded-lg border border-borderDark bg-bg p-2 text-text3 transition-colors hover:border-primary hover:text-primary"
+                aria-label="Close evidence details"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="max-h-[78vh] overflow-y-auto p-5 sm:p-6">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <EvidenceImageSlot
+                  label="Before"
+                  src={selectedItem.before_image_url}
+                  alt={`${selectedItem.title} before`}
+                  placeholder="Before image missing"
+                />
+                <EvidenceImageSlot
+                  label="After"
+                  src={selectedItem.after_image_url}
+                  alt={`${selectedItem.title} after`}
+                  placeholder="After image pending"
+                />
+              </div>
+
+              <div className="mt-5 rounded-xl border border-borderDark bg-bg2/60 p-4">
+                <h4 className="mb-2 text-sm font-mono uppercase tracking-wider text-text3">Details</h4>
+                <p className="text-sm leading-relaxed text-text2 sm:text-base">{selectedItem.description}</p>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
 
       {mobileHorizontal && showSwipeHint && (
         <>

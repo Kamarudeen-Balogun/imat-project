@@ -2,6 +2,7 @@ const DB_NAME = "imat-report-upload-db";
 const STORE_NAME = "report-upload-queue";
 const DB_VERSION = 1;
 const SYNC_TAG = "imat-report-upload-sync";
+const DEFAULT_PUSH_ICON = "/images/logo.png";
 
 function openQueueDb() {
   return new Promise((resolve, reject) => {
@@ -54,6 +55,29 @@ async function notifyClients(message) {
   for (const client of clients) {
     client.postMessage(message);
   }
+}
+
+async function focusOrOpenWindow(href) {
+  const clients = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+  for (const client of clients) {
+    if ("focus" in client) {
+      await client.focus();
+    }
+    if (href && "navigate" in client) {
+      try {
+        await client.navigate(href);
+      } catch {
+        // Ignore navigation failures and fall back to openWindow.
+      }
+    }
+    return true;
+  }
+
+  if (href && self.clients.openWindow) {
+    await self.clients.openWindow(href);
+  }
+
+  return false;
 }
 
 async function uploadPhotosToCloudinary(item) {
@@ -164,4 +188,45 @@ self.addEventListener("message", (event) => {
   if (event.data && event.data.type === "PROCESS_UPLOAD_QUEUE") {
     event.waitUntil(processQueue());
   }
+});
+
+self.addEventListener("push", (event) => {
+  event.waitUntil(
+    (async () => {
+      if (!event.data) {
+        return;
+      }
+
+      let payload = {};
+      try {
+        payload = event.data.json();
+      } catch {
+        payload = { body: event.data.text() };
+      }
+
+      const title = payload.title || "News update";
+      const href = payload.href || "/newsroom";
+      const body = payload.body || "";
+      const announcementId = payload.announcementId || "news-update";
+
+      await self.registration.showNotification(title, {
+        body,
+        icon: DEFAULT_PUSH_ICON,
+        badge: DEFAULT_PUSH_ICON,
+        tag: `news-${announcementId}`,
+        data: {
+          href,
+          announcementId,
+          visibility: payload.visibility || "public",
+        },
+      });
+    })()
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+
+  const href = event.notification?.data?.href || "/newsroom";
+  event.waitUntil(focusOrOpenWindow(href));
 });

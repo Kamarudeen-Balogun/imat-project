@@ -319,6 +319,23 @@ This is the living implementation history for the IMAT web platform.
 - Updated the public report client to surface server error messages directly in the toast instead of always showing a generic failure.
 - Further reduced the report action button sizing for improved visual balance on mobile and desktop.
 
+### 28) Web Push Rollout, Schema Compatibility, And Apply Reliability
+
+- Added end-to-end web push infrastructure for newsroom announcements:
+  - browser subscription client helpers
+  - push subscription API route
+  - announcement push dispatch route
+  - server push sender using VAPID and web-push
+  - service worker push and notification click handlers
+- Added newsroom push opt-in integration in notification settings and service worker initialization in the notifier shell.
+- Wired announcement publish and visibility-change flows to trigger push delivery.
+- Added `push_subscriptions` schema support and RLS policy coverage.
+- Hardened schema reruns for legacy environments where `push_subscriptions` already existed with older columns and constraints.
+- Fixed apply-form API validation for optional referee email handling.
+- Restored application draft autosave/restore and clear-on-success behavior in the apply page.
+- Added clearer push subscription API error propagation to improve diagnosis during local integration tests.
+- Documented secure-context testing behavior: desktop localhost works for Push API, while mobile over plain HTTP LAN URLs may report unsupported notifications.
+
 ### 28) Report Title Validation And Desktop Action Row Fix
 
 - Relaxed public report `title` minimum length from 5 to 3 to avoid rejecting valid short issue titles.

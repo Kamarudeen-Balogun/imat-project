@@ -27,7 +27,7 @@ const bodySchema = z.object({
   timeCommitment: z.string().min(1).max(100),
   refereeName: z.string().max(120).optional().default(""),
   refereeDept: z.string().max(120).optional().default(""),
-  refereeEmail: z.string().email().optional().default(""),
+  refereeEmail: z.union([z.string().email(), z.literal("")]).optional().default(""),
   refereePhone: z.string().max(20).optional().default(""),
   agreement: z.string().min(1),
   signature: z.string().min(1).max(120),

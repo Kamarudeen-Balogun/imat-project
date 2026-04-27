@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { createSupabaseClient } from "@/lib/supabase/client";
+import { ensurePushServiceWorker } from "@/lib/push/client";
 
 const ALERTS_STORAGE_KEY = "imat_news_alerts_enabled";
 const GUEST_SEEN_STORAGE_KEY = "imat_news_seen_public_ids";
@@ -141,6 +142,8 @@ export default function BrowserNewsNotifier() {
     };
 
     const init = async () => {
+      void ensurePushServiceWorker().catch(() => undefined);
+
       const { data } = await supabase.auth.getSession();
       if (cancelled) return;
 
