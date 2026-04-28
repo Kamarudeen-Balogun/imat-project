@@ -42,7 +42,7 @@ This is not just another form app. It is designed like an operations product:
 - UI: Tailwind CSS + Framer Motion + custom design tokens
 - Backend: Supabase (Auth + Postgres + RLS)
 - Security: Turnstile, server rate limiting, sanitization utilities
-- Docs/Analytics: Search Console verification + GA4 hook + schema markup
+- Docs/Analytics: Search Console verification + Vercel Analytics + Speed Insights + schema markup
 - Deployment: Vercel
 
 ## Quick Start

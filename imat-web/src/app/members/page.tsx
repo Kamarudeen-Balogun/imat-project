@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
+import optimizeCloudinaryUrl from "@/lib/cloudinary";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import { sortByRoleHierarchy, toRoleLabel } from "@/lib/roleHierarchy";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
@@ -86,7 +87,7 @@ export default function MembersPage() {
                   <div className="h-16 w-16 rounded-2xl border border-borderDark overflow-hidden bg-gradient-to-br from-primary/30 to-accent/20 flex items-center justify-center text-xl font-bold text-textDefault">
                     {member.avatar_url ? (
                       <Image
-                        src={member.avatar_url}
+                        src={member.avatar_url && member.avatar_url.includes('res.cloudinary.com') ? optimizeCloudinaryUrl(member.avatar_url) : member.avatar_url}
                         alt={member.full_name}
                         width={64}
                         height={64}

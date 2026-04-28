@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { LayoutDashboard, Users, Map, BookOpen, LogOut, Loader2, FileText, BarChart2, Megaphone, Activity, Menu, X, User, Share2, Moon, Sun } from "lucide-react";
 import Image from "next/image";
+import optimizeCloudinaryUrl from "@/lib/cloudinary";
 import { toast } from "react-hot-toast";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { AnimatePresence, motion } from "framer-motion";
@@ -205,7 +206,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <Link href="/dashboard/profile" className="hidden sm:flex h-9 w-9 items-center justify-center rounded-full border border-soft overflow-hidden bg-gradient-to-br from-primary/20 to-accent/20 text-sm font-bold text-textDefault">
                 {profile?.avatar_url ? (
                   <Image
-                    src={profile.avatar_url}
+                    src={profile.avatar_url && profile.avatar_url.includes('res.cloudinary.com') ? optimizeCloudinaryUrl(profile.avatar_url) : profile.avatar_url}
                     alt={profile?.full_name || "Profile"}
                     width={36}
                     height={36}

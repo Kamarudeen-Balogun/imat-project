@@ -7,6 +7,7 @@ import { canEditContent } from "@/lib/access";
 import { getAnnouncementHref } from "@/lib/news";
 import { sendAnnouncementPushNotifications } from "@/lib/push/server";
 import Image from "next/image";
+import optimizeCloudinaryUrl from "@/lib/cloudinary";
 import DeleteAnnouncementButton from "./DeleteAnnouncementButton";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 
@@ -222,7 +223,7 @@ export default async function DashboardNewsPage() {
                 <div className="w-16 h-16 rounded-xl border border-soft overflow-hidden bg-bg shrink-0">
                   {item.image_url ? (
                     <Image
-                      src={item.image_url}
+                      src={item.image_url && item.image_url.includes('res.cloudinary.com') ? optimizeCloudinaryUrl(item.image_url, { width: 256 }) : item.image_url}
                       alt={item.title}
                       width={64}
                       height={64}

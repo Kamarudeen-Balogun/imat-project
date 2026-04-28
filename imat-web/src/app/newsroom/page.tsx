@@ -3,6 +3,7 @@ import { format } from "date-fns";
 import Link from "next/link";
 import { ArrowRight, Megaphone, Calendar } from "lucide-react";
 import Image from "next/image";
+import optimizeCloudinaryUrl from "@/lib/cloudinary";
 import NewsroomNotificationSettings from "./NewsroomNotificationSettings";
 import NotificationsHistoryPanel from "./NotificationsHistoryPanel";
 import { canEditContent } from "@/lib/access";
@@ -103,7 +104,7 @@ export default async function NewsroomPage() {
                   <div className="relative aspect-[16/9] bg-bg3 overflow-hidden">
                     {item.image_url ? (
                       <Image
-                        src={item.image_url}
+                        src={item.image_url && item.image_url.includes('res.cloudinary.com') ? optimizeCloudinaryUrl(item.image_url) : item.image_url}
                         alt={item.title}
                         fill
                         unoptimized

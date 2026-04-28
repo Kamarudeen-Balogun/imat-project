@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import Link from "next/link";
 import { ArrowLeft, Calendar, User } from "lucide-react";
 import Image from "next/image";
+import optimizeCloudinaryUrl from "@/lib/cloudinary";
 import { notFound, redirect } from "next/navigation";
 import { extractAnnouncementSuffix, getAnnouncementHref, toCompactAnnouncementSlug } from "@/lib/news";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
@@ -172,7 +173,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       images: data.image_url
         ? [
             {
-              url: data.image_url,
+              url: data.image_url && data.image_url.includes('res.cloudinary.com') ? optimizeCloudinaryUrl(data.image_url) : data.image_url,
               alt: data.title,
             },
           ]
@@ -279,7 +280,7 @@ export default async function NewsPostPage({ params }: { params: Promise<{ id: s
           {post.image_url && (
             <div className="mt-6 overflow-hidden rounded-xl border border-borderDark bg-bg sm:mt-8 sm:rounded-2xl">
               <Image
-                src={post.image_url}
+                src={post.image_url && post.image_url.includes('res.cloudinary.com') ? optimizeCloudinaryUrl(post.image_url, { width: 1400 }) : post.image_url}
                 alt={post.title}
                 width={1400}
                 height={788}

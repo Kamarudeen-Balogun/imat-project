@@ -18,6 +18,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import Image from "next/image";
+import optimizeCloudinaryUrl from "@/lib/cloudinary";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSiteStats } from "@/hooks/useSiteStats";
 import { createSupabaseClient } from "@/lib/supabase/client";
@@ -486,7 +487,7 @@ export default function Home() {
                         <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-borderLit/50 bg-gradient-to-br from-primary/20 to-accent/10 text-[11px] font-bold text-textDefault">
                           {member.avatar_url ? (
                             <Image
-                              src={member.avatar_url}
+                              src={member.avatar_url && member.avatar_url.includes('res.cloudinary.com') ? optimizeCloudinaryUrl(member.avatar_url) : member.avatar_url}
                               alt={member.full_name}
                               width={40}
                               height={40}

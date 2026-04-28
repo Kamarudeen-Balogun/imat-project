@@ -360,14 +360,14 @@ This is the living implementation history for the IMAT web platform.
   - custom dropdown caret and theme-aware select styling
 - Removed automation wording from the public contact text as requested, while preserving Google Sheet automation in backend flow.
 
-### 30) SEO Foundation, Structured Data, And Google Integration
+### 30) SEO Foundation, Structured Data, And Telemetry Integration
 
 - Added global SEO metadata improvements in root layout:
   - `metadataBase`
   - canonical defaults
   - Open Graph and Twitter card metadata
   - Google site verification support via env-driven metadata token
-- Added optional Google Analytics 4 integration through a dedicated component that loads only when `NEXT_PUBLIC_GA_MEASUREMENT_ID` is provided.
+- Replaced Google Analytics with Vercel Analytics and Speed Insights in the root layout so telemetry stays on the Vercel platform and no Google script allowlist is needed.
 - Added structured data for richer crawl context:
   - global `Organization` schema
   - global `WebSite` schema

@@ -1,6 +1,7 @@
 "use client";
 
 import { ChangeEvent, useEffect, useMemo, useState } from "react";
+import optimizeCloudinaryUrl from "@/lib/cloudinary";
 import Image from "next/image";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import { Loader2, Trash2, Upload, Edit2, Check, X } from "lucide-react";
@@ -231,10 +232,10 @@ export default function DashboardProfilePage() {
 
       <div className="glass-panel rounded-2xl p-6 md:p-8">
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5">
-          <div className="h-20 w-20 rounded-full border border-soft overflow-hidden bg-gradient-to-br from-primary/25 to-accent/20 flex items-center justify-center text-lg font-bold text-textDefault">
+            <div className="h-20 w-20 rounded-full border border-soft overflow-hidden bg-gradient-to-br from-primary/25 to-accent/20 flex items-center justify-center text-lg font-bold text-textDefault">
             {profile.avatar_url ? (
               <Image
-                src={profile.avatar_url}
+                src={profile.avatar_url && profile.avatar_url.includes('res.cloudinary.com') ? optimizeCloudinaryUrl(profile.avatar_url) : profile.avatar_url}
                 alt={profile.full_name ?? "Member"}
                 width={80}
                 height={80}

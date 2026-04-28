@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import optimizeCloudinaryUrl from "../../lib/cloudinary";
 import { ImageOff, ArrowRight, ChevronsLeftRight, X } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -43,14 +44,27 @@ function EvidenceImageSlot({
       </div>
       <div className="relative overflow-hidden rounded-xl border border-borderDark bg-bg3 aspect-[4/3]">
         {src ? (
-          <Image
-            src={src}
-            alt={alt}
-            fill
-            unoptimized
-            sizes="(max-width: 768px) 50vw, 25vw"
-            className="object-cover transition-transform duration-500 group-hover:scale-[1.02]"
-          />
+          (() => {
+            let finalSrc = src;
+            try {
+              if (finalSrc && finalSrc.includes("res.cloudinary.com")) {
+                finalSrc = optimizeCloudinaryUrl(finalSrc as string);
+              }
+            } catch (e) {
+              // fall back to original src on any parsing error
+            }
+
+            return (
+              <Image
+                src={finalSrc as string}
+                alt={alt}
+                fill
+                unoptimized
+                sizes="(max-width: 768px) 50vw, 25vw"
+                className="object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+              />
+            );
+          })()
         ) : (
           <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-gradient-to-br from-bg2 to-bg3 px-4 text-center text-text3">
             <ImageOff size={18} />

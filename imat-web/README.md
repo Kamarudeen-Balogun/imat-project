@@ -89,9 +89,10 @@ Why this matters:
 - Use URL-prefix property for https://imat-futa.vercel.app
 - Verification token is injected using env variable
 
-### 5.2 Google Analytics 4
+### 5.2 Vercel Analytics And Speed Insights
 
-- GA script loader is optional and only runs when measurement ID exists
+- Web Analytics and Speed Insights are enabled through the root layout with the `@vercel/analytics` and `@vercel/speed-insights` packages.
+- They do not require a Google Analytics measurement ID or a Google script allowlist in CSP.
 
 ### 5.3 Google Sheets Contact Automation
 
@@ -141,7 +142,6 @@ SEO/analytics/integration keys:
 
 - NEXT_PUBLIC_SITE_URL
 - NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
-- NEXT_PUBLIC_GA_MEASUREMENT_ID
 - GOOGLE_APPS_SCRIPT_CONTACT_URL
 - GOOGLE_APPS_SCRIPT_APPLY_URL
 

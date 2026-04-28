@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import { Mail, Shield, User, GraduationCap } from "lucide-react";
 import Image from "next/image";
+import optimizeCloudinaryUrl from "@/lib/cloudinary";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 import { GooeyInput } from "@/components/ui/gooey-input";
 
@@ -110,7 +111,7 @@ export default function MemberDirectoryPage() {
                   <div className="w-10 h-10 rounded-full text-primary flex items-center justify-center font-bold text-lg font-mono uppercase border border-primary/20 overflow-hidden bg-gradient-to-br from-primary/20 to-accent/10">
                      {member.avatar_url ? (
                        <Image
-                         src={member.avatar_url}
+                         src={member.avatar_url && member.avatar_url.includes('res.cloudinary.com') ? optimizeCloudinaryUrl(member.avatar_url) : member.avatar_url}
                          alt={member.full_name}
                          width={40}
                          height={40}

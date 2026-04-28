@@ -7,6 +7,7 @@ import { logActivityEvent } from "@/lib/activity/logEvent";
 import { createAnnouncementSlug, getAnnouncementHref } from "@/lib/news";
 import { sanitizePlainText, sanitizeUrl } from "@/lib/inputSanitizer";
 import Image from "next/image";
+import optimizeCloudinaryUrl from "@/lib/cloudinary";
 import { Send, Loader2, Globe, Lock, Image as ImageIcon, Eye, X } from "lucide-react";
 import { toast } from "react-hot-toast";
 
@@ -56,10 +57,11 @@ export default function CampaignForm({ userId }: { userId: string }) {
       // eslint-disable-next-line @next/next/no-img-element
       return <img src={url} alt={alt} className={className} />;
     }
+    const finalUrl = url.includes('res.cloudinary.com') ? optimizeCloudinaryUrl(url) : url;
 
     return (
       <Image
-        src={url}
+        src={finalUrl}
         alt={alt}
         width={1600}
         height={900}
