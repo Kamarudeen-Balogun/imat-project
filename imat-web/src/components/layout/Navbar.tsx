@@ -53,6 +53,7 @@ export function Navbar() {
                   height={36}
                   loading="eager"
                   style={{ width: "36px", height: "36px" }}
+                  priority
                   className="shrink-0 rounded-xl object-contain"
                 />
               </span>
@@ -63,6 +64,7 @@ export function Navbar() {
           <Link href="/about" className="rounded-full px-4 py-2 text-sm font-semibold text-text2 transition-all hover:bg-primary/10 hover:text-primary hover:shadow-glow">About</Link>
           <Link href="/evidence" className="rounded-full px-4 py-2 text-sm font-semibold text-text2 transition-all hover:bg-primary/10 hover:text-primary hover:shadow-glow">Evidence</Link>
           <Link href="/newsroom" className="rounded-full px-4 py-2 text-sm font-semibold text-text2 transition-all hover:bg-primary/10 hover:text-primary hover:shadow-glow">Newsroom</Link>
+          <Link href="/members" className="rounded-full px-4 py-2 text-sm font-semibold text-text2 transition-all hover:bg-primary/10 hover:text-primary hover:shadow-glow">Members</Link>
           <Link href="/issues" className="rounded-full px-4 py-2 text-sm font-semibold text-text2 transition-all hover:bg-primary/10 hover:text-primary hover:shadow-glow">Tracker</Link>
         </div>
 

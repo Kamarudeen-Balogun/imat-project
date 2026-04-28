@@ -109,10 +109,11 @@ export function Footer() {
 
         <div>
           <h4 className="mb-4 font-mono text-xs font-semibold uppercase tracking-wider text-accent">Quick Links</h4>
-          <ul className="space-y-2.5 text-sm">
+            <ul className="space-y-2.5 text-sm">
             <li><Link href="/" className="text-text2 transition-all hover:text-accent hover:translate-x-1">Home</Link></li>
             <li><Link href="/about" className="text-text2 transition-all hover:text-accent hover:translate-x-1">About Us</Link></li>
             <li><Link href="/newsroom" className="text-text2 transition-all hover:text-accent hover:translate-x-1">Newsroom</Link></li>
+            <li><Link href="/members" className="text-text2 transition-all hover:text-accent hover:translate-x-1">Members</Link></li>
             <li><Link href="/apply" className="text-text2 transition-all hover:text-accent hover:translate-x-1">Apply to Join</Link></li>
             <li><Link href="/login" className="text-text2 transition-all hover:text-accent hover:translate-x-1">Member Login</Link></li>
           </ul>

@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
+import { GoogleAnalytics } from '@next/third-parties/google';
 
 const ibmPlexSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -24,6 +24,10 @@ export const metadata: Metadata = {
   },
   alternates: {
     canonical: "/",
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
   openGraph: {
     title: "IMAT · Infrastructure Maintenance Awareness Team",
@@ -93,7 +97,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${ibmPlexSans.variable} ${ibmPlexMono.variable} font-sans antialiased text-textDefault flex min-h-screen flex-col transition-colors duration-300`}>
-        <GoogleAnalytics measurementId={gaMeasurementId} />
+        <GoogleAnalytics gaId={gaMeasurementId || ""} />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
