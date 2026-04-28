@@ -56,11 +56,11 @@ const nextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com https://www.googletagmanager.com https://www.google-analytics.com",  // unsafe-eval needed for react-pdf
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com",  // unsafe-eval needed for react-pdf
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
               "img-src 'self' data: blob: https://res.cloudinary.com",
-              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.cloudinary.com https://res.cloudinary.com https://challenges.cloudflare.com https://www.google-analytics.com",
+              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.cloudinary.com https://res.cloudinary.com https://challenges.cloudflare.com",
               "worker-src 'self' blob:",
               // react-pdf PDFViewer renders preview via a blob iframe.
               "frame-src 'self' blob: https://challenges.cloudflare.com",
