@@ -14,13 +14,13 @@ jobs:
       - name: Ping Google and Bing
         run: |
           if [ -z "$SITE_URL" ]; then
-            echo "SITE_URL is not set. Aborting.";
-            exit 1;
+            echo "SITE_URL is not set. Aborting."
+            exit 1
           fi
           SITEMAP="${SITE_URL%/}/sitemap.xml"
           echo "Pinging sitemap: $SITEMAP"
-          echo "Google response:";
+          echo "Google response:"
           curl -sS --max-time 10 "https://www.google.com/ping?sitemap=${SITEMAP}" || true
           echo
-          echo "Bing response:";
+          echo "Bing response:"
           curl -sS --max-time 10 "https://www.bing.com/ping?sitemap=${SITEMAP}" || true
