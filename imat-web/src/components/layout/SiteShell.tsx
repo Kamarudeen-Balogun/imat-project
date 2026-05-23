@@ -6,7 +6,6 @@ import type { Transition } from "framer-motion";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import BrowserNewsNotifier from "@/components/notifications/BrowserNewsNotifier";
-import MouseTrail from "@/components/MouseTrail";
 
 export function SiteShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -23,7 +22,6 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
   return (
     <>
       <BrowserNewsNotifier />
-      <MouseTrail />
       {!isDashboardRoute && <Navbar />}
       <motion.main
         key={pathname}

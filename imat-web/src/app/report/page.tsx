@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, FormEvent, useEffect, ChangeEvent, useCallback } from "react";
-import { AlertTriangle, UploadCloud, X, MapPin } from "lucide-react";
+import { AlertTriangle, Camera, CheckCircle, ClipboardList, Crosshair, MapPin, ShieldCheck, UploadCloud, X } from "lucide-react";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import { toast } from "react-hot-toast";
 import Image from "next/image";
@@ -473,35 +473,55 @@ export default function ReportPage() {
   };
 
    return (
-     <div className="mx-auto min-h-screen max-w-4xl px-4 py-14 sm:px-6 sm:py-20">
+     <div className="mx-auto min-h-screen max-w-5xl px-4 py-10 sm:px-6 sm:py-14">
        <Breadcrumbs className="mb-8" />
 
-      <div className="text-center mb-12">
-        <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-textDefault mb-4">Report an Issue</h1>
-        <p className="text-base sm:text-lg md:text-xl text-text2 max-w-2xl mx-auto">
-          Help maintain a safe and functioning campus. Found a defect? Log it here anonymously, and our Field Officers will assess it.
-        </p>
+      <div className="mb-8 grid gap-6 rounded-lg border border-borderDark bg-asphalt p-5 text-white shadow-2xl sm:p-7 lg:grid-cols-[1fr_18rem]">
+        <div>
+          <div className="mb-4 inline-flex items-center gap-2 rounded border border-accent/40 bg-accent/10 px-3 py-1 font-mono text-[10px] font-black uppercase tracking-[0.18em] text-accent">
+            <ClipboardList size={13} /> Field Intelligence Intake
+          </div>
+          <h1 className="text-3xl font-black tracking-tight text-white md:text-5xl">Report Infrastructure Defect</h1>
+          <p className="mt-4 max-w-2xl text-sm leading-relaxed text-slate-300 sm:text-base">
+            Submit a structured defect ticket with category, severity, location, and evidence so IMAT can route it for technical review.
+          </p>
+        </div>
+        <div className="grid grid-cols-3 gap-2 lg:grid-cols-1">
+          {[
+            { icon: ClipboardList, label: "Classify" },
+            { icon: Crosshair, label: "Locate" },
+            { icon: Camera, label: "Evidence" },
+          ].map((item, index) => (
+            <div key={item.label} className="rounded border border-white/10 bg-white/[0.04] p-3">
+              <div className="mb-2 flex items-center justify-between">
+                <item.icon size={16} className="text-accent" />
+                <span className="font-mono text-[9px] text-slate-500">0{index + 1}</span>
+              </div>
+              <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-300">{item.label}</p>
+            </div>
+          ))}
+        </div>
       </div>
 
-      <div className="bg-warningDim border-l-4 border-warning p-4 mb-8 rounded text-sm text-textDefault flex items-start gap-3">
-        <AlertTriangle className="text-warning shrink-0" size={20} />
+      <div className="mb-8 flex items-start gap-3 rounded-lg border border-warning/40 bg-warningDim p-4 text-sm text-textDefault">
+        <AlertTriangle className="shrink-0 text-warning" size={20} />
         <div>
-          <strong className="block mb-1">In case of Emergency</strong>
-          If this defect poses an immediate threat to life or property, please contact the Works Department directly alongside submitting this report.
+          <strong className="mb-1 block font-black uppercase tracking-[0.12em]">Immediate Hazard Protocol</strong>
+          If this defect poses an immediate threat to life or property, contact the Works Department directly alongside submitting this report.
         </div>
       </div>
 
       {pendingQueuedReports > 0 && (
-        <div className="mb-8 rounded-xl border border-primary/20 bg-primary/5 p-4 text-sm text-textDefault">
+        <div className="mb-8 rounded-lg border border-primary/25 bg-primary/10 p-4 text-sm text-textDefault">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <strong className="block text-sm">{pendingQueuedReports} offline report{pendingQueuedReports > 1 ? "s" : ""} saved locally</strong>
+              <strong className="block text-sm font-black">{pendingQueuedReports} offline report{pendingQueuedReports > 1 ? "s" : ""} saved locally</strong>
               <span className="text-text2">Complete the bot check while online, then resume the queue to upload it safely.</span>
             </div>
             <button
               type="button"
               onClick={resumeQueuedUploads}
-              className="inline-flex items-center justify-center rounded-lg border border-primary/30 bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+              className="inline-flex items-center justify-center rounded-md border border-primary/30 bg-primary px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-primary/80 disabled:cursor-not-allowed disabled:opacity-70"
               disabled={isSubmitting || isUploadingPhotos}
             >
               Resume queued upload
@@ -513,7 +533,7 @@ export default function ReportPage() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="glass-panel space-y-8 rounded-xl p-6 md:p-10">
+      <form onSubmit={handleSubmit} className="command-surface space-y-7 rounded-lg p-4 md:p-7">
         <input
           type="text"
           name="website"
@@ -525,23 +545,25 @@ export default function ReportPage() {
           aria-hidden="true"
         />
         
-        {/* WHAT HAPPENED */}
-        <section>
-          <div className="flex items-center gap-3 mb-6">
-             <div className="w-8 h-8 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold">1</div>
-             <h2 className="text-xl font-bold text-textDefault">What did you find?</h2>
+        <section className="rounded-lg border border-borderDark bg-bg p-4 sm:p-5">
+          <div className="mb-6 flex items-center gap-3">
+             <div className="flex h-9 w-9 items-center justify-center rounded-md border border-accent/40 bg-accent/10 font-mono font-black text-accent">01</div>
+             <div>
+               <h2 className="text-xl font-black text-textDefault">Classify Defect</h2>
+               <p className="text-xs text-text3">Structured fields make the report routeable later.</p>
+             </div>
           </div>
           
-          <div className="space-y-6 pl-0 sm:pl-11">
+          <div className="space-y-6">
             <div>
-              <label className="block font-bold text-textDefault mb-2">Short Title <span className="text-danger">*</span></label>
-              <input name="title" type="text" maxLength={80} placeholder="e.g. Massive pothole near ETF building" required value={draft.title} onChange={(e) => setDraft((prev) => ({ ...prev, title: e.target.value }))} className="w-full p-3 bg-bg border border-borderDark rounded-lg focus:border-primary focus:outline-none text-textDefault" />
+              <label className="mb-2 block text-sm font-black text-textDefault">Short Title <span className="text-danger">*</span></label>
+              <input name="title" type="text" maxLength={80} placeholder="e.g. Massive pothole near ETF building" required value={draft.title} onChange={(e) => setDraft((prev) => ({ ...prev, title: e.target.value }))} className="w-full rounded-md border border-borderDark bg-surfaceStrong p-3 text-textDefault focus:border-accent focus:outline-none" />
             </div>
 
-            <div className="grid md:grid-cols-2 gap-6">
+            <div className="grid gap-5 md:grid-cols-2">
               <div>
-                <label className="block font-bold text-textDefault mb-2">Category <span className="text-danger">*</span></label>
-                <select name="category" value={category} onChange={e => setDraft((prev) => ({ ...prev, category: e.target.value }))} required className="w-full p-3 bg-bg border border-borderDark rounded-lg focus:border-primary focus:outline-none text-textDefault">
+                <label className="mb-2 block text-sm font-black text-textDefault">Category <span className="text-danger">*</span></label>
+                <select name="category" value={category} onChange={e => setDraft((prev) => ({ ...prev, category: e.target.value }))} required className="w-full rounded-md border border-borderDark bg-surfaceStrong p-3 text-textDefault focus:border-accent focus:outline-none">
                   <option value="drainage">Drainage</option>
                   <option value="road">Road</option>
                   <option value="walkway">Walkway</option>
@@ -550,8 +572,8 @@ export default function ReportPage() {
                 </select>
               </div>
               <div>
-                <label className="block font-bold text-textDefault mb-2">Type of Defect <span className="text-danger">*</span></label>
-                <select name="defect_type" value={draft.defect_type} onChange={(e) => setDraft((prev) => ({ ...prev, defect_type: e.target.value }))} required className="w-full p-3 bg-bg border border-borderDark rounded-lg focus:border-primary focus:outline-none text-textDefault">
+                <label className="mb-2 block text-sm font-black text-textDefault">Type of Defect <span className="text-danger">*</span></label>
+                <select name="defect_type" value={draft.defect_type} onChange={(e) => setDraft((prev) => ({ ...prev, defect_type: e.target.value }))} required className="w-full rounded-md border border-borderDark bg-surfaceStrong p-3 text-textDefault focus:border-accent focus:outline-none">
                   <option value="">Select specific type...</option>
                   {DEFECT_TYPES[category]?.map(type => (
                     <option key={type} value={type}>{type}</option>
@@ -561,40 +583,46 @@ export default function ReportPage() {
             </div>
 
             <div>
-              <label className="block font-bold text-textDefault mb-2">Severity Level <span className="text-danger">*</span></label>
-              <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-3 mt-3">
+              <label className="mb-2 block text-sm font-black text-textDefault">Severity Level <span className="text-danger">*</span></label>
+              <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
                 {[
                   { val: 1, label: "Cosmetic", desc: "Surface issues, no risk" },
                   { val: 2, label: "Minor", desc: "Limited function impact" },
                   { val: 3, label: "Moderate", desc: "Affects safety/usage" },
                   { val: 4, label: "Critical", desc: "Active hazard" },
                   { val: 5, label: "Emergency", desc: "Imminent danger" }
-                ].map(sev => (
-                  <label key={sev.val} className={`border border-borderDark rounded-lg p-3 cursor-pointer text-center hover:border-primary transition-colors flex flex-col items-center justify-center gap-1 ${sev.val >= 4 ? 'hover:bg-dangerDim' : 'hover:bg-primaryDim'}`}>
-                    <input type="radio" name="severity" value={sev.val} checked={draft.severity === String(sev.val)} onChange={(e) => setDraft((prev) => ({ ...prev, severity: e.target.value }))} required className="w-4 h-4 cursor-pointer mb-2" />
-                    <strong className={`block text-sm ${sev.val >= 4 ? 'text-danger' : 'text-textDefault'}`}>{sev.val}: {sev.label}</strong>
-                    <span className="text-[10px] text-text3 leading-tight">{sev.desc}</span>
-                  </label>
-                ))}
+                ].map(sev => {
+                  const isSelected = draft.severity === String(sev.val);
+                  return (
+                    <label key={sev.val} className={`flex cursor-pointer flex-col gap-2 rounded-md border p-3 transition-colors ${isSelected ? "border-accent bg-accent/10" : "border-borderDark bg-surfaceStrong hover:border-accent"} ${sev.val >= 4 ? "text-danger" : "text-textDefault"}`}>
+                      <div className="flex items-center justify-between gap-2">
+                        <input type="radio" name="severity" value={sev.val} checked={isSelected} onChange={(e) => setDraft((prev) => ({ ...prev, severity: e.target.value }))} required className="h-4 w-4 cursor-pointer accent-accent" />
+                        <strong className="font-mono text-xs">LVL {sev.val}</strong>
+                      </div>
+                      <strong className="block text-sm">{sev.label}</strong>
+                      <span className="text-[11px] leading-tight text-text3">{sev.desc}</span>
+                    </label>
+                  );
+                })}
               </div>
             </div>
           </div>
         </section>
 
-        <hr className="border-borderDark" />
-
-        {/* WHERE IS IT */}
-        <section>
-          <div className="flex items-center gap-3 mb-6">
-             <div className="w-8 h-8 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold">2</div>
-             <h2 className="text-xl font-bold text-textDefault">Where is it located?</h2>
+        <section className="rounded-lg border border-borderDark bg-bg p-4 sm:p-5">
+          <div className="mb-6 flex items-center gap-3">
+             <div className="flex h-9 w-9 items-center justify-center rounded-md border border-primary/40 bg-primary/10 font-mono font-black text-primary">02</div>
+             <div>
+               <h2 className="text-xl font-black text-textDefault">Locate Asset</h2>
+               <p className="text-xs text-text3">Zone and coordinates speed up field verification.</p>
+             </div>
           </div>
 
-          <div className="space-y-6 pl-0 sm:pl-11">
-            <div className="grid md:grid-cols-2 gap-6">
+          <div className="space-y-6">
+            <div className="grid gap-5 md:grid-cols-2">
               <div>
-                <label className="block font-bold text-textDefault mb-2">Campus Zone</label>
-                <select name="campus_zone_id" value={draft.campus_zone_id} onChange={(e) => setDraft((prev) => ({ ...prev, campus_zone_id: e.target.value }))} className="w-full p-3 bg-bg border border-borderDark rounded-lg focus:border-primary focus:outline-none text-textDefault">
+                <label className="mb-2 block text-sm font-black text-textDefault">Campus Zone</label>
+                <select name="campus_zone_id" value={draft.campus_zone_id} onChange={(e) => setDraft((prev) => ({ ...prev, campus_zone_id: e.target.value }))} className="w-full rounded-md border border-borderDark bg-surfaceStrong p-3 text-textDefault focus:border-primary focus:outline-none">
                   <option value="">Select general zone (optional)...</option>
                   {zones.map(z => (
                     <option key={z.id} value={z.id}>{z.name}</option>
@@ -602,18 +630,18 @@ export default function ReportPage() {
                 </select>
               </div>
               <div>
-                <label className="block font-bold text-textDefault mb-2">Estimated Area (sq meters)</label>
-                <input name="affected_area_sqm" value={draft.affected_area_sqm} onChange={(e) => setDraft((prev) => ({ ...prev, affected_area_sqm: e.target.value }))} type="number" step="0.1" placeholder="e.g. 5" className="w-full p-3 bg-bg border border-borderDark rounded-lg focus:border-primary focus:outline-none text-textDefault" />
+                <label className="mb-2 block text-sm font-black text-textDefault">Estimated Area (sq meters)</label>
+                <input name="affected_area_sqm" value={draft.affected_area_sqm} onChange={(e) => setDraft((prev) => ({ ...prev, affected_area_sqm: e.target.value }))} type="number" step="0.1" placeholder="e.g. 5" className="w-full rounded-md border border-borderDark bg-surfaceStrong p-3 text-textDefault focus:border-primary focus:outline-none" />
               </div>
             </div>
 
             <div>
-              <label className="block font-bold text-textDefault mb-2">Precise Location (GPS Coordinates)</label>
+              <label className="mb-2 block text-sm font-black text-textDefault">Precise Location (GPS Coordinates)</label>
               <button
                 type="button"
                 onClick={getLocation}
                 disabled={locating}
-                className="w-full p-3 flex items-center justify-center gap-2 bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 rounded-lg font-semibold transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+                className="flex w-full items-center justify-center gap-2 rounded-md border border-primary/25 bg-primary/10 p-3 font-bold text-primary transition-colors hover:bg-primary/15 disabled:cursor-not-allowed disabled:opacity-70"
               >
                 <MapPin size={16} />
                 {locating
@@ -622,66 +650,64 @@ export default function ReportPage() {
                     ? `LAT ${draft.location_lat.toFixed(5)} / LNG ${draft.location_lng.toFixed(5)}`
                     : "Capture Current GPS Coordinates (Optional)"}
               </button>
-              <p className="mt-2 text-xs text-text3">Optional, but helpful for faster field verification.</p>
             </div>
             
             <div>
-              <label className="block font-bold text-textDefault mb-2">Detailed Description & Exact Location <span className="text-danger">*</span></label>
-              <textarea name="description" value={draft.description} onChange={(e) => setDraft((prev) => ({ ...prev, description: e.target.value }))} rows={4} placeholder="Describe the defect and exactly where it is so field officers can easily find it..." required className="w-full p-3 bg-bg border border-borderDark rounded-lg focus:border-primary focus:outline-none text-textDefault"></textarea>
+              <label className="mb-2 block text-sm font-black text-textDefault">Detailed Description & Exact Location <span className="text-danger">*</span></label>
+              <textarea name="description" value={draft.description} onChange={(e) => setDraft((prev) => ({ ...prev, description: e.target.value }))} rows={4} placeholder="Describe the defect and exactly where it is so field officers can easily find it..." required className="w-full rounded-md border border-borderDark bg-surfaceStrong p-3 text-textDefault focus:border-primary focus:outline-none"></textarea>
             </div>
           </div>
         </section>
 
-        <hr className="border-borderDark" />
-
-        {/* PHOTO UPLOAD */}
-        <section>
-          <div className="flex items-center gap-3 mb-6">
-             <div className="w-8 h-8 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold">3</div>
-             <h2 className="text-xl font-bold text-textDefault">Photographic Evidence</h2>
+        <section className="rounded-lg border border-borderDark bg-bg p-4 sm:p-5">
+          <div className="mb-6 flex items-center gap-3">
+             <div className="flex h-9 w-9 items-center justify-center rounded-md border border-warning/40 bg-warning/10 font-mono font-black text-warning">03</div>
+             <div>
+               <h2 className="text-xl font-black text-textDefault">Photographic Evidence</h2>
+               <p className="text-xs text-text3">Upload up to four field images.</p>
+             </div>
           </div>
           
-          <div className="pl-0 sm:pl-11">
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {photoPreviews.map((preview, idx) => (
-                  <div key={preview} className="relative aspect-square rounded-lg border border-borderDark overflow-hidden bg-bg">
-                    <Image src={preview} alt={`Selected evidence ${idx + 1}`} fill className="object-cover" />
-                    <button
-                      type="button"
-                      onClick={() => removePhoto(idx)}
-                      className="absolute top-2 right-2 p-1 bg-black/60 text-white rounded-full hover:bg-danger transition-colors"
-                      aria-label="Remove image"
-                    >
-                      <X size={14} />
-                    </button>
-                  </div>
-                ))}
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+              {photoPreviews.map((preview, idx) => (
+                <div key={preview} className="relative aspect-square overflow-hidden rounded-md border border-borderDark bg-bg">
+                  <Image src={preview} alt={`Selected evidence ${idx + 1}`} fill className="object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => removePhoto(idx)}
+                    className="absolute right-2 top-2 rounded-md bg-black/70 p-1 text-white transition-colors hover:bg-danger"
+                    aria-label="Remove image"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              ))}
 
-                {photoPreviews.length < 4 && (
-                  <label className="aspect-square rounded-lg border-2 border-dashed border-borderDark hover:border-primary hover:bg-primary/5 transition-all flex flex-col items-center justify-center cursor-pointer text-text3 hover:text-primary p-3 text-center">
-                    <UploadCloud size={24} className="mb-2" />
-                    <span className="text-xs font-mono uppercase">Upload Photo</span>
-                    <input
-                      type="file"
-                      accept="image/jpeg,image/png,image/webp"
-                      multiple
-                      onChange={handlePhotoSelect}
-                      className="hidden"
-                    />
-                  </label>
-                )}
-              </div>
-
-              <p className="text-xs text-text3">Optional. You can upload up to 4 images (JPG, PNG, WebP).</p>
+              {photoPreviews.length < 4 && (
+                <label className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-md border-2 border-dashed border-borderDark p-3 text-center text-text3 transition-all hover:border-accent hover:bg-accent/5 hover:text-accent">
+                  <UploadCloud size={24} className="mb-2" />
+                  <span className="font-mono text-xs font-black uppercase tracking-[0.12em]">Upload Photo</span>
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    multiple
+                    onChange={handlePhotoSelect}
+                    className="hidden"
+                  />
+                </label>
+              )}
             </div>
           </div>
         </section>
 
-        <div className="pt-8 flex flex-col-reverse md:flex-row md:items-start md:justify-end gap-3">
-          <div className="md:mr-auto w-full md:max-w-md">
-            <div className="rounded-xl border border-borderDark bg-bg2/70 p-4">
-              <h3 className="text-sm font-semibold uppercase tracking-wide text-textDefault">Quick safety check</h3>
+        <div className="flex flex-col-reverse gap-3 rounded-lg border border-borderDark bg-bg p-4 md:flex-row md:items-start md:justify-end">
+          <div className="w-full md:mr-auto md:max-w-md">
+            <div className="rounded-lg border border-borderDark bg-surfaceStrong p-4">
+              <h3 className="flex items-center gap-2 text-sm font-black uppercase tracking-wide text-textDefault">
+                <ShieldCheck size={16} className="text-primary" />
+                Quick safety check
+              </h3>
               <p className="mt-1 text-xs text-text3">One quick click helps block spam reports while keeping real reports easy to submit.</p>
               <TurnstileWidget
                 onTokenChange={setTurnstileToken}
@@ -694,12 +720,13 @@ export default function ReportPage() {
             type="button"
             onClick={clearFormDraft}
             disabled={isSubmitting || isUploadingPhotos}
-            className="w-full md:w-auto px-4 py-2.5 bg-bg border border-borderDark hover:border-text3 text-text2 font-semibold rounded-lg transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+            className="w-full rounded-md border border-borderDark bg-surfaceStrong px-4 py-2.5 font-bold text-text2 transition-colors hover:border-text3 disabled:cursor-not-allowed disabled:opacity-70 md:w-auto"
           >
             Clear Form
           </button>
-          <button type="submit" disabled={isSubmitting || isUploadingPhotos} className="w-full md:w-auto px-5 py-2.5 bg-primary hover:bg-blue-500 text-white font-bold rounded-lg text-sm md:text-base transition-transform hover:-translate-y-1 shadow-xl flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed">
-            {isUploadingPhotos ? <span className="animate-pulse">Uploading images...</span> : isSubmitting ? <span className="animate-pulse">Submitting Report...</span> : "Submit Public Report"}
+          <button type="submit" disabled={isSubmitting || isUploadingPhotos} className="flex w-full items-center justify-center gap-2 rounded-md bg-accent px-5 py-2.5 text-sm font-black uppercase tracking-[0.1em] text-white shadow-xl transition-colors hover:bg-accent2 disabled:cursor-not-allowed disabled:opacity-70 md:w-auto md:text-base">
+            <CheckCircle size={16} />
+            {isUploadingPhotos ? <span className="animate-pulse">Uploading images...</span> : isSubmitting ? <span className="animate-pulse">Submitting Report...</span> : "Submit Report"}
           </button>
         </div>
 

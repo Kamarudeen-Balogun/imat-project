@@ -1,24 +1,60 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Lock } from "lucide-react";
 import Link from "next/link";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import { toast } from "react-hot-toast";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 
+function hasSupabaseAuthCookie() {
+  return /(?:^|;\s*)sb-[^=;]+-auth-token(?:\.\d+)?=/i.test(document.cookie);
+}
+
+async function waitForAuthCookie(timeoutMs = 2000) {
+  const startedAt = Date.now();
+
+  while (Date.now() - startedAt < timeoutMs) {
+    if (hasSupabaseAuthCookie()) {
+      return true;
+    }
+
+    await new Promise((resolve) => window.setTimeout(resolve, 50));
+  }
+
+  return hasSupabaseAuthCookie();
+}
+
+async function waitForStoredSession(supabase: ReturnType<typeof createSupabaseClient>, timeoutMs = 2000) {
+  const startedAt = Date.now();
+
+  while (Date.now() - startedAt < timeoutMs) {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (session) {
+      return session;
+    }
+
+    await new Promise((resolve) => window.setTimeout(resolve, 50));
+  }
+
+  return null;
+}
+
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const supabase = createSupabaseClient();
+  const supabase = useMemo(() => createSupabaseClient(), []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data: loginData, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
@@ -27,13 +63,24 @@ export default function LoginPage() {
         throw error;
       }
 
-      const { data: sessionData } = await supabase.auth.getSession();
-      if (!sessionData.session) {
+      const session = loginData.session ?? (await supabase.auth.getSession()).data.session;
+      if (!session) {
         throw new Error("Login succeeded but the session was not established.");
       }
 
+      await supabase.auth.setSession({
+        access_token: session.access_token,
+        refresh_token: session.refresh_token,
+      });
+
+      const storedSession = await waitForStoredSession(supabase);
+      if (!storedSession) {
+        throw new Error("Login succeeded but the browser could not store the session.");
+      }
+
       toast.success("Login successful!");
-      window.location.replace("/dashboard");
+      await waitForAuthCookie();
+      window.location.assign("/dashboard");
     } catch (error) {
       console.error("Login failed.");
       toast.error((error as Error).message || "Invalid login credentials. Please try again.");

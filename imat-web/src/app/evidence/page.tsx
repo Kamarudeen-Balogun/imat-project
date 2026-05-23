@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { SlidersHorizontal, Sparkles, ChevronDown, Check } from "lucide-react";
+import { Check, ChevronDown, FolderKanban, SlidersHorizontal } from "lucide-react";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import EvidenceGalleryGrid, { type EvidenceGalleryItem } from "@/components/evidence/EvidenceGalleryGrid";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
@@ -53,18 +53,18 @@ export default function EvidencePage() {
     <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-4 py-16 sm:px-6">
       <Breadcrumbs className="mb-8" />
 
-      <div className="mb-12">
-        <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-mono uppercase tracking-wider text-primary">
-          <Sparkles size={14} /> Before / After Evidence
+      <div className="mb-8 rounded-lg border border-borderDark bg-asphalt p-5 text-white shadow-2xl sm:p-7">
+        <div className="mb-4 inline-flex items-center gap-2 rounded border border-accent/40 bg-accent/10 px-3 py-1 text-xs font-mono font-black uppercase tracking-wider text-accent">
+          <FolderKanban size={14} /> Before / After Evidence Board
         </div>
-        <h1 className="text-3xl md:text-5xl font-bold text-textDefault mb-4">Evidence Gallery</h1>
-        <p className="text-text2 max-w-2xl text-lg">
+        <h1 className="mb-4 text-3xl font-black text-white md:text-5xl">Evidence Gallery</h1>
+        <p className="max-w-2xl text-sm leading-relaxed text-slate-300 sm:text-base">
           A continuous, documented record of infrastructural defects on the FUTA campus. Each card shows the original condition and the verified after state side by side.
         </p>
       </div>
 
-      <div className="glass-panel relative z-30 mb-8 flex flex-col items-center gap-6 overflow-visible rounded-xl p-4 md:flex-row md:p-6">
-        <div className="flex items-center gap-2 text-text3 w-full md:w-auto font-mono text-sm uppercase shrink-0">
+      <div className="command-surface relative z-30 mb-8 flex flex-col items-center gap-6 overflow-visible rounded-lg p-4 md:flex-row md:p-5">
+        <div className="flex w-full shrink-0 items-center gap-2 font-mono text-sm uppercase text-text3 md:w-auto">
           <SlidersHorizontal size={16} /> Filters
         </div>
         
@@ -75,7 +75,7 @@ export default function EvidencePage() {
               <button
                 type="button"
                 onClick={() => setIsCategoryOpen((current) => !current)}
-                className="flex w-full items-center justify-between rounded-lg border border-borderDark bg-surfaceStrong px-3 py-2 text-sm text-textDefault transition-colors hover:border-primary/50 focus:border-primary focus:outline-none"
+                className="flex w-full items-center justify-between rounded-md border border-borderDark bg-surfaceStrong px-3 py-2 text-sm text-textDefault transition-colors hover:border-accent focus:border-accent focus:outline-none"
                 aria-expanded={isCategoryOpen}
                 aria-label="Select evidence category"
               >
@@ -93,10 +93,10 @@ export default function EvidencePage() {
                         setCategoryFilter(category);
                         setIsCategoryOpen(false);
                       }}
-                      className="flex w-full items-center justify-between px-3 py-2 text-left text-sm text-textDefault transition-colors hover:bg-primary/10"
+                      className="flex w-full items-center justify-between px-3 py-2 text-left text-sm text-textDefault transition-colors hover:bg-accent/10"
                     >
                       <span className="truncate">{category}</span>
-                      {categoryFilter === category && <Check size={15} className="text-primary" />}
+                      {categoryFilter === category && <Check size={15} className="text-accent" />}
                     </button>
                   ))}
                 </div>
@@ -109,11 +109,11 @@ export default function EvidencePage() {
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {Array.from({ length: 3 }).map((_, index) => (
-            <div key={index} className="h-[420px] rounded-2xl border border-borderDark bg-surface animate-pulse" />
+            <div key={index} className="h-[420px] animate-pulse rounded-lg border border-borderDark bg-surface" />
           ))}
         </div>
       ) : filteredItems.length === 0 ? (
-        <div className="glass-panel rounded-2xl p-12 text-center text-text3">
+        <div className="ticket-card rounded-lg p-12 text-center text-text3">
           No evidence items have been published yet. Add the first record in the dashboard evidence manager.
         </div>
       ) : (

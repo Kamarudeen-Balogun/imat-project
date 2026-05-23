@@ -21,6 +21,22 @@ type UserProfile = {
   avatar_url?: string | null;
 };
 
+async function waitForBrowserSession(supabase: ReturnType<typeof createSupabaseClient>) {
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (session) {
+      return session;
+    }
+
+    await new Promise((resolve) => window.setTimeout(resolve, 100));
+  }
+
+  return null;
+}
+
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -44,10 +60,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }, [menuOpen]);
 
   useEffect(() => {
+    let cancelled = false;
+
     const fetchUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const session = await waitForBrowserSession(supabase);
       if (!session) {
-        router.push("/login");
+        if (!cancelled) {
+          router.replace("/login");
+        }
         return;
       }
 
@@ -58,6 +78,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         .eq("id", session.user.id)
         .single();
       
+      if (cancelled) return;
+
       if (data && !error) {
         setProfile(data);
       } else {
@@ -67,6 +89,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       setLoading(false);
     };
     fetchUser();
+
+    return () => {
+      cancelled = true;
+    };
   }, [router, supabase]);
 
   const handleLogout = async () => {
@@ -94,32 +120,32 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const navItemClassName = (itemHref: string, baseClasses: string) => {
     const active = isActiveNavItem(itemHref);
     const activeClasses = active
-      ? "bg-primary/10 text-primary ring-1 ring-primary/20 shadow-[0_0_0_1px_rgba(59,130,246,0.12)]"
+      ? "bg-accent/12 text-accent ring-1 ring-accent/35"
       : baseClasses;
 
-    return `flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-sm transition-colors ${activeClasses}`;
+    return `flex items-center gap-3 rounded-md px-4 py-3 text-sm font-bold transition-colors ${activeClasses}`;
   };
 
   const navItems = [
-    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, classes: "bg-primary/10 text-primary font-bold" },
-    { href: "/dashboard/defects", label: "Defect Masterlist", icon: Map, classes: "text-text2 hover:text-textDefault hover:bg-bg3" },
-    { href: "/dashboard/reports", label: "Engineering Reports", icon: FileText, classes: "text-text2 hover:text-textDefault hover:bg-bg3" },
-    { href: "/portal/analytics", label: "Analytics", icon: BarChart2, classes: "text-text2 hover:text-textDefault hover:bg-bg3" },
-    ...(canEditContent(profile?.role) ? [{ href: "/dashboard/news", label: "Newsroom Manager", icon: Megaphone, classes: "text-text2 hover:text-textDefault hover:bg-bg3" }] : []),
-    ...(canEditEvidenceGallery(profile?.role) ? [{ href: "/dashboard/evidence", label: "Evidence Gallery", icon: FileText, classes: "text-text2 hover:text-textDefault hover:bg-bg3" }] : []),
-    ...(canManageSocialLinks(profile?.role) ? [{ href: "/dashboard/social-links", label: "Social Links", icon: Share2, classes: "text-text2 hover:text-textDefault hover:bg-bg3" }] : []),
-    { href: "/dashboard/directory", label: "Member Directory", icon: Users, classes: "text-text2 hover:text-textDefault hover:bg-bg3" },
-    { href: "/dashboard/profile", label: "My Profile", icon: User, classes: "text-text2 hover:text-textDefault hover:bg-bg3" },
-    { href: "/dashboard/wiki", label: "Knowledge Base", icon: BookOpen, classes: "text-text2 hover:text-textDefault hover:bg-bg3" },
-    { href: "/dashboard/activity", label: "Activity Timeline", icon: Activity, classes: "text-text2 hover:text-textDefault hover:bg-bg3" },
+    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, classes: "text-slate-300 hover:bg-white/5 hover:text-white" },
+    { href: "/dashboard/defects", label: "Defect Masterlist", icon: Map, classes: "text-slate-300 hover:bg-white/5 hover:text-white" },
+    { href: "/dashboard/reports", label: "Engineering Reports", icon: FileText, classes: "text-slate-300 hover:bg-white/5 hover:text-white" },
+    { href: "/portal/analytics", label: "Analytics", icon: BarChart2, classes: "text-slate-300 hover:bg-white/5 hover:text-white" },
+    ...(canEditContent(profile?.role) ? [{ href: "/dashboard/news", label: "Newsroom Manager", icon: Megaphone, classes: "text-slate-300 hover:bg-white/5 hover:text-white" }] : []),
+    ...(canEditEvidenceGallery(profile?.role) ? [{ href: "/dashboard/evidence", label: "Evidence Gallery", icon: FileText, classes: "text-slate-300 hover:bg-white/5 hover:text-white" }] : []),
+    ...(canManageSocialLinks(profile?.role) ? [{ href: "/dashboard/social-links", label: "Social Links", icon: Share2, classes: "text-slate-300 hover:bg-white/5 hover:text-white" }] : []),
+    { href: "/dashboard/directory", label: "Member Directory", icon: Users, classes: "text-slate-300 hover:bg-white/5 hover:text-white" },
+    { href: "/dashboard/profile", label: "My Profile", icon: User, classes: "text-slate-300 hover:bg-white/5 hover:text-white" },
+    { href: "/dashboard/wiki", label: "Knowledge Base", icon: BookOpen, classes: "text-slate-300 hover:bg-white/5 hover:text-white" },
+    { href: "/dashboard/activity", label: "Activity Timeline", icon: Activity, classes: "text-slate-300 hover:bg-white/5 hover:text-white" },
   ];
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
       <OfflineBanner />
-      <aside className="hidden w-64 flex-col border-r border-soft bg-surfaceStrong md:flex">
-         <div className="flex items-center gap-3 border-b border-soft p-6">
-            <span className="relative inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-slate-950/55 via-slate-900/45 to-black/30 shadow-[0_10px_24px_rgba(0,0,0,0.35)]">
+      <aside className="hidden w-72 flex-col border-r border-white/10 bg-asphalt text-white md:flex">
+         <div className="flex items-center gap-3 border-b border-white/10 p-6">
+            <span className="relative inline-flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 bg-black/30 shadow-[0_10px_24px_rgba(0,0,0,0.35)]">
               <Image
                 src="/images/logo.png"
                 alt="IMAT"
@@ -131,8 +157,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               />
             </span>
             <div>
-              <div className="font-bold text-textDefault tracking-tight">IMAT Portal</div>
-              <div className="text-[10px] text-text3 font-mono uppercase truncate">{profile?.role.replace("_", " ")}</div>
+              <div className="font-bold tracking-tight text-white">IMAT Portal</div>
+              <div className="truncate font-mono text-[10px] uppercase tracking-[0.16em] text-slate-400">{profile?.role.replace("_", " ")}</div>
             </div>
          </div>
          <nav className="flex-grow space-y-2 p-4">
@@ -147,57 +173,57 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </Link>
             ))}
             
-            <div className="pt-2 pb-1 px-4 text-[10px] font-mono text-text3 uppercase tracking-wider">Field Operations</div>
+            <div className="px-4 pb-1 pt-2 font-mono text-[10px] uppercase tracking-wider text-slate-500">Field Operations</div>
             
             {['admin', 'field_officer', 'technical_officer'].includes(profile?.role || '') && (
-              <Link href="/dashboard/defects/new" className="flex items-center gap-3 px-4 py-3 text-warning hover:text-warning hover:bg-warning/10 rounded-lg font-bold text-sm transition-colors">
+              <Link href="/dashboard/defects/new" className="flex items-center gap-3 rounded-md px-4 py-3 text-sm font-bold text-warning transition-colors hover:bg-warning/10 hover:text-warning">
                  + New Assessment
                </Link>
             )}
 
             {['admin', 'advocacy_officer', 'president', 'vice_president'].includes(profile?.role || '') && (
-               <Link href="/dashboard/campaigns/new" className="flex items-center gap-3 px-4 py-3 text-purple-300 hover:text-purple-200 hover:bg-purple-500/10 rounded-lg font-medium text-sm transition-colors">
+               <Link href="/dashboard/campaigns/new" className="flex items-center gap-3 rounded-md px-4 py-3 text-sm font-medium text-slate-300 transition-colors hover:bg-white/5 hover:text-white">
                  <Megaphone size={18} /> Broadcast & Campaigns
                </Link>
             )}
 
-            <div className="pt-2 pb-1 px-4 text-[10px] font-mono text-text3 uppercase tracking-wider">Public Portal</div>
+            <div className="px-4 pb-1 pt-2 font-mono text-[10px] uppercase tracking-wider text-slate-500">Public Portal</div>
 
-            <Link href="/issues" className="flex items-center gap-3 px-4 py-3 text-text2 hover:text-textDefault hover:bg-bg3 rounded-lg font-medium text-sm transition-colors">
+            <Link href="/issues" className="flex items-center gap-3 rounded-md px-4 py-3 text-sm font-medium text-slate-300 transition-colors hover:bg-white/5 hover:text-white">
               <Map size={18} /> Issue Tracker
             </Link>
-            <Link href="/evidence" className="flex items-center gap-3 px-4 py-3 text-text2 hover:text-textDefault hover:bg-bg3 rounded-lg font-medium text-sm transition-colors">
+            <Link href="/evidence" className="flex items-center gap-3 rounded-md px-4 py-3 text-sm font-medium text-slate-300 transition-colors hover:bg-white/5 hover:text-white">
               <FileText size={18} /> Evidence Gallery
             </Link>
-            <Link href="/newsroom" className="flex items-center gap-3 px-4 py-3 text-text2 hover:text-textDefault hover:bg-bg3 rounded-lg font-medium text-sm transition-colors">
+            <Link href="/newsroom" className="flex items-center gap-3 rounded-md px-4 py-3 text-sm font-medium text-slate-300 transition-colors hover:bg-white/5 hover:text-white">
               <Megaphone size={18} /> Newsroom
             </Link>
 
          </nav>
-         <div className="border-t border-soft bg-surface p-4 text-sm text-text3">
-            <button onClick={handleLogout} className="flex items-center gap-3 px-4 py-3 w-full text-left hover:text-danger hover:bg-dangerDim rounded-lg font-medium transition-colors">
+         <div className="border-t border-white/10 bg-black/15 p-4 text-sm text-slate-400">
+            <button onClick={handleLogout} className="flex w-full items-center gap-3 rounded-md px-4 py-3 text-left font-medium transition-colors hover:bg-danger/10 hover:text-danger">
               <LogOut size={18} /> Sign Out
             </button>
          </div>
       </aside>
 
       <main className="flex-grow flex flex-col min-h-screen">
-        <header className="sticky top-0 z-10 flex h-16 items-center justify-between gap-2 border-b border-soft bg-surfaceStrong px-4 backdrop-blur-md sm:px-6 md:px-8">
+        <header className="sticky top-0 z-10 flex h-16 items-center justify-between gap-2 border-b border-borderDark bg-surfaceStrong px-4 backdrop-blur-md sm:px-6 md:px-8">
             <div className="flex items-center gap-3 min-w-0">
               <button
                 onClick={() => setMenuOpen((current) => !current)}
-                className="rounded-lg border border-soft bg-surface px-2 py-2 transition-colors hover:bg-bg3 md:hidden"
+                className="rounded-md border border-soft bg-surface px-2 py-2 transition-colors hover:bg-bg3 md:hidden"
                 aria-label="Toggle dashboard menu"
               >
                 {menuOpen ? <X size={18} /> : <Menu size={18} />}
               </button>
-              <h1 className="text-xs sm:text-sm font-mono text-text3 truncate">Welcome back, <strong className="text-textDefault">{profile?.full_name}</strong></h1>
+              <h1 className="truncate font-mono text-xs text-text3 sm:text-sm">Operations console / <strong className="text-textDefault">{profile?.full_name}</strong></h1>
             </div>
             <div className="flex items-center gap-3">
               {mounted && (
                 <button
                   onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                  className="rounded-xl border border-soft bg-surface px-2.5 py-2 text-text2 transition-colors hover:border-accent hover:text-accent"
+                  className="rounded-md border border-soft bg-surface px-2.5 py-2 text-text2 transition-colors hover:border-accent hover:text-accent"
                   aria-label="Toggle theme"
                 >
                   {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
@@ -217,21 +243,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   initials
                 )}
               </Link>
-              <Link href="/" className="text-xs text-text2 hover:text-primary transition-colors underline">View Public Site</Link>
+              <Link href="/" className="text-xs font-bold uppercase tracking-[0.12em] text-text2 transition-colors hover:text-accent">Public Site</Link>
             </div>
         </header>
         <AnimatePresence>
           {menuOpen && (
             <>
               <motion.div
-                className="md:hidden fixed inset-0 bg-slate-950/40 z-20"
+                className="fixed inset-0 z-20 bg-slate-950/50 md:hidden"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 onClick={() => setMenuOpen(false)}
               />
               <motion.aside
-                className="fixed left-0 top-16 z-30 h-[calc(100dvh-4rem)] w-80 max-w-[88vw] overflow-y-auto overscroll-contain border-r border-soft bg-bg p-4 pb-24 shadow-2xl md:hidden"
+                className="fixed left-0 top-16 z-30 h-[calc(100dvh-4rem)] w-80 max-w-[88vw] overflow-y-auto overscroll-contain border-r border-white/10 bg-asphalt p-4 pb-24 text-white shadow-2xl md:hidden"
                 style={{ WebkitOverflowScrolling: "touch" }}
                 initial={{ x: -24, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
@@ -250,26 +276,26 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     </Link>
                   ))}
                   {['admin', 'field_officer', 'technical_officer'].includes(profile?.role || '') && (
-                    <Link href="/dashboard/defects/new" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 text-warning hover:text-warning hover:bg-warning/10 rounded-lg font-bold text-sm transition-colors">
+                    <Link href="/dashboard/defects/new" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 rounded-md px-4 py-3 text-sm font-bold text-warning transition-colors hover:bg-warning/10 hover:text-warning">
                       + New Assessment
                     </Link>
                   )}
                   {['admin', 'advocacy_officer', 'president', 'vice_president'].includes(profile?.role || '') && (
-                    <Link href="/dashboard/campaigns/new" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 text-purple-300 hover:text-purple-200 hover:bg-purple-500/10 rounded-lg font-medium text-sm transition-colors">
+                    <Link href="/dashboard/campaigns/new" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 rounded-md px-4 py-3 text-sm font-medium text-slate-300 transition-colors hover:bg-white/5 hover:text-white">
                       <Megaphone size={18} /> Broadcast & Campaigns
                     </Link>
                   )}
-                  <div className="pt-2 pb-1 px-4 text-[10px] font-mono text-text3 uppercase tracking-wider">Public Portal</div>
-                  <Link href="/issues" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 text-text2 hover:text-textDefault hover:bg-bg3 rounded-lg font-medium text-sm transition-colors">
+                  <div className="px-4 pb-1 pt-2 font-mono text-[10px] uppercase tracking-wider text-slate-500">Public Portal</div>
+                  <Link href="/issues" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 rounded-md px-4 py-3 text-sm font-medium text-slate-300 transition-colors hover:bg-white/5 hover:text-white">
                     <Map size={18} /> Issue Tracker
                   </Link>
-                  <Link href="/evidence" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 text-text2 hover:text-textDefault hover:bg-bg3 rounded-lg font-medium text-sm transition-colors">
+                  <Link href="/evidence" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 rounded-md px-4 py-3 text-sm font-medium text-slate-300 transition-colors hover:bg-white/5 hover:text-white">
                     <FileText size={18} /> Evidence Gallery
                   </Link>
-                  <Link href="/newsroom" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 text-text2 hover:text-textDefault hover:bg-bg3 rounded-lg font-medium text-sm transition-colors">
+                  <Link href="/newsroom" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 rounded-md px-4 py-3 text-sm font-medium text-slate-300 transition-colors hover:bg-white/5 hover:text-white">
                     <Megaphone size={18} /> Newsroom
                   </Link>
-                  <button onClick={handleLogout} className="flex items-center gap-3 px-4 py-3 w-full text-left hover:text-danger hover:bg-dangerDim rounded-lg font-medium text-sm transition-colors text-text2">
+                  <button onClick={handleLogout} className="flex w-full items-center gap-3 rounded-md px-4 py-3 text-left text-sm font-medium text-slate-300 transition-colors hover:bg-danger/10 hover:text-danger">
                     <LogOut size={18} /> Sign Out
                   </button>
                 </nav>

@@ -29,6 +29,12 @@ const config: Config = {
         dangerDim: "var(--dangerDim)",
         warning: "var(--warning)",
         warningDim: "var(--warningDim)",
+        surface: "var(--surface)",
+        surfaceStrong: "var(--surfaceStrong)",
+        asphalt: "var(--asphalt)",
+        asphalt2: "var(--asphalt2)",
+        caution: "var(--caution)",
+        steel: "var(--steel)",
       },
       fontFamily: {
         sans: ["var(--font-ibm-plex-sans)"],

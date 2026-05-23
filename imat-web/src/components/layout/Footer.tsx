@@ -91,18 +91,16 @@ export function Footer() {
   }, [socialLinks]);
 
   return (
-    <footer className="relative mt-20 border-t border-borderDark bg-bg2/60 py-14 backdrop-blur-sm md:mt-24">
-      <div className="absolute -top-40 left-0 h-40 w-full bg-gradient-to-t from-transparent to-bg/0" />
+    <footer className="relative mt-20 border-t border-borderDark bg-asphalt py-14 text-white md:mt-24">
       <div className="mx-auto grid max-w-6xl grid-cols-1 gap-10 px-4 sm:px-6 md:grid-cols-4">
         <div className="col-span-1 md:col-span-2">
-          <p className="mb-3 inline-flex rounded-full border border-accent/40 bg-accent/10 px-3 py-1 text-[10px] font-mono font-semibold uppercase tracking-[0.16em] text-accent">
+          <p className="mb-3 inline-flex rounded border border-accent/40 bg-accent/10 px-3 py-1 text-[10px] font-mono font-semibold uppercase tracking-[0.16em] text-accent">
             Infrastructure Maintenance Awareness Team
           </p>
-          <h3 className="mb-4 text-xl font-bold text-textDefault">
-            <span className="bg-gradient-to-r from-primary via-accent to-success bg-clip-text text-transparent">IMAT</span>{" "}
-            <span className="text-text2">FUTA</span>
+          <h3 className="mb-4 text-xl font-bold text-white">
+            IMAT <span className="text-accent">FUTA</span>
           </h3>
-          <p className="max-w-sm text-sm leading-relaxed text-text2">
+          <p className="max-w-sm text-sm leading-relaxed text-slate-300">
             Student-led infrastructure advocacy body within the Civil Engineering Department at the Federal University of Technology, Akure.
           </p>
         </div>
@@ -110,32 +108,32 @@ export function Footer() {
         <div>
           <h4 className="mb-4 font-mono text-xs font-semibold uppercase tracking-wider text-accent">Quick Links</h4>
             <ul className="space-y-2.5 text-sm">
-            <li><Link href="/" className="text-text2 transition-all hover:text-accent hover:translate-x-1">Home</Link></li>
-            <li><Link href="/about" className="text-text2 transition-all hover:text-accent hover:translate-x-1">About Us</Link></li>
-            <li><Link href="/newsroom" className="text-text2 transition-all hover:text-accent hover:translate-x-1">Newsroom</Link></li>
-            <li><Link href="/members" className="text-text2 transition-all hover:text-accent hover:translate-x-1">Members</Link></li>
-            <li><Link href="/apply" className="text-text2 transition-all hover:text-accent hover:translate-x-1">Apply to Join</Link></li>
-            <li><Link href="/login" className="text-text2 transition-all hover:text-accent hover:translate-x-1">Member Login</Link></li>
+            <li><Link href="/" className="text-slate-300 transition-all hover:text-accent">Home</Link></li>
+            <li><Link href="/about" className="text-slate-300 transition-all hover:text-accent">About Us</Link></li>
+            <li><Link href="/newsroom" className="text-slate-300 transition-all hover:text-accent">Newsroom</Link></li>
+            <li><Link href="/members" className="text-slate-300 transition-all hover:text-accent">Members</Link></li>
+            <li><Link href="/apply" className="text-slate-300 transition-all hover:text-accent">Apply to Join</Link></li>
+            <li><Link href="/login" className="text-slate-300 transition-all hover:text-accent">Member Login</Link></li>
           </ul>
         </div>
 
         <div>
           <h4 className="mb-4 font-mono text-xs font-semibold uppercase tracking-wider text-accent">Resources</h4>
           <ul className="space-y-2.5 text-sm">
-            <li><Link href="/evidence" className="text-text2 transition-all hover:text-accent hover:translate-x-1">Evidence Gallery</Link></li>
-            <li><Link href="/issues" className="text-text2 transition-all hover:text-accent hover:translate-x-1">Public Issue Tracker</Link></li>
-            <li><Link href="/report" className="text-text2 transition-all hover:text-accent hover:translate-x-1">Quick Report</Link></li>
-            <li><Link href="/dashboard" className="text-text2 transition-all hover:text-accent hover:translate-x-1">Member Portal</Link></li>
+            <li><Link href="/evidence" className="text-slate-300 transition-all hover:text-accent">Evidence Gallery</Link></li>
+            <li><Link href="/issues" className="text-slate-300 transition-all hover:text-accent">Public Issue Tracker</Link></li>
+            <li><Link href="/report" className="text-slate-300 transition-all hover:text-accent">Quick Report</Link></li>
+            <li><Link href="/dashboard" className="text-slate-300 transition-all hover:text-accent">Member Portal</Link></li>
           </ul>
         </div>
       </div>
 
       <div className="mx-auto mt-10 max-w-6xl px-4 sm:px-6">
-        <p className="mb-4 text-center text-xs font-mono uppercase tracking-[0.18em] text-text3">Connect with IMAT</p>
+        <p className="mb-4 text-center text-xs font-mono uppercase tracking-[0.18em] text-slate-400">Connect with IMAT</p>
         <FloatingDock items={dockItems} />
       </div>
 
-      <div className="mx-auto mt-12 flex max-w-6xl flex-col items-center justify-between gap-2 border-t border-borderDark px-4 pt-8 text-center text-xs text-text3 sm:px-6 md:flex-row md:text-left">
+      <div className="mx-auto mt-12 flex max-w-6xl flex-col items-center justify-between gap-2 border-t border-white/10 px-4 pt-8 text-center text-xs text-slate-400 sm:px-6 md:flex-row md:text-left">
         <p suppressHydrationWarning>&copy; {new Date().getFullYear()} IMAT FUTA. All rights reserved.</p>
         <p>Built with <span className="text-accent">♦</span> by <a href="mailto:codeflowx1@gmail.com" className="transition-all hover:text-accent hover:underline">codeflowx1@gmail.com</a></p>
       </div>

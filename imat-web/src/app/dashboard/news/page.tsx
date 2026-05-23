@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowRight, Calendar, Edit3, Megaphone, Plus } from "lucide-react";
+import { ArrowRight, Calendar, Edit3, Megaphone, Plus, Star } from "lucide-react";
 import { format } from "date-fns";
 import { createSupabaseClient } from "@/lib/supabase/server";
 import { canEditContent } from "@/lib/access";
@@ -10,6 +10,11 @@ import Image from "next/image";
 import optimizeCloudinaryUrl from "@/lib/cloudinary";
 import DeleteAnnouncementButton from "./DeleteAnnouncementButton";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
+import {
+  ANNOUNCEMENT_MANAGER_SELECT,
+  ANNOUNCEMENT_MANAGER_SELECT_WITH_PIN,
+  isMissingPinnedColumn,
+} from "@/lib/announcements";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +26,7 @@ type AnnouncementRow = {
   published_at: string;
   updated_at: string;
   image_url: string | null;
+  is_pinned?: boolean | null;
   author: { full_name: string | null } | null;
 };
 
@@ -160,6 +166,49 @@ async function deleteAnnouncement(formData: FormData) {
   redirect("/dashboard/news");
 }
 
+async function togglePinnedAnnouncement(formData: FormData) {
+  "use server";
+
+  const announcementId = String(formData.get("announcement_id") ?? "").trim();
+  const shouldPin = String(formData.get("should_pin") ?? "") === "true";
+
+  if (!announcementId) return;
+
+  const supabase = await createSupabaseClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const { data: profile } = await supabase
+    .from("users")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  if (!canEditContent(profile?.role)) {
+    redirect("/dashboard");
+  }
+
+  if (shouldPin) {
+    await supabase.from("announcements").update({ is_pinned: false }).eq("is_pinned", true).neq("id", announcementId);
+  }
+
+  const { error } = await supabase
+    .from("announcements")
+    .update({ is_pinned: shouldPin, updated_at: new Date().toISOString() })
+    .eq("id", announcementId);
+
+  if (error) {
+    console.warn("Failed to update pinned state.", error);
+  }
+
+  redirect("/dashboard/news");
+}
+
 export default async function DashboardNewsPage() {
   const supabase = await createSupabaseClient();
 
@@ -181,10 +230,29 @@ export default async function DashboardNewsPage() {
     redirect("/dashboard");
   }
 
-  const { data } = await supabase
+  let pinningAvailable = true;
+  const pinnedResult = await supabase
     .from("announcements")
-    .select("id, slug, title, visibility, published_at, updated_at, image_url, author:users!announcements_author_id_fkey(full_name)")
+    .select(ANNOUNCEMENT_MANAGER_SELECT_WITH_PIN)
+    .order("is_pinned", { ascending: false })
     .order("published_at", { ascending: false });
+  let data: unknown[] | null = pinnedResult.data;
+  let error = pinnedResult.error;
+
+  if (isMissingPinnedColumn(error)) {
+    pinningAvailable = false;
+    const fallback = await supabase
+      .from("announcements")
+      .select(ANNOUNCEMENT_MANAGER_SELECT)
+      .order("published_at", { ascending: false });
+
+    data = fallback.data as unknown[] | null;
+    error = fallback.error;
+  }
+
+  if (error) {
+    console.warn("Failed to load newsroom manager announcements.", error);
+  }
 
    const announcements = (data ?? []) as unknown as AnnouncementRow[];
 
@@ -246,6 +314,23 @@ export default async function DashboardNewsPage() {
               </div>
 
               <div className="mt-4 flex flex-wrap gap-2">
+                {pinningAvailable && (
+                  <form action={togglePinnedAnnouncement}>
+                    <input type="hidden" name="announcement_id" value={item.id} />
+                    <input type="hidden" name="should_pin" value={String(!item.is_pinned)} />
+                    <button
+                      type="submit"
+                      className={`inline-flex items-center rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                        item.is_pinned
+                          ? "border-accent bg-accent/10 text-accent"
+                          : "border-soft text-text3 hover:border-accent/40 hover:text-accent"
+                      }`}
+                    >
+                      <Star size={14} className="mr-1" />
+                      {item.is_pinned ? "Unpin" : "Pin to top"}
+                    </button>
+                  </form>
+                )}
                 <form action={toggleAnnouncementVisibility}>
                   <input type="hidden" name="announcement_id" value={item.id} />
                   <input type="hidden" name="visibility" value="public" />

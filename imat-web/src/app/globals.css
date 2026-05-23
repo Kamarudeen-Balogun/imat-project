@@ -40,57 +40,65 @@
   }
 
   :root {
-    --bg: #f4f8ff;
-    --bg2: #e9f0ff;
-    --bg3: #d6e2fb;
-    --borderDark: #c8d8ec;
-    --borderLit: #94aed4;
-    --textDefault: #0a1628;
-    --text2: #1a3050;
-    --text3: #4a5d70;
-    --accent: #f59e0b;
-    --accent2: #d97706;
-    --primary: #0284c7;
-    --primaryDim: #e0f2fe;
-    --success: #059669;
-    --successDim: #d1fae5;
-    --danger: #dc2626;
+    --bg: #f5f7f8;
+    --bg2: #eceff1;
+    --bg3: #dde3e7;
+    --borderDark: #c2cbd1;
+    --borderLit: #7b8790;
+    --textDefault: #111820;
+    --text2: #2f3b46;
+    --text3: #64717c;
+    --accent: #f97316;
+    --accent2: #c2410c;
+    --primary: #0f766e;
+    --primaryDim: #d8f3ef;
+    --success: #15803d;
+    --successDim: #dcfce7;
+    --danger: #b91c1c;
     --dangerDim: #fee2e2;
     --warning: #d97706;
     --warningDim: #fef3c7;
-    --surface: rgba(255, 255, 255, 0.8);
-    --surfaceStrong: rgba(255, 255, 255, 0.95);
-    --heroGlowA: rgba(2, 132, 199, 0.12);
-    --heroGlowB: rgba(5, 150, 105, 0.1);
-    --glassBorder: rgba(255, 255, 255, 0.6);
-    --softBorder: rgba(100, 116, 139, 0.38);
+    --surface: rgba(255, 255, 255, 0.86);
+    --surfaceStrong: rgba(255, 255, 255, 0.98);
+    --heroGlowA: rgba(15, 23, 42, 0.08);
+    --heroGlowB: rgba(249, 115, 22, 0.1);
+    --glassBorder: rgba(17, 24, 32, 0.12);
+    --softBorder: rgba(71, 85, 105, 0.24);
+    --asphalt: #101820;
+    --asphalt2: #18232d;
+    --caution: #facc15;
+    --steel: #4b5b68;
   }
 
   .dark {
-    --bg: #030712;
-    --bg2: #0f172a;
-    --bg3: #1e293b;
-    --borderDark: #1e293b;
-    --borderLit: #334155;
-    --textDefault: #f1f5f9;
-    --text2: #cbd5e1;
-    --text3: #64748b;
-    --accent: #fbbf24;
-    --accent2: #f59e0b;
-    --primary: #38bdf8;
-    --primaryDim: #0c4a6e;
-    --success: #34d399;
-    --successDim: #064e3b;
+    --bg: #0b1117;
+    --bg2: #111a22;
+    --bg3: #1b2731;
+    --borderDark: #293744;
+    --borderLit: #526371;
+    --textDefault: #f8fafc;
+    --text2: #c9d3dc;
+    --text3: #83909c;
+    --accent: #fb923c;
+    --accent2: #f97316;
+    --primary: #2dd4bf;
+    --primaryDim: #123d3a;
+    --success: #4ade80;
+    --successDim: #123b24;
     --danger: #f87171;
-    --dangerDim: #7f1d1d;
-    --warning: #fbbf24;
-    --warningDim: #78350f;
-    --surface: rgba(15, 23, 42, 0.75);
-    --surfaceStrong: rgba(15, 23, 42, 0.9);
-    --heroGlowA: rgba(56, 189, 248, 0.1);
-    --heroGlowB: rgba(52, 211, 153, 0.08);
-    --glassBorder: rgba(255, 255, 255, 0.06);
-    --softBorder: rgba(148, 163, 184, 0.2);
+    --dangerDim: #431717;
+    --warning: #facc15;
+    --warningDim: #3f3210;
+    --surface: rgba(17, 26, 34, 0.86);
+    --surfaceStrong: rgba(20, 30, 39, 0.96);
+    --heroGlowA: rgba(20, 30, 39, 0.65);
+    --heroGlowB: rgba(249, 115, 22, 0.12);
+    --glassBorder: rgba(226, 232, 240, 0.1);
+    --softBorder: rgba(148, 163, 184, 0.18);
+    --asphalt: #05080c;
+    --asphalt2: #111a22;
+    --caution: #fde047;
+    --steel: #8b9baa;
   }
 
   html,
@@ -104,9 +112,10 @@
 
   body {
     background:
-      radial-gradient(circle at 8% 0%, var(--heroGlowA), transparent 36%),
-      radial-gradient(circle at 100% 20%, var(--heroGlowB), transparent 40%),
-      linear-gradient(180deg, var(--bg2) 0%, var(--bg) 55%, var(--bg) 100%);
+      linear-gradient(90deg, color-mix(in oklab, var(--borderDark) 42%, transparent) 1px, transparent 1px),
+      linear-gradient(180deg, color-mix(in oklab, var(--borderDark) 28%, transparent) 1px, transparent 1px),
+      linear-gradient(180deg, var(--bg2) 0%, var(--bg) 42%, var(--bg) 100%);
+    background-size: 56px 56px, 56px 56px, auto;
     color: var(--textDefault);
     min-height: 100vh;
     overflow-x: hidden;
@@ -241,29 +250,76 @@
   .futuristic-grid::before {
     content: "";
     position: absolute;
-    inset: -10% 0 0 0;
+    inset: 0;
     z-index: -1;
     background-image:
-      linear-gradient(to right, color-mix(in oklab, var(--borderLit) 55%, transparent) 1px, transparent 1px),
-      linear-gradient(to bottom, color-mix(in oklab, var(--borderLit) 40%, transparent) 1px, transparent 1px);
-    background-size: 40px 40px;
-    opacity: 0.22;
-    mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 75%, transparent 100%);
-    animation: grid-pan 12s linear infinite;
+      linear-gradient(to right, color-mix(in oklab, var(--borderLit) 44%, transparent) 1px, transparent 1px),
+      linear-gradient(to bottom, color-mix(in oklab, var(--borderLit) 30%, transparent) 1px, transparent 1px);
+    background-size: 28px 28px;
+    opacity: 0.12;
+    mask-image: linear-gradient(to bottom, black 0%, black 62%, transparent 100%);
   }
 
   .glass-panel {
-    background: var(--surface);
+    background: var(--surfaceStrong);
     border: 1px solid var(--glassBorder);
-    backdrop-filter: blur(14px);
-    box-shadow: 0 12px 34px rgba(4, 11, 24, 0.12);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 14px 38px rgba(17, 24, 32, 0.08);
   }
 
   .glass-panel-strong {
     background: var(--surfaceStrong);
     border: 1px solid var(--glassBorder);
-    backdrop-filter: blur(20px);
-    box-shadow: 0 20px 50px rgba(4, 11, 24, 0.15);
+    backdrop-filter: blur(14px);
+    box-shadow: 0 22px 54px rgba(17, 24, 32, 0.12);
+  }
+
+  .command-surface {
+    background:
+      linear-gradient(135deg, color-mix(in oklab, var(--surfaceStrong) 96%, var(--accent) 4%), var(--surfaceStrong)),
+      var(--surfaceStrong);
+    border: 1px solid var(--glassBorder);
+    box-shadow: 0 18px 42px rgba(17, 24, 32, 0.1);
+  }
+
+  .dark .command-surface {
+    background:
+      linear-gradient(135deg, color-mix(in oklab, var(--surfaceStrong) 90%, var(--accent) 10%), var(--surfaceStrong)),
+      var(--surfaceStrong);
+  }
+
+  .blueprint-grid {
+    background-image:
+      linear-gradient(to right, color-mix(in oklab, var(--borderLit) 34%, transparent) 1px, transparent 1px),
+      linear-gradient(to bottom, color-mix(in oklab, var(--borderLit) 26%, transparent) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  .kpi-tile {
+    background: var(--surfaceStrong);
+    border: 1px solid var(--glassBorder);
+    box-shadow: inset 0 3px 0 color-mix(in oklab, var(--accent) 70%, transparent), 0 16px 32px rgba(17, 24, 32, 0.08);
+  }
+
+  .ticket-card {
+    background: var(--surfaceStrong);
+    border: 1px solid var(--glassBorder);
+    box-shadow: 0 14px 34px rgba(17, 24, 32, 0.08);
+  }
+
+  .status-rail {
+    position: relative;
+  }
+
+  .status-rail::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.35rem;
+    bottom: 0.35rem;
+    width: 3px;
+    border-radius: 999px;
+    background: currentColor;
   }
 
   .focus-ring {

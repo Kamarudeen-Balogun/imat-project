@@ -50,16 +50,16 @@ export default function IssuesTrackerPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'reported':
-        return <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 text-xs font-bold font-mono"><Clock size={12}/> Received</span>;
+        return <span className="inline-flex items-center gap-1.5 rounded border border-danger/30 bg-danger/10 px-3 py-1 font-mono text-xs font-bold text-danger"><Clock size={12}/> Reported</span>;
       case 'assessed':
       case 'escalated':
-        return <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-warning/10 text-warning text-xs font-bold font-mono"><AlertCircle size={12}/> Under Assessment</span>;
+        return <span className="inline-flex items-center gap-1.5 rounded border border-warning/35 bg-warning/10 px-3 py-1 font-mono text-xs font-bold text-warning"><AlertCircle size={12}/> Under Assessment</span>;
       case 'acknowledged_by_works':
-        return <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/10 text-purple-400 text-xs font-bold font-mono"><AlertCircle size={12}/> Works Dept. Notified</span>;
+        return <span className="inline-flex items-center gap-1.5 rounded border border-primary/35 bg-primary/10 px-3 py-1 font-mono text-xs font-bold text-primary"><AlertCircle size={12}/> Works Notified</span>;
       case 'resolved':
-        return <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-success/10 text-success text-xs font-bold font-mono"><CheckCircle size={12}/> Resolved</span>;
+        return <span className="inline-flex items-center gap-1.5 rounded border border-success/35 bg-success/10 px-3 py-1 font-mono text-xs font-bold text-success"><CheckCircle size={12}/> Resolved</span>;
       default:
-        return <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-bg3 text-text2 text-xs font-bold font-mono uppercase">{status}</span>;
+        return <span className="inline-flex items-center gap-1.5 rounded border border-borderDark bg-bg3 px-3 py-1 font-mono text-xs font-bold uppercase text-text2">{status}</span>;
     }
   };
 
@@ -78,9 +78,12 @@ export default function IssuesTrackerPage() {
         whileInView="visible"
         viewport={{ once: true }}
       >
-        <div className="mb-12">
-          <h1 className="text-3xl md:text-5xl font-bold text-textDefault mb-4">Public Issue Tracker</h1>
-          <p className="text-text2 max-w-2xl text-lg">
+        <div className="mb-8 rounded-lg border border-borderDark bg-asphalt p-5 text-white shadow-2xl sm:p-7">
+          <div className="mb-4 inline-flex items-center gap-2 rounded border border-accent/40 bg-accent/10 px-3 py-1 font-mono text-xs font-black uppercase tracking-[0.16em] text-accent">
+            Live Defect Registry
+          </div>
+          <h1 className="mb-4 text-3xl font-black text-white md:text-5xl">Public Issue Tracker</h1>
+          <p className="max-w-2xl text-sm leading-relaxed text-slate-300 sm:text-base">
             Live tracking of all reported infrastructural issues on campus. To protect student privacy and field operations, internal severity metrics and officer assignments are hidden.
           </p>
         </div>
@@ -101,15 +104,15 @@ export default function IssuesTrackerPage() {
         whileInView="visible"
         viewport={{ once: true }}
       >
-        <div className="glass-panel overflow-x-auto rounded-xl">
+        <div className="ticket-card overflow-x-auto rounded-lg">
         <table className="w-full text-left border-collapse min-w-[700px]">
           <thead>
-            <tr className="bg-bg border-b border-borderDark font-mono text-xs uppercase text-text3 tracking-wider">
-              <th className="p-4 rounded-tl-xl font-medium">Issue ID / Title</th>
+            <tr className="border-b border-borderDark bg-bg font-mono text-xs uppercase tracking-wider text-text3">
+              <th className="p-4 font-medium">Issue ID / Title</th>
               <th className="p-4 font-medium">Location Zone</th>
               <th className="p-4 font-medium">Category</th>
               <th className="p-4 font-medium">Date Reported</th>
-              <th className="p-4 rounded-tr-xl font-medium text-right">Current Status</th>
+              <th className="p-4 font-medium text-right">Current Status</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-borderDark/50 text-sm text-textDefault">
