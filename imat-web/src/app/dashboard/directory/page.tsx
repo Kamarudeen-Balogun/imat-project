@@ -45,7 +45,6 @@ const ROLE_OPTIONS = [
   "advocacy_officer",
   "faculty_advisor",
   "works_dept",
-  "applicant",
 ];
 
 export default function MemberDirectoryPage() {
@@ -171,6 +170,10 @@ export default function MemberDirectoryPage() {
             const isLastOwner = member.role === "owner" && ownerCount <= 1;
             const draftRole = roleDrafts[member.id] ?? member.role;
             const roleChanged = draftRole !== member.role;
+            // Keep a legacy role visible (not assignable) if it is not in the picker.
+            const rolePickerOptions = ROLE_OPTIONS.includes(member.role)
+              ? ROLE_OPTIONS
+              : [member.role, ...ROLE_OPTIONS];
 
             return (
             <div key={member.id} className="glass-panel flex flex-col justify-between rounded-xl p-5 transition-colors hover:border-primary/50">
@@ -223,7 +226,7 @@ export default function MemberDirectoryPage() {
                        }
                        className="min-w-0 flex-1 rounded-lg border border-borderDark bg-surfaceStrong px-3 py-2 text-sm text-textDefault transition-colors focus:border-primary focus:outline-none disabled:opacity-50"
                      >
-                       {ROLE_OPTIONS.map((role) => (
+                       {rolePickerOptions.map((role) => (
                          <option key={role} value={role}>
                            {ROLE_LABELS[role] ?? role.replace(/_/g, " ")}
                          </option>
