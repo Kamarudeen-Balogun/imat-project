@@ -208,7 +208,7 @@ export default function ApplicationsPage() {
             const isPending = app.status === "submitted" || app.status === "under_review";
             const isReviewing = reviewingId === app.id;
             const preferences = [app.role_preference_1, app.role_preference_2]
-              .filter(Boolean)
+              .filter((r): r is string => Boolean(r))
               .map((role) => ROLE_LABELS_WITH_OWNER[role] ?? role.replace(/_/g, " "))
               .join(" · ");
 

@@ -223,14 +223,14 @@ export async function POST(
     // Supabase must NOT send the invite email itself; the link is sent
     // through Resend via the email lib so the sender stays
     // noreply@imat.codeflowx.dev.
-    let inviteLink: string | undefined;
-    let emailError: string | undefined;
     const { data: linkData, error: linkError } = await admin.auth.admin.generateLink({
       type: "invite",
       email: application.email,
       options: { redirectTo: INVITE_REDIRECT_URL },
     });
-    inviteLink = linkData?.properties?.action_link ?? undefined;
+    const inviteLink: string | undefined =
+      linkData?.properties?.action_link ?? undefined;
+    let emailError: string | undefined;
 
     if (linkError || !inviteLink) {
       emailError =

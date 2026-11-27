@@ -53,7 +53,7 @@ export default function SetPasswordPage() {
         }
 
         setIsReady(true);
-      } catch (error) {
+      } catch {
         console.error("Set-password session failed.");
         setTokenError(
           "This invite link is missing or has expired. Please ask an admin to send you a new invite, or go back to the login page."
