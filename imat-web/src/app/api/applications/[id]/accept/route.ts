@@ -4,11 +4,9 @@ import { createSupabaseClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { canReviewApplications } from "@/lib/access";
 import { canAssignRole } from "@/lib/roleHierarchy";
-import { acceptanceEmail, sendEmail } from "@/lib/email";
+import { inviteMember } from "@/lib/inviteMember";
 import { sanitizePlainText } from "@/lib/inputSanitizer";
 import { enforceRateLimit } from "@/lib/serverRateLimit";
-
-const INVITE_REDIRECT_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://imat-futa.vercel.app") + "/auth/callback";
 
 // Roles assignable through the application review flow. "applicant" is not
 // assignable: an accepted applicant becomes a member with a working role.
@@ -40,27 +38,6 @@ function getClientIp(request: NextRequest): string {
   const forwardedFor = request.headers.get("x-forwarded-for") || "";
   const realIp = request.headers.get("x-real-ip") || "";
   return forwardedFor.split(",")[0]?.trim() || realIp.trim() || "unknown";
-}
-
-type AdminClient = ReturnType<typeof createSupabaseAdminClient>;
-
-/**
- * Reuse an existing auth user when createUser reports the email is already
- * registered (e.g. a retried accept). Scans auth users by email; IMAT has a
- * small user base so a paged scan is acceptable here.
- */
-async function findAuthUserByEmail(admin: AdminClient, email: string) {
-  const perPage = 1000;
-  for (let page = 1; page <= 10; page += 1) {
-    const { data, error } = await admin.auth.admin.listUsers({ page, perPage });
-    if (error || !data?.users) return null;
-    const found = data.users.find(
-      (authUser) => authUser.email?.toLowerCase() === email.toLowerCase()
-    );
-    if (found) return found;
-    if (data.users.length < perPage) break;
-  }
-  return null;
 }
 
 export async function POST(
@@ -154,54 +131,20 @@ export async function POST(
       );
     }
 
-    // Create the auth user. If the email is already registered (e.g. this
-    // accept is retried after a partial failure), reuse that auth user
-    // instead of failing.
-    let authUserId: string | null = null;
-    const { data: created, error: createError } = await admin.auth.admin.createUser({
+    // Shared accept steps (auth user, member row, invite link, acceptance
+    // mail) — the same helper the direct invite route uses.
+    const result = await inviteMember(admin, {
+      name: application.applicant_name,
       email: application.email,
-      email_confirm: true,
-      user_metadata: { full_name: application.applicant_name },
+      role,
+      matricNo: application.matric_no,
+      phone: application.phone,
+      level: application.level,
+      cgpa: application.cgpa,
     });
 
-    if (!createError && created?.user) {
-      authUserId = created.user.id;
-    } else {
-      const existing = await findAuthUserByEmail(admin, application.email);
-      if (existing) {
-        authUserId = existing.id;
-      } else {
-        console.error("Accept application: failed to create auth user.");
-        return NextResponse.json(
-          { error: "Failed to create an account for this applicant." },
-          { status: 500 }
-        );
-      }
-    }
-
-    // Upsert so a retried accept reuses the member row instead of failing
-    // on the primary key / email uniqueness.
-    const { error: upsertError } = await admin.from("users").upsert(
-      {
-        id: authUserId,
-        email: application.email,
-        full_name: application.applicant_name,
-        matric_no: application.matric_no,
-        phone: application.phone ?? null,
-        level: application.level,
-        cgpa: application.cgpa ?? null,
-        role,
-        status: "active",
-      },
-      { onConflict: "id" }
-    );
-
-    if (upsertError) {
-      console.error("Accept application: failed to create member record.");
-      return NextResponse.json(
-        { error: "Failed to create the member record." },
-        { status: 500 }
-      );
+    if (!result.ok) {
+      return NextResponse.json({ error: result.error }, { status: 500 });
     }
 
     const { error: updateError } = await admin
@@ -221,45 +164,14 @@ export async function POST(
       );
     }
 
-    // Supabase must NOT send the invite email itself; the link is sent
-    // through Resend via the email lib so the sender stays
-    // noreply@imat.codeflowx.dev.
-    // NOTE: use a "recovery" link, not an "invite" link. createUser above
-    // already confirms the email (email_confirm: true), and Supabase
-    // rejects invite links for confirmed users with 422 ("already been
-    // registered"), so the mail would never go out. A recovery link works
-    // for a confirmed user and lands on the same /auth/set-password flow.
-    const { data: linkData, error: linkError } = await admin.auth.admin.generateLink({
-      type: "recovery",
-      email: application.email,
-      options: { redirectTo: INVITE_REDIRECT_URL },
-    });
-    const inviteLink: string | undefined =
-      linkData?.properties?.action_link ?? undefined;
-    let emailError: string | undefined;
-
-    if (linkError || !inviteLink) {
-      emailError =
-        "Could not generate the invite link. Copy it manually from the Supabase dashboard.";
-    } else {
-      const emailResult = await sendEmail({
-        to: application.email,
-        ...acceptanceEmail(application.applicant_name, inviteLink),
-      });
-      if (!emailResult.ok) {
-        emailError =
-          emailResult.error ?? "Acceptance email could not be sent.";
-      }
-    }
-
     // The invite link is only ever returned to the authorised admin caller
     // above. A failed email still returns success so the admin can copy
     // the link manually.
     return NextResponse.json({
       ok: true,
-      userId: authUserId,
-      ...(inviteLink ? { inviteLink } : {}),
-      ...(emailError ? { emailError } : {}),
+      userId: result.userId,
+      ...(result.inviteLink ? { inviteLink: result.inviteLink } : {}),
+      ...(result.emailError ? { emailError: result.emailError } : {}),
     });
   } catch {
     console.error("Accept application API error.");

@@ -165,8 +165,12 @@ CREATE TABLE IF NOT EXISTS applications (
   cycle_id UUID REFERENCES intake_cycles(id) ON DELETE CASCADE,
   applicant_name TEXT NOT NULL,
   email TEXT NOT NULL,
-  matric_no TEXT NOT NULL,
-  level INTEGER NOT NULL,
+  -- Nullable since 2026-11-27 (direct invites): a directly invited
+  -- member never filled the /apply form, so there is no matric
+  -- number, level, motivation statement or CV to store. They fill
+  -- matric and level in on their profile after first login.
+  matric_no TEXT,
+  level INTEGER,
   cgpa NUMERIC(3,2),
   cgpa_above_3 BOOLEAN,
   phone TEXT,
@@ -190,8 +194,8 @@ CREATE TABLE IF NOT EXISTS applications (
   role_preference_1 TEXT NOT NULL,
   role_preference_2 TEXT,
   role_preference_3 TEXT,
-  motivation_statement TEXT NOT NULL,
-  cv_url TEXT NOT NULL,
+  motivation_statement TEXT,
+  cv_url TEXT,
   transcript_url TEXT,
   status TEXT NOT NULL DEFAULT 'submitted' CHECK (status IN ('submitted', 'under_review', 'accepted', 'waitlisted', 'rejected')),
   reviewed_by UUID REFERENCES users(id),

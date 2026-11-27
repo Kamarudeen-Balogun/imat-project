@@ -85,11 +85,14 @@ export async function POST(request: NextRequest) {
 
     // Only accepted applications get a new invite. Pending or rejected
     // applications (and accepted ones whose member row is missing) get
-    // nothing.
+    // nothing. Email match is case-insensitive (same escaped-ilike
+    // pattern as /api/apply) so a direct invite stored lowercase still
+    // matches however the person types their address.
+    const escapedEmail = email.replace(/[\\%_]/g, (ch) => `\\${ch}`);
     const { data: application } = await admin
       .from("applications")
       .select("id")
-      .eq("email", email)
+      .ilike("email", escapedEmail)
       .eq("status", "accepted")
       .limit(1)
       .maybeSingle();
