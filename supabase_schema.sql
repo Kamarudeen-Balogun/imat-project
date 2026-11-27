@@ -601,6 +601,20 @@ CREATE TABLE IF NOT EXISTS contact_messages (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- 19. EMAIL LOGS (Mail Log: one row per email sent via Resend)
+CREATE TABLE IF NOT EXISTS email_logs (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  type TEXT NOT NULL DEFAULT 'general',
+  recipient TEXT NOT NULL,
+  subject TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'sent' CHECK (status IN ('sent', 'failed')),
+  resend_id TEXT,
+  error TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS email_logs_created_at_idx ON email_logs(created_at DESC);
+
 CREATE OR REPLACE FUNCTION prune_activity_logs()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -884,6 +898,13 @@ DROP POLICY IF EXISTS "Members can read contact messages" ON contact_messages;
 DROP POLICY IF EXISTS "Only owner can delete contact messages" ON contact_messages;
 CREATE POLICY "Members can read contact messages" ON contact_messages FOR SELECT USING (auth.role() = 'authenticated');
 CREATE POLICY "Only owner can delete contact messages" ON contact_messages FOR DELETE USING (get_my_role() = 'owner');
+
+-- Email logs: only owner/admin can read the log. Inserts come from
+-- sendEmail via the service-role admin client, which bypasses RLS,
+-- so no INSERT policy is needed.
+ALTER TABLE email_logs ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Owners and admins can read email logs" ON email_logs;
+CREATE POLICY "Owners and admins can read email logs" ON email_logs FOR SELECT USING (get_my_role() IN ('owner', 'admin'));
 
 -- ========================================================
 -- GRANTS — table privileges for the PostgREST roles.

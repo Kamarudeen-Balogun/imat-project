@@ -125,6 +125,7 @@ export async function POST(
     // the admin can follow up manually.
     const emailResult = await sendEmail({
       to: application.email,
+      type: "rejection",
       ...rejectionEmail(application.applicant_name, reviewNotes),
     });
 

@@ -244,7 +244,7 @@ export async function POST(request: NextRequest) {
     // Notify the applicant that their application was received. A failed
     // email must not fail the application itself.
     try {
-      await sendEmail({ to: parsed.data.email, ...applicationReceivedEmail(parsed.data.fullName) });
+      await sendEmail({ to: parsed.data.email, type: "application_received", ...applicationReceivedEmail(parsed.data.fullName) });
     } catch (emailError) {
       console.error("Application-received email failed.", emailError);
     }

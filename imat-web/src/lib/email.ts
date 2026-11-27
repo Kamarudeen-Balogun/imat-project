@@ -12,9 +12,11 @@ export type SendEmailInput = {
   subject: string;
   html: string;
   text?: string;
+  /** Log category for the Mail Log (e.g. "acceptance", "announcement"). Defaults to "general". */
+  type?: string;
 };
 
-export type SendEmailResult = { ok: boolean; error?: string };
+export type SendEmailResult = { ok: boolean; error?: string; id?: string };
 
 export type EmailTemplate = {
   subject: string;
@@ -50,14 +52,52 @@ function buttonHtml(label: string, url: string): string {
 }
 
 /**
+ * Record one sent (or failed) email in the Mail Log (public.email_logs),
+ * read by owners/admins at /dashboard/email-logs. Best-effort by design:
+ * it must never throw, so a logging failure can never fail the mail itself.
+ * Writes go through the service-role admin client, which bypasses RLS
+ * (there is no INSERT policy on email_logs, same as contact_messages).
+ */
+async function logEmailSend(entry: {
+  type: string;
+  recipient: string;
+  subject: string;
+  status: "sent" | "failed";
+  resendId?: string;
+  error?: string;
+}): Promise<void> {
+  try {
+    const { createSupabaseAdminClient } = await import("@/lib/supabase/admin");
+    const admin = createSupabaseAdminClient();
+    const { error } = await admin.from("email_logs").insert({
+      type: entry.type,
+      recipient: entry.recipient,
+      subject: entry.subject,
+      status: entry.status,
+      resend_id: entry.resendId ?? null,
+      error: entry.error ?? null,
+    });
+    if (error) {
+      console.warn("Failed to write email log.", error);
+    }
+  } catch (err) {
+    console.warn("Failed to write email log.", err);
+  }
+}
+
+/**
  * Send a single email through Resend. Returns { ok: false } instead of
  * throwing when the API key is missing or the request fails, so callers can
- * surface the failure without crashing the request.
+ * surface the failure without crashing the request. Every outcome is
+ * recorded in the Mail Log (best-effort; logging never fails the send).
  */
-export async function sendEmail({ to, subject, html, text }: SendEmailInput): Promise<SendEmailResult> {
+export async function sendEmail({ to, subject, html, text, type }: SendEmailInput): Promise<SendEmailResult> {
+  const logType = type || "general";
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
-    return { ok: false, error: "RESEND_API_KEY not configured" };
+    const error = "RESEND_API_KEY not configured";
+    await logEmailSend({ type: logType, recipient: to, subject, status: "failed", error });
+    return { ok: false, error };
   }
 
   const from = process.env.EMAIL_FROM || DEFAULT_FROM;
@@ -74,15 +114,19 @@ export async function sendEmail({ to, subject, html, text }: SendEmailInput): Pr
 
     if (!res.ok) {
       const detail = await res.text().catch(() => "");
-      return {
-        ok: false,
-        error: `Resend request failed (${res.status})${detail ? `: ${detail}` : ""}`,
-      };
+      const error = `Resend request failed (${res.status})${detail ? `: ${detail}` : ""}`;
+      await logEmailSend({ type: logType, recipient: to, subject, status: "failed", error });
+      return { ok: false, error };
     }
 
-    return { ok: true };
+    const data = await res.json().catch(() => ({}));
+    const resendId = typeof data?.id === "string" ? data.id : undefined;
+    await logEmailSend({ type: logType, recipient: to, subject, status: "sent", resendId });
+    return { ok: true, id: resendId };
   } catch (err) {
-    return { ok: false, error: err instanceof Error ? err.message : "Unknown email send error" };
+    const error = err instanceof Error ? err.message : "Unknown email send error";
+    await logEmailSend({ type: logType, recipient: to, subject, status: "failed", error });
+    return { ok: false, error };
   }
 }
 
@@ -130,6 +174,19 @@ export function applicationReceivedEmail(name: string): EmailTemplate {
   );
   const text = `Hi ${name},\n\nThank you for applying to join IMAT (Infrastructure Maintenance Awareness Team), FUTA.\n\nWe have received your application and it is now under review. We will contact you at this email address once a decision has been made.\n\nBest regards,\nIMAT Team`;
   return { subject, html, text };
+}
+
+export function contactReceivedEmail(name: string, subject: string): EmailTemplate {
+  const emailSubject = "We received your message — IMAT";
+  const html = wrapEmail(
+    "Message received",
+    `<p>Hi ${escapeHtml(name)},</p>
+<p>Thank you for contacting IMAT (Infrastructure Maintenance Awareness Team), FUTA.</p>
+<p>We have received your message about “${escapeHtml(subject)}”. Our team will read it and get back to you at this email address.</p>
+<p>Best regards,<br />IMAT Team</p>`
+  );
+  const text = `Hi ${name},\n\nThank you for contacting IMAT (Infrastructure Maintenance Awareness Team), FUTA.\n\nWe have received your message about "${subject}". Our team will read it and get back to you at this email address.\n\nBest regards,\nIMAT Team`;
+  return { subject: emailSubject, html, text };
 }
 
 export function acceptanceEmail(name: string, inviteLink: string): EmailTemplate {

@@ -95,6 +95,7 @@ export async function sendAnnouncementEmails(announcementId: string): Promise<An
 
       const result = await sendEmail({
         to: recipient.email,
+        type: "announcement",
         subject: template.subject,
         html: template.html,
         text: template.text,

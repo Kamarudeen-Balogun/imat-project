@@ -131,6 +131,7 @@ export async function inviteMember(
   } else {
     const emailResult = await sendEmail({
       to: email,
+      type: "acceptance",
       ...acceptanceEmail(name, inviteLink),
     });
     if (!emailResult.ok) {

@@ -129,6 +129,7 @@ export async function POST(request: NextRequest) {
       const displayName = profile.full_name?.trim() || "there";
       const emailResult = await sendEmail({
         to: email,
+        type: "invite",
         ...acceptanceEmail(displayName, inviteLink),
       });
       if (!emailResult.ok) {

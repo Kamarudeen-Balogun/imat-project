@@ -3,6 +3,7 @@ import { z } from "zod";
 import { sanitizeEmail, sanitizePlainText } from "@/lib/inputSanitizer";
 import { enforceRateLimit } from "@/lib/serverRateLimit";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { contactReceivedEmail, sendEmail } from "@/lib/email";
 
 const contactSchema = z.object({
   name: z.string().min(2).max(80),
@@ -114,6 +115,23 @@ export async function POST(request: Request) {
       }
     } catch (error) {
       console.warn("Failed to save contact message to inbox.", error);
+    }
+
+    // Confirm receipt to the sender via the site's own mail (Resend).
+    // Best-effort, same as the inbox save: a failed confirmation must
+    // never fail the submission. This replaces the old Apps Script
+    // auto-reply, which was removed from the script.
+    try {
+      const emailResult = await sendEmail({
+        to: payload.email,
+        type: "contact_received",
+        ...contactReceivedEmail(payload.name, payload.subject),
+      });
+      if (!emailResult.ok) {
+        console.warn("Contact confirmation email failed.", emailResult.error);
+      }
+    } catch (emailError) {
+      console.warn("Contact confirmation email failed.", emailError);
     }
 
     return NextResponse.json({ success: true }, { status: 200 });

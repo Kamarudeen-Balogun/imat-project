@@ -94,6 +94,7 @@ export async function POST(request: NextRequest) {
 
         const emailResult = await sendEmail({
           to: email,
+          type: "password_reset",
           ...passwordResetEmail(displayName, resetLink),
         });
         if (!emailResult.ok) {
