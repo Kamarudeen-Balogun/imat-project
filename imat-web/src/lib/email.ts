@@ -30,11 +30,21 @@ function escapeHtml(value: string): string {
 }
 
 function wrapEmail(title: string, bodyHtml: string): string {
-  return `<div style="font-family: Arial, Helvetica, sans-serif; color: #1a1a1a; line-height: 1.6; max-width: 560px; margin: 0 auto;">
-  <h2 style="color: #0f5132;">${title}</h2>
-  ${bodyHtml}
-  <p style="color: #666; font-size: 13px; margin-top: 24px;">IMAT — Infrastructure Maintenance Awareness Team, FUTA</p>
+  return `<div style="font-family: Arial, Helvetica, sans-serif; color: #1a1a1a; line-height: 1.6; max-width: 560px; margin: 0 auto; background: #ffffff;">
+  <div style="background: #0f5132; color: #ffffff; padding: 20px 24px; border-radius: 8px 8px 0 0;">
+    <div style="font-size: 20px; font-weight: bold; letter-spacing: 0.5px;">IMAT</div>
+    <div style="font-size: 13px; opacity: 0.85;">Infrastructure Maintenance Awareness Team &middot; FUTA</div>
+  </div>
+  <div style="padding: 24px; border: 1px solid #e5e5e5; border-top: none; border-radius: 0 0 8px 8px;">
+    <h2 style="color: #0f5132; margin-top: 0;">${title}</h2>
+    ${bodyHtml}
+  </div>
+  <p style="color: #888; font-size: 12px; text-align: center; margin-top: 16px;">IMAT &mdash; Infrastructure Maintenance Awareness Team, FUTA<br />This email was sent from noreply@imat.codeflowx.dev. Please do not reply to it.</p>
 </div>`;
+}
+
+function buttonHtml(label: string, url: string): string {
+  return `<p style="margin: 24px 0;"><a href="${escapeHtml(url)}" style="display: inline-block; background: #0f5132; color: #ffffff; text-decoration: none; font-weight: bold; padding: 12px 24px; border-radius: 6px;">${label}</a></p>`;
 }
 
 /**
@@ -93,9 +103,9 @@ export function acceptanceEmail(name: string, inviteLink: string): EmailTemplate
     "Welcome to IMAT",
     `<p>Hi ${escapeHtml(name)},</p>
 <p>Good news — your application to join IMAT (Infrastructure Maintenance Awareness Team), FUTA, has been accepted.</p>
-<p>To finish setting up your account, set your password using the link below:</p>
-<p><a href="${escapeHtml(inviteLink)}">${escapeHtml(inviteLink)}</a></p>
-<p>If the link does not work, copy and paste it into your browser.</p>
+<p>To finish setting up your account, set your password using the button below:</p>
+${buttonHtml("Set your password", inviteLink)}
+<p style="color: #666; font-size: 13px;">If the button does not work, copy and paste this link into your browser:<br /><a href="${escapeHtml(inviteLink)}">${escapeHtml(inviteLink)}</a></p>
 <p>We look forward to working with you.</p>
 <p>Best regards,<br />IMAT Team</p>`
   );
