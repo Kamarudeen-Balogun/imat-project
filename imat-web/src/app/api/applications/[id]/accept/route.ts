@@ -139,7 +139,7 @@ export async function POST(
 
     const { data: application, error: applicationError } = await admin
       .from("applications")
-      .select("id, applicant_name, email, matric_no, level, cgpa, status")
+      .select("id, applicant_name, email, matric_no, phone, level, cgpa, status")
       .eq("id", applicationId)
       .single();
 
@@ -187,6 +187,7 @@ export async function POST(
         email: application.email,
         full_name: application.applicant_name,
         matric_no: application.matric_no,
+        phone: application.phone ?? null,
         level: application.level,
         cgpa: application.cgpa ?? null,
         role,

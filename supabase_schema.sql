@@ -40,6 +40,7 @@ CREATE TABLE IF NOT EXISTS users (
   full_name TEXT NOT NULL,
   avatar_url TEXT,
   matric_no TEXT,
+  phone TEXT,
   level INTEGER,
   cgpa NUMERIC(3,2),
   role TEXT NOT NULL DEFAULT 'applicant' CHECK (role IN ('applicant', 'field_officer', 'documentation_officer', 'advocacy_officer', 'technical_officer', 'president', 'vice_president', 'faculty_advisor', 'works_dept', 'admin', 'owner')),
@@ -52,6 +53,9 @@ CREATE TABLE IF NOT EXISTS users (
 
 ALTER TABLE users
 ADD COLUMN IF NOT EXISTS avatar_url TEXT;
+
+ALTER TABLE users
+ADD COLUMN IF NOT EXISTS phone TEXT;
 
 CREATE INDEX IF NOT EXISTS users_status_idx ON users(status);
 CREATE INDEX IF NOT EXISTS users_status_notifications_idx ON users(status, notifications_enabled);
@@ -711,7 +715,7 @@ DROP POLICY IF EXISTS "Applicants can read own application" ON applications;
 DROP POLICY IF EXISTS "Anyone can submit application" ON applications;
 DROP POLICY IF EXISTS "Admins read all applications" ON applications;
 DROP POLICY IF EXISTS "Admins update applications" ON applications;
-CREATE POLICY "Applicants can read own application" ON applications FOR SELECT USING (email IN (SELECT email FROM auth.users WHERE id = auth.uid()));
+CREATE POLICY "Applicants can read own application" ON applications FOR SELECT USING (email = (auth.jwt() ->> 'email'));
 CREATE POLICY "Anyone can submit application" ON applications FOR INSERT WITH CHECK (true);
 CREATE POLICY "Admins read all applications" ON applications FOR SELECT USING (get_my_role() IN ('technical_officer', 'president', 'admin', 'owner'));
 CREATE POLICY "Admins update applications" ON applications FOR UPDATE USING (get_my_role() IN ('technical_officer', 'president', 'admin', 'owner'));
@@ -876,3 +880,21 @@ DROP POLICY IF EXISTS "Members can read contact messages" ON contact_messages;
 DROP POLICY IF EXISTS "Only owner can delete contact messages" ON contact_messages;
 CREATE POLICY "Members can read contact messages" ON contact_messages FOR SELECT USING (auth.role() = 'authenticated');
 CREATE POLICY "Only owner can delete contact messages" ON contact_messages FOR DELETE USING (get_my_role() = 'owner');
+
+-- ========================================================
+-- GRANTS — table privileges for the PostgREST roles.
+-- RLS policies alone are NOT enough: without GRANTs, anon /
+-- authenticated / service_role get 401 "permission denied for
+-- table ..." on every read, and member-area pages (applications,
+-- profile, directory, ...) fail even for the owner.
+-- Added 2026-11-27 after the live DB was fixed by hand for the
+-- same missing grants. Keep these AFTER all table/policy
+-- definitions so they cover every table in the schema.
+-- ========================================================
+GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO anon, authenticated, service_role;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated, service_role;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public
+  GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO anon, authenticated, service_role;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public
+  GRANT USAGE, SELECT ON SEQUENCES TO anon, authenticated, service_role;

@@ -14,6 +14,7 @@ type ProfileRow = {
   full_name: string | null;
   email: string | null;
   role: string | null;
+  phone: string | null;
   level: number | null;
   status: string | null;
   joined_at: string | null;
@@ -35,6 +36,8 @@ export default function DashboardProfilePage() {
   const [editedName, setEditedName] = useState("");
   const [editingLevel, setEditingLevel] = useState(false);
   const [editedLevel, setEditedLevel] = useState<string>("");
+  const [editingPhone, setEditingPhone] = useState(false);
+  const [editedPhone, setEditedPhone] = useState("");
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -49,7 +52,7 @@ export default function DashboardProfilePage() {
 
       const { data, error } = await supabase
         .from("users")
-        .select("id, full_name, email, role, level, status, joined_at, avatar_url")
+        .select("id, full_name, email, role, phone, level, status, joined_at, avatar_url")
         .eq("id", session.user.id)
         .single();
 
@@ -58,6 +61,7 @@ export default function DashboardProfilePage() {
       } else {
         setProfile(data as ProfileRow);
         setEditedName(data.full_name || "");
+        setEditedPhone(data.phone || "");
         setEditedLevel(data.level ? String(data.level) : "");
       }
 
@@ -181,6 +185,39 @@ export default function DashboardProfilePage() {
     setEditingLevel(false);
   };
 
+  const savePhone = async () => {
+    if (!profile) return;
+
+    // Same shape as the /apply form: exactly 11 digits.
+    const digits = sanitizeNumericText(editedPhone, 11);
+    if (!/^\d{11}$/.test(digits)) {
+      toast.error("Enter an 11-digit phone number.");
+      return;
+    }
+
+    setSaving(true);
+    const { error } = await supabase
+      .from("users")
+      .update({ phone: digits })
+      .eq("id", profile.id);
+
+    if (error) {
+      toast.error("Could not update your phone number.");
+      setSaving(false);
+      return;
+    }
+
+    setProfile({ ...profile, phone: digits });
+    setEditingPhone(false);
+    toast.success("Phone number updated successfully.");
+    setSaving(false);
+  };
+
+  const cancelEditPhone = () => {
+    setEditedPhone(profile?.phone || "");
+    setEditingPhone(false);
+  };
+
   const onChooseFile = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     event.target.value = "";
@@ -296,7 +333,53 @@ export default function DashboardProfilePage() {
           </div>
         </div>
 
-        <div className="mt-6 grid gap-3 sm:grid-cols-3">
+        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="rounded-xl border border-soft bg-bg p-3">
+            <p className="text-[10px] font-mono uppercase tracking-wider text-text3">Phone</p>
+            {!editingPhone ? (
+              <div className="mt-2 flex items-center justify-between gap-2">
+                <p className="text-sm font-semibold text-textDefault break-all">{profile.phone || "Not set"}</p>
+                <button
+                  onClick={() => setEditingPhone(true)}
+                  className="p-1.5 rounded-lg hover:bg-bg3 transition-colors text-text3 hover:text-primary"
+                  title="Edit phone number"
+                >
+                  <Edit2 size={14} />
+                </button>
+              </div>
+            ) : (
+              <div className="mt-2 space-y-2">
+                <input
+                  type="tel"
+                  value={editedPhone}
+                  onChange={(event) => setEditedPhone(event.target.value)}
+                  maxLength={11}
+                  inputMode="numeric"
+                  className="w-full rounded-lg border border-primary bg-bg px-2.5 py-2 text-sm text-textDefault placeholder-text3 focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  placeholder="08000000000"
+                  autoFocus
+                  disabled={saving}
+                />
+                <div className="flex gap-2">
+                  <button
+                    onClick={savePhone}
+                    disabled={saving}
+                    className="inline-flex items-center gap-1 rounded-lg border border-primary/40 bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary hover:bg-primary/20 transition-colors disabled:opacity-50"
+                  >
+                    <Check size={12} /> Save
+                  </button>
+                  <button
+                    onClick={cancelEditPhone}
+                    disabled={saving}
+                    className="inline-flex items-center gap-1 rounded-lg border border-soft bg-bg3 px-2.5 py-1 text-xs font-semibold text-text3 hover:bg-borderDark transition-colors disabled:opacity-50"
+                  >
+                    <X size={12} /> Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
           <div className="rounded-xl border border-soft bg-bg p-3">
             <p className="text-[10px] font-mono uppercase tracking-wider text-text3">Current Level</p>
             {!editingLevel ? (

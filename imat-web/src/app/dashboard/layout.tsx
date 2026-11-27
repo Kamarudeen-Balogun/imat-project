@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
-import { LayoutDashboard, Users, Map, BookOpen, LogOut, Loader2, FileText, BarChart2, Megaphone, Activity, Menu, X, User, Share2, Moon, Sun, ClipboardList, Mail } from "lucide-react";
+import { LayoutDashboard, Users, Map, BookOpen, LogOut, Loader2, FileText, BarChart2, Megaphone, Activity, Menu, X, User, Share2, Moon, Sun, ClipboardList, Mail, Clock } from "lucide-react";
 import Image from "next/image";
 import optimizeCloudinaryUrl from "@/lib/cloudinary";
 import { toast } from "react-hot-toast";
@@ -140,6 +140,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { href: "/dashboard/profile", label: "My Profile", icon: User, classes: "text-slate-300 hover:bg-white/5 hover:text-white" },
     { href: "/dashboard/wiki", label: "Knowledge Base", icon: BookOpen, classes: "text-slate-300 hover:bg-white/5 hover:text-white" },
     { href: "/dashboard/activity", label: "Activity Timeline", icon: Activity, classes: "text-slate-300 hover:bg-white/5 hover:text-white" },
+    { href: "/dashboard/volunteer", label: "Volunteer Hours", icon: Clock, classes: "text-slate-300 hover:bg-white/5 hover:text-white" },
   ];
 
   return (
