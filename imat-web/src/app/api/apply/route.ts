@@ -4,6 +4,7 @@ import { z } from "zod";
 import { sanitizeEmail, sanitizeNumericText, sanitizePlainText, sanitizePhoneNumber } from "@/lib/inputSanitizer";
 import { enforceRateLimit } from "@/lib/serverRateLimit";
 import { verifyTurnstileToken } from "@/lib/turnstile";
+import { sendEmail, applicationReceivedEmail } from "@/lib/email";
 
 const WEB_APP_URL = process.env.GOOGLE_APPS_SCRIPT_APPLY_URL;
 
@@ -181,6 +182,19 @@ export async function POST(request: NextRequest) {
     if (error) {
       console.error("Application insert failed.");
       return NextResponse.json({ error: "Failed to save application." }, { status: 500 });
+    }
+
+    // Notify the applicant that their application was received. A failed
+    // email must not fail the application itself.
+    try {
+      await sendEmail(
+        applicationReceivedEmail({
+          name: parsed.data.fullName,
+          email: parsed.data.email,
+        })
+      );
+    } catch (emailError) {
+      console.error("Application-received email failed.", emailError);
     }
 
     return NextResponse.json({ ok: true }, { status: 201 });
