@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS users (
   matric_no TEXT,
   level INTEGER,
   cgpa NUMERIC(3,2),
-  role TEXT NOT NULL DEFAULT 'applicant' CHECK (role IN ('applicant', 'field_officer', 'documentation_officer', 'advocacy_officer', 'technical_officer', 'president', 'vice_president', 'faculty_advisor', 'works_dept', 'admin')),
+  role TEXT NOT NULL DEFAULT 'applicant' CHECK (role IN ('applicant', 'field_officer', 'documentation_officer', 'advocacy_officer', 'technical_officer', 'president', 'vice_president', 'faculty_advisor', 'works_dept', 'admin', 'owner')),
   status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'inactive', 'graduated')),
   notifications_enabled BOOLEAN NOT NULL DEFAULT false,
   zone_id UUID REFERENCES campus_zones(id),
@@ -56,6 +56,36 @@ ADD COLUMN IF NOT EXISTS avatar_url TEXT;
 CREATE INDEX IF NOT EXISTS users_status_idx ON users(status);
 CREATE INDEX IF NOT EXISTS users_status_notifications_idx ON users(status, notifications_enabled);
 CREATE INDEX IF NOT EXISTS users_role_status_idx ON users(role, status);
+
+-- Widen the users.role CHECK to include 'owner' on existing databases.
+-- (CREATE TABLE IF NOT EXISTS above only applies to fresh installs, and the
+-- inline CHECK is unnamed, so Postgres auto-named it users_role_check.
+-- Drop whichever role CHECK exists, matched by definition, not by name.)
+DO $$
+DECLARE
+  r RECORD;
+BEGIN
+  FOR r IN
+    SELECT conname
+    FROM pg_constraint
+    WHERE conrelid = 'public.users'::regclass
+      AND contype = 'c'
+      AND (conname = 'users_role_check' OR pg_get_constraintdef(oid) ILIKE '%role%')
+  LOOP
+    EXECUTE format('ALTER TABLE public.users DROP CONSTRAINT %I', r.conname);
+  END LOOP;
+
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'users_role_check'
+      AND conrelid = 'public.users'::regclass
+  ) THEN
+    ALTER TABLE public.users
+    ADD CONSTRAINT users_role_check
+    CHECK (role IN ('applicant', 'field_officer', 'documentation_officer', 'advocacy_officer', 'technical_officer', 'president', 'vice_president', 'faculty_advisor', 'works_dept', 'admin', 'owner'));
+  END IF;
+END $$;
 
 -- Utility Function: Get current user's role
 CREATE OR REPLACE FUNCTION get_my_role()
@@ -82,6 +112,34 @@ BEGIN
   RETURN NEW;
 END;
 $$;
+
+-- Last-owner safeguard: the final active owner cannot be demoted to another
+-- role or deactivated. Other owners/admins must exist first.
+CREATE OR REPLACE FUNCTION protect_last_owner()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  IF OLD.role = 'owner' AND OLD.status = 'active'
+    AND (NEW.role <> 'owner' OR NEW.status = 'inactive') THEN
+    IF NOT EXISTS (
+      SELECT 1 FROM users
+      WHERE role = 'owner'
+        AND status = 'active'
+        AND id <> OLD.id
+    ) THEN
+      RAISE EXCEPTION 'Cannot remove the last remaining owner.';
+    END IF;
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS protect_last_owner_before_update ON users;
+CREATE TRIGGER protect_last_owner_before_update
+BEFORE UPDATE ON users
+FOR EACH ROW EXECUTE PROCEDURE protect_last_owner();
 
 
 -- 3. INTAKE CYCLES
