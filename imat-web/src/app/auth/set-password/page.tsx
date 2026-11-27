@@ -48,7 +48,7 @@ export default function SetPasswordPage() {
 
         if (!session) {
           setTokenError(
-            "This invite link is missing or has expired. Please ask an admin to send you a new invite, or go back to the login page."
+            "This invite link is missing or has expired. Request a new one — it will be sent to your email automatically."
           );
           return;
         }
@@ -57,7 +57,7 @@ export default function SetPasswordPage() {
       } catch {
         console.error("Set-password session failed.");
         setTokenError(
-          "This invite link is missing or has expired. Please ask an admin to send you a new invite, or go back to the login page."
+          "This invite link is missing or has expired. Request a new one — it will be sent to your email automatically."
         );
       }
     };
@@ -118,9 +118,14 @@ export default function SetPasswordPage() {
         {tokenError ? (
           <div className="glass-panel rounded-xl p-8 space-y-6 shadow-2xl text-center">
             <p className="text-sm text-textDefault">{tokenError}</p>
-            <Link href="/login" className="inline-block px-8 py-4 bg-primary text-white font-bold rounded-lg hover:bg-blue-500 transition-colors">
-              Go to Login
-            </Link>
+            <div className="space-y-3">
+              <Link href="/auth/resend-invite" className="block px-8 py-4 bg-primary text-white font-bold rounded-lg hover:bg-blue-500 transition-colors">
+                Request a new invite link
+              </Link>
+              <Link href="/login" className="block text-sm text-primary hover:underline">
+                Go to Login
+              </Link>
+            </div>
           </div>
         ) : !isReady ? (
           <div className="glass-panel rounded-xl p-8 shadow-2xl text-center">

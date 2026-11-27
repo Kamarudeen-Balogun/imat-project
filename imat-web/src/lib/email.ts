@@ -4,6 +4,8 @@
 
 const RESEND_API_URL = "https://api.resend.com/emails";
 const DEFAULT_FROM = "noreply@imat.codeflowx.dev";
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL || "https://imat-futa.vercel.app";
 
 export type SendEmailInput = {
   to: string;
@@ -138,11 +140,12 @@ export function acceptanceEmail(name: string, inviteLink: string): EmailTemplate
 <p>Good news — your application to join IMAT (Infrastructure Maintenance Awareness Team), FUTA, has been accepted.</p>
 <p>To finish setting up your account, set your password using the button below:</p>
 ${buttonHtml("Set your password", inviteLink)}
+<p>This link is valid for 24 hours. If it expires before you use it, request a new one here: <a href="${SITE_URL}/auth/resend-invite">${SITE_URL}/auth/resend-invite</a></p>
 <p style="color: #666; font-size: 13px;">If the button does not work, copy and paste this link into your browser:<br /><a href="${escapeHtml(inviteLink)}">${escapeHtml(inviteLink)}</a></p>
 <p>We look forward to working with you.</p>
 <p>Best regards,<br />IMAT Team</p>`
   );
-  const text = `Hi ${name},\n\nGood news — your application to join IMAT (Infrastructure Maintenance Awareness Team), FUTA, has been accepted.\n\nTo finish setting up your account, set your password using this link:\n${inviteLink}\n\nWe look forward to working with you.\n\nBest regards,\nIMAT Team`;
+  const text = `Hi ${name},\n\nGood news — your application to join IMAT (Infrastructure Maintenance Awareness Team), FUTA, has been accepted.\n\nTo finish setting up your account, set your password using this link:\n${inviteLink}\n\nThis link is valid for 24 hours. If it expires before you use it, request a new one here:\n${SITE_URL}/auth/resend-invite\n\nWe look forward to working with you.\n\nBest regards,\nIMAT Team`;
   return { subject, html, text };
 }
 
