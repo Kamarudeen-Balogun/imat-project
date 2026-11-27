@@ -53,7 +53,7 @@ export default function MembersPage() {
      <div className="mx-auto min-h-screen max-w-7xl px-4 py-14 sm:px-6 md:py-20">
        <Breadcrumbs className="mb-8" />
 
-      <h1 className="text-3xl md:text-4xl font-bold text-textDefault mb-3">IMAT Members</h1>
+      <h1 className="page-title mb-3">IMAT Members</h1>
       <p className="text-text2 mb-8 max-w-2xl">
         Meet the active officers and members currently running infrastructure monitoring and advocacy across campus.
       </p>
@@ -99,7 +99,7 @@ export default function MembersPage() {
                     )}
                   </div>
                   <div className="min-w-0">
-                    <h2 className="text-lg font-bold text-textDefault truncate">{member.full_name}</h2>
+                    <h2 className="text-lg font-black text-textDefault truncate">{member.full_name}</h2>
                     <p className="text-[11px] font-mono uppercase tracking-wider text-primary/90 truncate mt-1">
                       {toRoleLabel(member.role)}
                     </p>

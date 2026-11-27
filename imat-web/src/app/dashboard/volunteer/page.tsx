@@ -218,7 +218,7 @@ export default function VolunteerHoursPage() {
             Loading your hours...
           </div>
         ) : logs.length === 0 ? (
-          <div className="glass-panel rounded-2xl p-8 text-center text-text3">
+          <div className="empty-state">
             No hours logged yet. Your first entry will show up here.
           </div>
         ) : (

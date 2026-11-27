@@ -113,7 +113,7 @@ export default function EvidencePage() {
           ))}
         </div>
       ) : filteredItems.length === 0 ? (
-        <div className="ticket-card rounded-lg p-12 text-center text-text3">
+        <div className="empty-state">
           No evidence items have been published yet. Add the first record in the dashboard evidence manager.
         </div>
       ) : (

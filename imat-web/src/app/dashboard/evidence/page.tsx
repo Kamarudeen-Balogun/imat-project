@@ -351,7 +351,7 @@ export default function DashboardEvidencePage() {
       </div>
 
       {items.length === 0 ? (
-        <div className="rounded-2xl border border-soft border-dashed bg-bg2 p-12 text-center text-text3">
+        <div className="empty-state">
           No evidence items found.
         </div>
       ) : (

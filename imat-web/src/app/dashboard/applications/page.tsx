@@ -221,7 +221,7 @@ export default function ApplicationsPage() {
       </div>
 
       {applications.length === 0 ? (
-        <div className="p-12 text-center border-dashed border border-soft rounded-xl text-text3 font-mono bg-bg2">
+        <div className="empty-state">
           No applications yet.
         </div>
       ) : (

@@ -104,7 +104,7 @@ export default function LoginPage() {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary mb-6">
             <Lock size={32} />
           </div>
-          <h1 className="text-3xl font-bold text-textDefault mb-2">Member Portal</h1>
+          <h1 className="text-3xl font-black text-textDefault mb-2">Member Portal</h1>
           <p className="text-text2">Sign in to access your administrative dashboard.</p>
         </div>
 
@@ -117,7 +117,7 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="e.g. officer@futa.edu.ng" 
               required 
-              className="w-full rounded-lg border border-borderDark bg-surfaceStrong p-4 text-sm text-textDefault transition-colors focus:border-primary focus:outline-none" 
+              className="field" 
             />
           </div>
 

@@ -162,7 +162,7 @@ export default function MemberDirectoryPage() {
         {loading ? (
           <div className="col-span-full p-12 text-center text-text3 font-mono">Loading active personnel...</div>
         ) : filteredMembers.length === 0 ? (
-          <div className="col-span-full p-12 text-center border-dashed border border-soft rounded-xl text-text3 font-mono bg-bg2">
+          <div className="col-span-full empty-state">
             No active members matched your search.
           </div>
         ) : (

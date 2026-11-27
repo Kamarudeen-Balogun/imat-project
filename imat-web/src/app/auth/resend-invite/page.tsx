@@ -80,7 +80,7 @@ export default function ResendInvitePage() {
                 placeholder="e.g. officer@futa.edu.ng"
                 required
                 autoComplete="email"
-                className="w-full rounded-lg border border-borderDark bg-surfaceStrong p-4 text-sm text-textDefault transition-colors focus:border-primary focus:outline-none"
+                className="field"
               />
             </div>
 

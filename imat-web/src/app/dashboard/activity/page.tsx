@@ -87,7 +87,7 @@ export default async function ActivityPage() {
       </div>
 
       {logs.length === 0 ? (
-        <div className="glass-panel rounded-2xl border border-soft border-dashed p-12 text-center text-text3">
+        <div className="empty-state">
           No activity recorded yet.
         </div>
       ) : (

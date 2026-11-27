@@ -129,6 +129,11 @@
     }
   }
 
+  ::selection {
+    background: var(--accent);
+    color: #fff;
+  }
+
   * {
     min-width: 0;
   }
@@ -162,6 +167,269 @@
     select {
       font-size: 16px;
     }
+  }
+}
+
+@layer components {
+  /* ── Shared buttons: one primary, one outline, one ghost ─────────
+     Plain CSS (not @apply): opacity-modified color utilities do not
+     resolve inside @apply for these CSS-variable tokens. */
+  .btn,
+  .btn-accent,
+  .btn-primary,
+  .btn-outline,
+  .btn-ghost,
+  .btn-dark-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 0.5rem;
+    padding: 0.625rem 1.25rem;
+    border: 1px solid transparent;
+    font-size: 0.875rem;
+    font-weight: 700;
+    line-height: 1.25rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .btn:active,
+  .btn-accent:active,
+  .btn-primary:active,
+  .btn-outline:active,
+  .btn-ghost:active,
+  .btn-dark-ghost:active {
+    transform: scale(0.97);
+    opacity: 0.9;
+  }
+  .btn:focus-visible,
+  .btn-accent:focus-visible,
+  .btn-primary:focus-visible,
+  .btn-outline:focus-visible,
+  .btn-ghost:focus-visible,
+  .btn-dark-ghost:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+  }
+  .btn:disabled,
+  .btn-accent:disabled,
+  .btn-primary:disabled,
+  .btn-outline:disabled,
+  .btn-ghost:disabled,
+  .btn-dark-ghost:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+  .btn-accent {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: #fff;
+  }
+  .btn-accent:hover {
+    background: var(--accent2);
+  }
+  .btn-accent:focus-visible {
+    outline-color: var(--accent);
+  }
+  .btn-primary {
+    border-color: color-mix(in oklab, var(--primary) 40%, transparent);
+    background: color-mix(in oklab, var(--primary) 10%, transparent);
+    color: var(--primary);
+  }
+  .btn-primary:hover {
+    background: color-mix(in oklab, var(--primary) 15%, transparent);
+  }
+  .btn-outline {
+    border-color: var(--borderDark);
+    background: var(--surfaceStrong);
+    color: var(--textDefault);
+  }
+  .btn-outline:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+  .btn-ghost {
+    background: transparent;
+    padding: 0.5rem 1rem;
+    font-weight: 600;
+    color: var(--text2);
+  }
+  .btn-ghost:hover {
+    background: var(--bg3);
+    color: var(--textDefault);
+  }
+  .btn-dark-ghost {
+    border-color: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+  }
+  .btn-dark-ghost:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+  .btn-sm {
+    padding: 0.5rem 0.875rem;
+    font-size: 0.75rem;
+  }
+  .btn-lg {
+    padding: 0.75rem 1.5rem;
+    font-size: 0.875rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
+
+  /* ── Shared cards ─────────────────────────────────────────────── */
+  .card {
+    border-radius: 0.75rem;
+    border: 1px solid var(--borderDark);
+    background: var(--surfaceStrong);
+    box-shadow: 0 14px 34px rgba(17, 24, 32, 0.07);
+  }
+  .card-hover {
+    transition: all 0.2s ease;
+  }
+  .card-hover:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in oklab, var(--accent) 50%, transparent);
+    box-shadow: 0 20px 44px rgba(17, 24, 32, 0.1);
+  }
+
+  /* ── Shared type: section kicker, page title, lede ───────────── */
+  .eyebrow {
+    margin-bottom: 0.5rem;
+    font-family: var(--font-ibm-plex-mono);
+    font-size: 11px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--accent);
+  }
+  .page-title {
+    font-size: 1.875rem;
+    line-height: 2.25rem;
+    font-weight: 900;
+    letter-spacing: -0.025em;
+    color: var(--textDefault);
+  }
+  @media (min-width: 768px) {
+    .page-title {
+      font-size: 2.25rem;
+      line-height: 2.5rem;
+    }
+  }
+  .page-lede {
+    margin-top: 0.75rem;
+    max-width: 42rem;
+    font-size: 0.875rem;
+    line-height: 1.625;
+    color: var(--text2);
+  }
+  @media (min-width: 768px) {
+    .page-lede {
+      font-size: 1rem;
+    }
+  }
+
+  /* ── Shared form field ────────────────────────────────────────── */
+  .field {
+    width: 100%;
+    border-radius: 0.5rem;
+    border: 1px solid var(--borderDark);
+    background: var(--bg);
+    padding: 0.625rem 0.875rem;
+    font-size: 0.875rem;
+    color: var(--textDefault);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .field::placeholder {
+    color: var(--text3);
+  }
+  .field:focus {
+    border-color: var(--primary);
+    outline: none;
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 20%, transparent);
+  }
+
+  /* ── Shared badges ────────────────────────────────────────────── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    border-radius: 9999px;
+    border: 1px solid;
+    padding: 0.125rem 0.625rem;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .badge-success {
+    border-color: color-mix(in oklab, var(--success) 25%, transparent);
+    background: color-mix(in oklab, var(--success) 10%, transparent);
+    color: var(--success);
+  }
+  .badge-warning {
+    border-color: color-mix(in oklab, var(--warning) 25%, transparent);
+    background: color-mix(in oklab, var(--warning) 10%, transparent);
+    color: var(--warning);
+  }
+  .badge-danger {
+    border-color: color-mix(in oklab, var(--danger) 25%, transparent);
+    background: color-mix(in oklab, var(--danger) 10%, transparent);
+    color: var(--danger);
+  }
+  .badge-info {
+    border-color: color-mix(in oklab, var(--primary) 25%, transparent);
+    background: color-mix(in oklab, var(--primary) 10%, transparent);
+    color: var(--primary);
+  }
+  .badge-neutral {
+    border-color: var(--softBorder);
+    background: var(--bg3);
+    color: var(--text2);
+  }
+  .badge-accent {
+    border-color: color-mix(in oklab, var(--accent) 25%, transparent);
+    background: color-mix(in oklab, var(--accent) 10%, transparent);
+    color: var(--accent);
+  }
+
+  /* ── Shared empty state + filter chip ─────────────────────────── */
+  .empty-state {
+    border-radius: 0.75rem;
+    border: 1px dashed var(--borderDark);
+    background: var(--surface);
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+    font-size: 0.875rem;
+    line-height: 1.625;
+    color: var(--text3);
+  }
+  .chip {
+    border-radius: 9999px;
+    border: 1px solid var(--borderDark);
+    background: var(--surfaceStrong);
+    padding: 0.5rem 1rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text2);
+    transition: all 0.15s ease;
+    cursor: pointer;
+  }
+  .chip:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .chip-active {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: #fff;
+  }
+  .chip-active:hover {
+    color: #fff;
   }
 }
 

@@ -557,13 +557,13 @@ export default function ReportPage() {
           <div className="space-y-6">
             <div>
               <label className="mb-2 block text-sm font-black text-textDefault">Short Title <span className="text-danger">*</span></label>
-              <input name="title" type="text" maxLength={80} placeholder="e.g. Massive pothole near ETF building" required value={draft.title} onChange={(e) => setDraft((prev) => ({ ...prev, title: e.target.value }))} className="w-full rounded-md border border-borderDark bg-surfaceStrong p-3 text-textDefault focus:border-accent focus:outline-none" />
+              <input name="title" type="text" maxLength={80} placeholder="e.g. Massive pothole near ETF building" required value={draft.title} onChange={(e) => setDraft((prev) => ({ ...prev, title: e.target.value }))} className="field" />
             </div>
 
             <div className="grid gap-5 md:grid-cols-2">
               <div>
                 <label className="mb-2 block text-sm font-black text-textDefault">Category <span className="text-danger">*</span></label>
-                <select name="category" value={category} onChange={e => setDraft((prev) => ({ ...prev, category: e.target.value }))} required className="w-full rounded-md border border-borderDark bg-surfaceStrong p-3 text-textDefault focus:border-accent focus:outline-none">
+                <select name="category" value={category} onChange={e => setDraft((prev) => ({ ...prev, category: e.target.value }))} required className="field">
                   <option value="drainage">Drainage</option>
                   <option value="road">Road</option>
                   <option value="walkway">Walkway</option>
@@ -573,7 +573,7 @@ export default function ReportPage() {
               </div>
               <div>
                 <label className="mb-2 block text-sm font-black text-textDefault">Type of Defect <span className="text-danger">*</span></label>
-                <select name="defect_type" value={draft.defect_type} onChange={(e) => setDraft((prev) => ({ ...prev, defect_type: e.target.value }))} required className="w-full rounded-md border border-borderDark bg-surfaceStrong p-3 text-textDefault focus:border-accent focus:outline-none">
+                <select name="defect_type" value={draft.defect_type} onChange={(e) => setDraft((prev) => ({ ...prev, defect_type: e.target.value }))} required className="field">
                   <option value="">Select specific type...</option>
                   {DEFECT_TYPES[category]?.map(type => (
                     <option key={type} value={type}>{type}</option>
@@ -622,7 +622,7 @@ export default function ReportPage() {
             <div className="grid gap-5 md:grid-cols-2">
               <div>
                 <label className="mb-2 block text-sm font-black text-textDefault">Campus Zone</label>
-                <select name="campus_zone_id" value={draft.campus_zone_id} onChange={(e) => setDraft((prev) => ({ ...prev, campus_zone_id: e.target.value }))} className="w-full rounded-md border border-borderDark bg-surfaceStrong p-3 text-textDefault focus:border-primary focus:outline-none">
+                <select name="campus_zone_id" value={draft.campus_zone_id} onChange={(e) => setDraft((prev) => ({ ...prev, campus_zone_id: e.target.value }))} className="field">
                   <option value="">Select general zone (optional)...</option>
                   {zones.map(z => (
                     <option key={z.id} value={z.id}>{z.name}</option>
@@ -631,7 +631,7 @@ export default function ReportPage() {
               </div>
               <div>
                 <label className="mb-2 block text-sm font-black text-textDefault">Estimated Area (sq meters)</label>
-                <input name="affected_area_sqm" value={draft.affected_area_sqm} onChange={(e) => setDraft((prev) => ({ ...prev, affected_area_sqm: e.target.value }))} type="number" step="0.1" placeholder="e.g. 5" className="w-full rounded-md border border-borderDark bg-surfaceStrong p-3 text-textDefault focus:border-primary focus:outline-none" />
+                <input name="affected_area_sqm" value={draft.affected_area_sqm} onChange={(e) => setDraft((prev) => ({ ...prev, affected_area_sqm: e.target.value }))} type="number" step="0.1" placeholder="e.g. 5" className="field" />
               </div>
             </div>
 
@@ -654,7 +654,7 @@ export default function ReportPage() {
             
             <div>
               <label className="mb-2 block text-sm font-black text-textDefault">Detailed Description & Exact Location <span className="text-danger">*</span></label>
-              <textarea name="description" value={draft.description} onChange={(e) => setDraft((prev) => ({ ...prev, description: e.target.value }))} rows={4} placeholder="Describe the defect and exactly where it is so field officers can easily find it..." required className="w-full rounded-md border border-borderDark bg-surfaceStrong p-3 text-textDefault focus:border-primary focus:outline-none"></textarea>
+              <textarea name="description" value={draft.description} onChange={(e) => setDraft((prev) => ({ ...prev, description: e.target.value }))} rows={4} placeholder="Describe the defect and exactly where it is so field officers can easily find it..." required className="field"></textarea>
             </div>
           </div>
         </section>

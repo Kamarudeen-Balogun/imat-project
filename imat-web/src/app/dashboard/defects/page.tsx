@@ -55,12 +55,20 @@ export default function InternalDefectsLogPage() {
     fetchInternalDefects();
   }, []);
 
+  const STATUS_BADGE: Record<string, string> = {
+    reported: "badge-warning",
+    assessed: "badge-info",
+    escalated: "badge-danger",
+    acknowledged_by_works: "badge-accent",
+    resolved: "badge-success",
+  };
+
   const getSeverityBadge = (level: number) => {
     switch(level) {
-      case 5: return <span className="bg-danger/20 text-danger px-2 py-0.5 rounded text-xs font-bold font-mono">LVL 5 (CRITICAL)</span>;
-      case 4: return <span className="bg-warning/20 text-warning px-2 py-0.5 rounded text-xs font-bold font-mono">LVL 4 (HIGH)</span>;
-      case 3: return <span className="bg-orange-500/20 text-orange-600 dark:text-orange-400 px-2 py-0.5 rounded text-xs font-bold font-mono">LVL 3 (MODERATE)</span>;
-      default: return <span className="bg-blue-500/20 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded text-xs font-bold font-mono">LVL {level} (MINOR)</span>;
+      case 5: return <span className="badge badge-danger font-mono">LVL 5 (CRITICAL)</span>;
+      case 4: return <span className="badge badge-warning font-mono">LVL 4 (HIGH)</span>;
+      case 3: return <span className="badge badge-accent font-mono">LVL 3 (MODERATE)</span>;
+      default: return <span className="badge badge-info font-mono">LVL {level} (MINOR)</span>;
     }
   };
 
@@ -171,8 +179,8 @@ export default function InternalDefectsLogPage() {
                     )}
                   </td>
                   <td className="p-4">
-                    <span className="px-2 py-1 uppercase tracking-wider text-[10px] font-bold bg-bg3 text-text2 rounded border border-soft">
-                      {defect.status.replace(/_/g, ' ')}
+                    <span className={`badge ${STATUS_BADGE[defect.status] ?? "badge-neutral"}`}>
+                      {defect.status.replace(/_/g, " ")}
                     </span>
                   </td>
                   <td className="p-4 text-right">

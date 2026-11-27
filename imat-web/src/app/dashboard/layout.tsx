@@ -123,7 +123,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       ? "bg-accent/12 text-accent ring-1 ring-accent/35"
       : baseClasses;
 
-    return `flex items-center gap-3 rounded-md px-4 py-3 text-sm font-bold transition-colors ${activeClasses}`;
+    return `flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-bold transition-colors ${activeClasses}`;
   };
 
   const navItems = [
@@ -217,7 +217,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <div className="flex items-center gap-3 min-w-0">
               <button
                 onClick={() => setMenuOpen((current) => !current)}
-                className="rounded-md border border-soft bg-surface px-2 py-2 transition-colors hover:bg-bg3 md:hidden"
+                className="btn-ghost btn-sm !px-2 md:hidden"
                 aria-label="Toggle dashboard menu"
               >
                 {menuOpen ? <X size={18} /> : <Menu size={18} />}
@@ -228,7 +228,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               {mounted && (
                 <button
                   onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                  className="rounded-md border border-soft bg-surface px-2.5 py-2 text-text2 transition-colors hover:border-accent hover:text-accent"
+                  className="btn-ghost btn-sm !px-2.5"
                   aria-label="Toggle theme"
                 >
                   {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}

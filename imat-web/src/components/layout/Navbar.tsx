@@ -17,6 +17,11 @@ export function Navbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const pathname = usePathname();
 
+  const navLink = (href: string) =>
+    `rounded-md px-3 py-2 text-xs font-bold uppercase tracking-[0.16em] transition-all ${
+      pathname === href ? "bg-bg3 text-textDefault" : "text-text2 hover:bg-bg3 hover:text-textDefault"
+    }`;
+
   useEffect(() => {
     setIsOpen(false);
   }, [pathname]);
@@ -65,11 +70,11 @@ export function Navbar() {
         </div>
 
         <div className="hidden items-center justify-center gap-1 lg:flex">
-          <Link href="/issues" className="rounded-md px-3 py-2 text-xs font-bold uppercase tracking-[0.16em] text-text2 transition-all hover:bg-bg3 hover:text-textDefault">Tracker</Link>
-          <Link href="/evidence" className="rounded-md px-3 py-2 text-xs font-bold uppercase tracking-[0.16em] text-text2 transition-all hover:bg-bg3 hover:text-textDefault">Evidence</Link>
-          <Link href="/newsroom" className="rounded-md px-3 py-2 text-xs font-bold uppercase tracking-[0.16em] text-text2 transition-all hover:bg-bg3 hover:text-textDefault">Newsroom</Link>
-          <Link href="/members" className="rounded-md px-3 py-2 text-xs font-bold uppercase tracking-[0.16em] text-text2 transition-all hover:bg-bg3 hover:text-textDefault">Members</Link>
-          <Link href="/about" className="rounded-md px-3 py-2 text-xs font-bold uppercase tracking-[0.16em] text-text2 transition-all hover:bg-bg3 hover:text-textDefault">About</Link>
+          <Link href="/issues" className={navLink("/issues")}>Tracker</Link>
+          <Link href="/evidence" className={navLink("/evidence")}>Evidence</Link>
+          <Link href="/newsroom" className={navLink("/newsroom")}>Newsroom</Link>
+          <Link href="/members" className={navLink("/members")}>Members</Link>
+          <Link href="/about" className={navLink("/about")}>About</Link>
         </div>
 
         <div className="hidden items-center justify-end gap-2 lg:flex">
@@ -85,22 +90,22 @@ export function Navbar() {
           )}
 
           {isLoggedIn ? (
-            <Link href="/dashboard" className="inline-flex items-center gap-2 rounded-md border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-bold text-primary transition-all hover:border-primary hover:bg-primary/15">
+            <Link href="/dashboard" className="btn-primary btn-sm">
               <Gauge size={15} />
               Dashboard
             </Link>
           ) : (
-            <Link href="/login" className="rounded-md px-4 py-2 text-sm font-semibold text-text2 transition-all hover:bg-bg3 hover:text-textDefault">
+            <Link href="/login" className="btn-ghost btn-sm">
               Login
             </Link>
           )}
 
-          <Link href="/report" className="inline-flex items-center gap-2 rounded-md border border-accent bg-accent px-4 py-2 text-sm font-black text-white transition-all hover:bg-accent2">
+          <Link href="/report" className="btn-accent btn-sm">
             <AlertTriangle size={15} />
             Report Issue
           </Link>
 
-          <Link href="/apply" className="inline-flex items-center gap-2 rounded-md border border-borderDark bg-bg px-4 py-2 text-sm font-bold text-textDefault transition-all hover:border-primary hover:text-primary">
+          <Link href="/apply" className="btn-outline btn-sm">
             Apply to Join
             <ArrowUpRight size={15} />
           </Link>
@@ -158,20 +163,20 @@ export function Navbar() {
 
                 <div className="mt-4 grid grid-cols-1 gap-2">
                   {isLoggedIn ? (
-                    <Link href="/dashboard" className="rounded-md border border-primary/40 bg-primary/15 py-3 text-center text-sm font-bold text-primary transition-colors hover:bg-primary/20">
+                    <Link href="/dashboard" className="btn-primary w-full py-3">
                       Dashboard
                     </Link>
                   ) : (
-                    <Link href="/login" className="rounded-md border border-borderDark py-3 text-center text-sm font-semibold text-textDefault transition-colors hover:border-primary/60 hover:text-primary">
+                    <Link href="/login" className="btn-outline w-full py-3">
                       Member Login
                     </Link>
                   )}
 
-                  <Link href="/report" className="rounded-md border border-accent bg-accent py-3 text-center text-sm font-black text-white transition-colors hover:bg-accent2">
+                  <Link href="/report" className="btn-accent w-full py-3">
                     Report Issue
                   </Link>
 
-                  <Link href="/apply" className="rounded-md border border-borderDark bg-bg py-3 text-center text-sm font-bold text-textDefault transition-colors hover:border-primary hover:text-primary">
+                  <Link href="/apply" className="btn-outline w-full py-3">
                     Apply to Join
                   </Link>
                 </div>

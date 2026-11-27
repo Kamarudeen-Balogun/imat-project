@@ -60,7 +60,7 @@ function StatusStep({
   tone: string;
 }) {
   return (
-    <div className="ticket-card status-rail rounded-lg p-5 pl-6 text-textDefault" style={{ color: tone }}>
+    <div className="card status-rail p-5 pl-6 text-textDefault" style={{ color: tone }}>
       <div className="flex items-start gap-3">
         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-current/35 bg-current/10">
           <Icon size={18} />
@@ -152,14 +152,14 @@ export default function Home() {
     <div className="flex w-full flex-col">
       <section className="relative overflow-hidden bg-asphalt text-white">
         <div className="blueprint-grid absolute inset-0 opacity-20" />
-        <div className="relative mx-auto grid min-h-[calc(100vh-4.5rem)] max-w-7xl items-center gap-10 px-4 py-10 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:py-14">
+        <div className="relative mx-auto grid min-h-[calc(100vh-4.5rem)] max-w-7xl items-center gap-10 px-4 py-14 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:py-20">
           <motion.div
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.55 }}
           >
             <div className="mb-5 inline-flex items-center gap-2 rounded border border-accent/45 bg-accent/10 px-3 py-1.5 font-mono text-[10px] font-black uppercase tracking-[0.2em] text-accent">
-              <span className="h-2 w-2 rounded-full bg-accent" />
+              <span className="h-2 w-2 animate-pulse rounded-full bg-accent" />
               Live campus infrastructure hub
             </div>
 
@@ -174,14 +174,14 @@ export default function Home() {
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
                 href="/report"
-                className="inline-flex items-center justify-center gap-2 rounded-md border border-accent bg-accent px-6 py-3 text-sm font-black uppercase tracking-[0.12em] text-white transition-colors hover:bg-accent2 btn-press"
+                className="btn-accent btn-lg"
               >
                 Report Issue
                 <ArrowRight size={16} />
               </Link>
               <Link
                 href="/issues"
-                className="inline-flex items-center justify-center gap-2 rounded-md border border-white/20 bg-white/5 px-6 py-3 text-sm font-black uppercase tracking-[0.12em] text-white transition-colors hover:border-primary hover:text-primary btn-press"
+                className="btn-dark-ghost btn-lg"
               >
                 View Tracker
                 <Gauge size={16} />
@@ -210,7 +210,7 @@ export default function Home() {
                     <stat.icon className="text-accent" size={18} />
                     <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-slate-500">KPI 0{i + 1}</span>
                   </div>
-                  <p className="font-mono text-3xl font-black text-white">{loading ? "--" : stat.value}</p>
+                  <p className="font-mono text-3xl font-black tabular-nums text-white">{loading ? "--" : stat.value}</p>
                   <p className="mt-2 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400">{stat.label}</p>
                 </div>
               ))}
@@ -244,13 +244,13 @@ export default function Home() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="mb-8 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
-              <p className="mb-2 font-mono text-xs font-black uppercase tracking-[0.18em] text-accent">Field Intelligence</p>
-              <h2 className="text-3xl font-black text-textDefault md:text-4xl">Evidence Ticket Board</h2>
-              <p className="mt-3 max-w-2xl text-sm leading-relaxed text-text2 md:text-base">
+              <p className="eyebrow">Field Intelligence</p>
+              <h2 className="page-title">Evidence Ticket Board</h2>
+              <p className="page-lede">
                 Published records document defect conditions, categories, and before / after proof for accountable maintenance follow-through.
               </p>
             </div>
-            <Link href="/evidence" className="inline-flex items-center gap-2 rounded-md border border-borderDark bg-surfaceStrong px-4 py-2 text-sm font-black uppercase tracking-[0.12em] text-textDefault transition-colors hover:border-accent hover:text-accent">
+            <Link href="/evidence" className="btn-outline btn-sm">
               Full Board <ArrowRight size={15} />
             </Link>
           </div>
@@ -260,11 +260,7 @@ export default function Home() {
               <button
                 key={category}
                 onClick={() => setFilter(category)}
-                className={`rounded-md border px-4 py-2 text-xs font-black uppercase tracking-[0.14em] transition-all ${
-                  filter === category
-                    ? "border-accent bg-accent text-white"
-                    : "border-borderDark bg-surfaceStrong text-text2 hover:border-accent hover:text-accent"
-                }`}
+                className={`chip ${filter === category ? "chip-active" : ""}`}
               >
                 {category}
               </button>
@@ -278,7 +274,7 @@ export default function Home() {
               ))}
             </div>
           ) : evidenceItems.length === 0 ? (
-            <div className="ticket-card rounded-lg p-8 text-center text-text3">
+            <div className="empty-state">
               No evidence items are published yet. Upload the first before-and-after record from the dashboard to populate this board.
             </div>
           ) : (
@@ -302,10 +298,10 @@ export default function Home() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="mb-8 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
-              <p className="mb-2 font-mono text-xs font-black uppercase tracking-[0.18em] text-accent">Newsroom</p>
-              <h2 className="text-3xl font-black text-textDefault md:text-4xl">Latest Broadcasts</h2>
+              <p className="eyebrow">Newsroom</p>
+              <h2 className="page-title">Latest Broadcasts</h2>
             </div>
-            <Link href="/newsroom" className="inline-flex items-center gap-2 rounded-md border border-borderDark bg-surfaceStrong px-4 py-2 text-sm font-black uppercase tracking-[0.12em] text-textDefault transition-colors hover:border-accent hover:text-accent">
+            <Link href="/newsroom" className="btn-outline btn-sm">
               Open Newsroom <ArrowRight size={15} />
             </Link>
           </div>
@@ -317,7 +313,7 @@ export default function Home() {
               ))}
             </div>
           ) : announcements.length === 0 ? (
-            <div className="ticket-card rounded-lg p-6 text-sm text-text3">
+            <div className="empty-state">
               No public broadcasts are published yet.
             </div>
           ) : (
@@ -326,7 +322,7 @@ export default function Home() {
                 <Link
                   key={item.id}
                   href={`/newsroom/${item.slug ?? item.id}`}
-                  className="ticket-card group rounded-lg p-5 transition-all hover:-translate-y-0.5 hover:border-accent/60"
+                  className="card card-hover group p-5"
                 >
                   <div className="mb-3 flex items-center justify-between gap-3">
                     <span className="font-mono text-[10px] font-black uppercase tracking-[0.18em] text-accent">
@@ -350,12 +346,12 @@ export default function Home() {
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.18 }}
-        className="border-y border-borderDark bg-bg2/70 py-14 md:py-20"
+        className="py-14 md:py-20"
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="mb-8 max-w-3xl">
-            <p className="mb-2 font-mono text-xs font-black uppercase tracking-[0.18em] text-accent">Complaint To Closure</p>
-            <h2 className="text-3xl font-black text-textDefault md:text-4xl">Traceable Maintenance Workflow</h2>
+            <p className="eyebrow">Complaint To Closure</p>
+            <h2 className="page-title">Traceable Maintenance Workflow</h2>
           </div>
           <div className="grid gap-4 md:grid-cols-4">
             <StatusStep icon={Camera} label="Report" text="Students submit structured defect data, photos, GPS, category, and severity." tone="var(--danger)" />

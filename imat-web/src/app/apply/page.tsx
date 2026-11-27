@@ -224,7 +224,7 @@ export default function ApplyPage() {
      return (
        <div className="mx-auto max-w-xl px-4 py-24 text-center sm:px-6 sm:py-32">
          <CheckCircle2 size={64} className="text-success mx-auto mb-6" />
-         <h1 className="text-3xl font-bold text-textDefault mb-4">Application Submitted!</h1>
+         <h1 className="text-3xl font-black text-textDefault mb-4">Application Submitted!</h1>
          <p className="text-text2 mb-8">
            Thank you for applying to join IMAT-FUTA. Your responses have been recorded and sent successfully!
          </p>
@@ -240,7 +240,7 @@ export default function ApplyPage() {
        <Breadcrumbs className="mb-8" />
 
       <div className="text-center mb-12">
-        <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-textDefault mb-4 uppercase">Membership Registration</h1>
+        <h1 className="text-3xl md:text-5xl font-black tracking-tight text-textDefault mb-4 uppercase">Membership Registration</h1>
         <p className="text-lg sm:text-xl text-primary font-bold mb-2">Infrastructure Maintenance Awareness Team (IMAT-FUTA)</p>
         <p className="text-text3 italic">&quot;Building a Culture of Care for Campus Infrastructure&quot;</p>
       </div>
@@ -283,16 +283,16 @@ export default function ApplyPage() {
         />
         {/* SECTION A */}
         <section>
-          <h2 className="bg-primary text-bg p-3 text-lg font-bold rounded uppercase tracking-wide mb-6">Section A: Personal Information</h2>
+          <h2 className="rounded-lg border border-primary/25 bg-primary/10 px-4 py-2.5 text-base font-black uppercase tracking-wide text-primary mb-6">Section A: Personal Information</h2>
           <div className="space-y-6">
             <div>
               <label className="block font-bold text-textDefault mb-2">Full Name (Surname First) <span className="text-danger">*</span></label>
-              <input name="fullName" type="text" placeholder="e.g., ADEYEMI John Oluwaseun" required className="w-full p-3 bg-bg border border-borderDark rounded-lg focus:border-primary focus:outline-none text-textDefault" />
+              <input name="fullName" type="text" placeholder="e.g., ADEYEMI John Oluwaseun" required className="field" />
             </div>
             <div className="grid md:grid-cols-2 gap-6">
               <div>
                 <label className="block font-bold text-textDefault mb-2">Matriculation Number <span className="text-danger">*</span></label>
-                <input name="matricNumber" type="text" placeholder="e.g., CVE/20/5001" required className="w-full p-3 bg-bg border border-borderDark rounded-lg focus:border-primary focus:outline-none text-textDefault" />
+                <input name="matricNumber" type="text" placeholder="e.g., CVE/20/5001" required className="field" />
               </div>
               <div>
                 <label className="block font-bold text-textDefault mb-2">Gender <span className="text-danger">*</span></label>
@@ -315,24 +315,24 @@ export default function ApplyPage() {
             <div className="grid md:grid-cols-2 gap-6">
               <div>
                 <label className="block font-bold text-textDefault mb-2">Email Address <span className="text-danger">*</span></label>
-                <input name="email" type="email" placeholder="youremail@gmail.com" required className="w-full p-3 bg-bg border border-borderDark rounded-lg focus:border-primary focus:outline-none text-textDefault" />
+                <input name="email" type="email" placeholder="youremail@gmail.com" required className="field" />
               </div>
               <div>
                 <label className="block font-bold text-textDefault mb-2">Phone Number <span className="text-danger">*</span></label>
-                <input name="phone" type="tel" maxLength={11} pattern="\d{11}" placeholder="08000000000" title="Must be exactly 11 digits" required className="w-full p-3 bg-bg border border-borderDark rounded-lg focus:border-primary focus:outline-none text-textDefault" />
+                <input name="phone" type="tel" maxLength={11} pattern="\d{11}" placeholder="08000000000" title="Must be exactly 11 digits" required className="field" />
                 <span className="text-xs text-text3 mt-1 block">Must be exactly 11 digits</span>
               </div>
             </div>
             <div>
               <label className="block font-bold text-textDefault mb-2">Residential Address on Campus</label>
-              <input name="address" type="text" placeholder="e.g., Block A, Room 12, Jaja Hall" className="w-full p-3 bg-bg border border-borderDark rounded-lg focus:border-primary focus:outline-none text-textDefault" />
+              <input name="address" type="text" placeholder="e.g., Block A, Room 12, Jaja Hall" className="field" />
             </div>
           </div>
         </section>
 
         {/* SECTION B */}
         <section>
-          <h2 className="bg-primary text-bg p-3 text-lg font-bold rounded uppercase tracking-wide mb-6">Section B: Academic Information</h2>
+          <h2 className="rounded-lg border border-primary/25 bg-primary/10 px-4 py-2.5 text-base font-black uppercase tracking-wide text-primary mb-6">Section B: Academic Information</h2>
           <div className="space-y-6">
             <div>
               <label className="block font-bold text-textDefault mb-2">Is your CGPA above 3.00? <span className="text-danger">*</span></label>
@@ -343,7 +343,7 @@ export default function ApplyPage() {
             </div>
             <div>
               <label className="block font-bold text-textDefault mb-2">Expected Year of Graduation</label>
-              <input name="graduationYear" type="text" placeholder="e.g., 2026" className="w-full p-3 bg-bg border border-borderDark rounded-lg focus:border-primary focus:outline-none text-textDefault" />
+              <input name="graduationYear" type="text" placeholder="e.g., 2026" className="field" />
             </div>
             <div>
               <label className="block font-bold text-textDefault mb-2">Any Previous Leadership Experience?</label>
@@ -355,7 +355,7 @@ export default function ApplyPage() {
             {hasLeadership === "Yes" && (
               <div>
                 <label className="block font-bold text-textDefault mb-2">If YES, please provide details:</label>
-                <textarea name="leadershipDetailsText" rows={3} placeholder="Describe your previous leadership roles..." className="w-full p-3 bg-bg border border-borderDark rounded-lg focus:border-primary focus:outline-none text-textDefault"></textarea>
+                <textarea name="leadershipDetailsText" rows={3} placeholder="Describe your previous leadership roles..." className="field"></textarea>
               </div>
             )}
           </div>
@@ -363,7 +363,7 @@ export default function ApplyPage() {
 
         {/* SECTION C */}
         <section>
-          <h2 className="bg-primary text-bg p-3 text-lg font-bold rounded uppercase tracking-wide mb-6">Section C: Areas of Interest & Skills</h2>
+          <h2 className="rounded-lg border border-primary/25 bg-primary/10 px-4 py-2.5 text-base font-black uppercase tracking-wide text-primary mb-6">Section C: Areas of Interest & Skills</h2>
           <div className="space-y-8">
             <div>
               <label className="block font-bold text-primary mb-4 text-lg">Working Group(s) of Interest (check all that apply)</label>
@@ -415,18 +415,18 @@ export default function ApplyPage() {
 
             <div>
               <label className="block font-bold text-textDefault mb-2">Other Skills (Please specify)</label>
-              <input name="otherSkills" type="text" placeholder="e.g., Project management, Event planning, etc." className="w-full p-3 bg-bg border border-borderDark rounded-lg focus:border-primary focus:outline-none text-textDefault" />
+              <input name="otherSkills" type="text" placeholder="e.g., Project management, Event planning, etc." className="field" />
             </div>
           </div>
         </section>
 
         {/* SECTION D */}
         <section>
-          <h2 className="bg-primary text-bg p-3 text-lg font-bold rounded uppercase tracking-wide mb-6">Section D: Motivation & Commitment</h2>
+          <h2 className="rounded-lg border border-primary/25 bg-primary/10 px-4 py-2.5 text-base font-black uppercase tracking-wide text-primary mb-6">Section D: Motivation & Commitment</h2>
           <div className="space-y-6">
             <div>
               <label className="block font-bold text-textDefault mb-2">Why do you want to join IMAT? <span className="text-danger">*</span></label>
-              <textarea name="motivation" rows={4} placeholder="Explain your motivation for joining IMAT..." required className="w-full p-3 bg-bg border border-borderDark rounded-lg focus:border-primary focus:outline-none text-textDefault"></textarea>
+              <textarea name="motivation" rows={4} placeholder="Explain your motivation for joining IMAT..." required className="field"></textarea>
             </div>
             <div>
               <label className="block font-bold text-textDefault mb-2">How much time can you commit per week? <span className="text-danger">*</span></label>
@@ -443,27 +443,27 @@ export default function ApplyPage() {
 
         {/* SECTION E */}
         <section>
-          <h2 className="bg-primary text-bg p-3 text-lg font-bold rounded uppercase tracking-wide mb-6">Section E: References</h2>
+          <h2 className="rounded-lg border border-primary/25 bg-primary/10 px-4 py-2.5 text-base font-black uppercase tracking-wide text-primary mb-6">Section E: References</h2>
           <p className="italic text-text2 mb-6">Provide ONE academic reference (Lecturer / Course Advisor):</p>
           <div className="space-y-6">
             <div className="grid md:grid-cols-2 gap-6">
               <div>
                 <label className="block font-bold text-textDefault mb-2">Name of Referee</label>
-                <input name="refereeName" type="text" placeholder="e.g., Dr. John Smith" className="w-full p-3 bg-bg border border-borderDark rounded-lg focus:border-primary focus:outline-none text-textDefault" />
+                <input name="refereeName" type="text" placeholder="e.g., Dr. John Smith" className="field" />
               </div>
               <div>
                 <label className="block font-bold text-textDefault mb-2">Department</label>
-                <input name="refereeDept" type="text" placeholder="e.g., Civil Engineering" className="w-full p-3 bg-bg border border-borderDark rounded-lg focus:border-primary focus:outline-none text-textDefault" />
+                <input name="refereeDept" type="text" placeholder="e.g., Civil Engineering" className="field" />
               </div>
             </div>
             <div className="grid md:grid-cols-2 gap-6">
               <div>
                 <label className="block font-bold text-textDefault mb-2">Referee Email</label>
-                <input name="refereeEmail" type="email" placeholder="referee.email@futa.edu.ng" className="w-full p-3 bg-bg border border-borderDark rounded-lg focus:border-primary focus:outline-none text-textDefault" />
+                <input name="refereeEmail" type="email" placeholder="referee.email@futa.edu.ng" className="field" />
               </div>
               <div>
                 <label className="block font-bold text-textDefault mb-2">Referee Phone</label>
-                <input name="refereePhone" type="tel" maxLength={11} pattern="\d{11}" placeholder="08000000000" title="Must be exactly 11 digits" className="w-full p-3 bg-bg border border-borderDark rounded-lg focus:border-primary focus:outline-none text-textDefault" />
+                <input name="refereePhone" type="tel" maxLength={11} pattern="\d{11}" placeholder="08000000000" title="Must be exactly 11 digits" className="field" />
               </div>
             </div>
           </div>
@@ -471,7 +471,7 @@ export default function ApplyPage() {
 
         {/* SECTION F */}
         <section>
-          <h2 className="bg-primary text-bg p-3 text-lg font-bold rounded uppercase tracking-wide mb-6">Section F: Declaration</h2>
+          <h2 className="rounded-lg border border-primary/25 bg-primary/10 px-4 py-2.5 text-base font-black uppercase tracking-wide text-primary mb-6">Section F: Declaration</h2>
           <div className="bg-bg border border-borderDark p-6 rounded-lg mb-6">
              <p className="font-bold text-textDefault mb-4">I hereby declare that:</p>
              <ul className="list-disc pl-5 space-y-2 text-textDefault">
@@ -492,11 +492,11 @@ export default function ApplyPage() {
           <div className="grid md:grid-cols-3 gap-6">
             <div className="md:col-span-2">
               <label className="block font-bold text-textDefault mb-2">Applicant&apos;s Full Name (as signature) <span className="text-danger">*</span></label>
-              <input name="signature" type="text" placeholder="Type your full name" required className="w-full p-3 bg-bg border border-borderDark rounded-lg focus:border-primary focus:outline-none text-textDefault" />
+              <input name="signature" type="text" placeholder="Type your full name" required className="field" />
             </div>
             <div>
               <label className="block font-bold text-textDefault mb-2">Date <span className="text-danger">*</span></label>
-              <input name="signatureDate" type="date" defaultValue={today} required className="w-full p-3 bg-bg border border-borderDark rounded-lg focus:border-primary focus:outline-none text-textDefault" />
+              <input name="signatureDate" type="date" defaultValue={today} required className="field" />
             </div>
           </div>
         </section>

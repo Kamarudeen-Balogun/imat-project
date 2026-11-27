@@ -175,7 +175,7 @@ export default async function DashboardContactMessagesPage() {
           Could not load contact messages. Please try again later.
         </div>
       ) : messages.length === 0 ? (
-        <div className="glass-panel rounded-2xl border border-soft border-dashed p-12 text-center text-text3">
+        <div className="empty-state">
           No contact messages yet.
         </div>
       ) : (

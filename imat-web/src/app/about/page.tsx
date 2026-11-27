@@ -9,14 +9,14 @@ export default function AboutPage() {
       <p className="mb-3 inline-flex rounded-full border border-primary/35 bg-primary/10 px-3 py-1 text-[11px] font-mono uppercase tracking-[0.16em] text-primary">
         About The Team
       </p>
-      <h1 className="text-4xl md:text-5xl font-bold text-textDefault mb-6">About IMAT</h1>
+      <h1 className="page-title md:!text-5xl mb-6">About IMAT</h1>
       <p className="text-xl text-text2 leading-relaxed mb-16">
         The Infrastructure Maintenance Awareness Team (IMAT) is a student-led advocacy body established in 2026 within the Civil Engineering Department at FUTA. We bridge the gap between students and university management on campus infrastructure issues.
       </p>
 
       <div className="grid md:grid-cols-2 gap-12 mb-20">
         <div>
-          <h2 className="text-2xl font-bold text-textDefault mb-6 border-b border-borderDark pb-4">Core Activities</h2>
+          <h2 className="text-2xl font-black text-textDefault mb-6 border-b border-borderDark pb-4">Core Activities</h2>
           <ul className="space-y-4 text-textDefault">
             <li className="flex items-start gap-3">
               <span className="text-primary mt-1">01.</span>
@@ -38,7 +38,7 @@ export default function AboutPage() {
         </div>
 
         <div>
-          <h2 className="text-2xl font-bold text-textDefault mb-6 border-b border-borderDark pb-4">Membership Eligibility</h2>
+          <h2 className="text-2xl font-black text-textDefault mb-6 border-b border-borderDark pb-4">Membership Eligibility</h2>
           <div className="glass-panel rounded-xl p-6">
             <dl className="space-y-4">
               <div>
@@ -65,7 +65,7 @@ export default function AboutPage() {
         </div>
       </div>
 
-      <h2 className="text-2xl font-bold text-textDefault mb-8">Organizational Structure</h2>
+      <h2 className="text-2xl font-black text-textDefault mb-8">Organizational Structure</h2>
       <div className="glass-panel rounded-xl p-8 mb-8">
         <div className="flex flex-col items-center gap-5 mb-10">
           <div className="w-full max-w-sm text-center p-4 border border-primary/35 bg-primary/10 rounded-lg">
