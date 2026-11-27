@@ -223,8 +223,13 @@ export async function POST(
     // Supabase must NOT send the invite email itself; the link is sent
     // through Resend via the email lib so the sender stays
     // noreply@imat.codeflowx.dev.
+    // NOTE: use a "recovery" link, not an "invite" link. createUser above
+    // already confirms the email (email_confirm: true), and Supabase
+    // rejects invite links for confirmed users with 422 ("already been
+    // registered"), so the mail would never go out. A recovery link works
+    // for a confirmed user and lands on the same /auth/set-password flow.
     const { data: linkData, error: linkError } = await admin.auth.admin.generateLink({
-      type: "invite",
+      type: "recovery",
       email: application.email,
       options: { redirectTo: INVITE_REDIRECT_URL },
     });

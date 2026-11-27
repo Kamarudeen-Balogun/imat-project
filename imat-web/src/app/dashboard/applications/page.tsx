@@ -143,11 +143,23 @@ export default function ApplicationsPage() {
         throw new Error(payload.error || `Could not ${decision} this application.`);
       }
 
-      toast.success(
-        decision === "accept"
-          ? `${app.applicant_name} accepted as ${ROLE_LABELS_WITH_OWNER[selectedRole] ?? selectedRole}.`
-          : `${app.applicant_name}'s application was rejected.`
-      );
+      // A failed acceptance email must never be silent: the accept API
+      // returns emailError (and inviteLink, when one was generated) even
+      // on success, so surface it here instead of only a success toast.
+      if (decision === "accept" && payload.emailError) {
+        toast.error(
+          `${app.applicant_name} was accepted, but the invite email failed: ${payload.emailError}` +
+            (payload.inviteLink
+              ? " The invite link was still generated, so you can copy it manually and send it to the applicant."
+              : "")
+        );
+      } else {
+        toast.success(
+          decision === "accept"
+            ? `${app.applicant_name} accepted as ${ROLE_LABELS_WITH_OWNER[selectedRole] ?? selectedRole}.`
+            : `${app.applicant_name}'s application was rejected.`
+        );
+      }
       setApplications((current) =>
         current.map((item) =>
           item.id === app.id
