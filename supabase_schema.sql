@@ -643,9 +643,9 @@ DROP POLICY IF EXISTS "Public can read site social links" ON site_social_links;
 DROP POLICY IF EXISTS "Admins can manage site social links" ON site_social_links;
 CREATE POLICY "Public can read site social links" ON site_social_links FOR SELECT USING (true);
 CREATE POLICY "Admins can manage site social links" ON site_social_links FOR ALL USING (
-  get_my_role() = 'admin'
+  get_my_role() IN ('admin', 'owner')
 ) WITH CHECK (
-  get_my_role() = 'admin'
+  get_my_role() IN ('admin', 'owner')
 );
 
 -- Defects: Public can report, public can see (anonymous basic details)
@@ -663,13 +663,13 @@ CREATE POLICY "Evidence gallery editors can manage evidence" ON evidence_gallery
   EXISTS (
     SELECT 1 FROM users
     WHERE users.id = auth.uid()
-      AND users.role IN ('documentation_officer', 'admin')
+      AND users.role IN ('documentation_officer', 'admin', 'owner')
   )
 ) WITH CHECK (
   EXISTS (
     SELECT 1 FROM users
     WHERE users.id = auth.uid()
-      AND users.role IN ('documentation_officer', 'admin')
+      AND users.role IN ('documentation_officer', 'admin', 'owner')
   )
 );
 
@@ -680,8 +680,8 @@ DROP POLICY IF EXISTS "Admins read all applications" ON applications;
 DROP POLICY IF EXISTS "Admins update applications" ON applications;
 CREATE POLICY "Applicants can read own application" ON applications FOR SELECT USING (email IN (SELECT email FROM auth.users WHERE id = auth.uid()));
 CREATE POLICY "Anyone can submit application" ON applications FOR INSERT WITH CHECK (true);
-CREATE POLICY "Admins read all applications" ON applications FOR SELECT USING (get_my_role() IN ('technical_officer', 'president', 'admin'));
-CREATE POLICY "Admins update applications" ON applications FOR UPDATE USING (get_my_role() IN ('technical_officer', 'president', 'admin'));
+CREATE POLICY "Admins read all applications" ON applications FOR SELECT USING (get_my_role() IN ('technical_officer', 'president', 'admin', 'owner'));
+CREATE POLICY "Admins update applications" ON applications FOR UPDATE USING (get_my_role() IN ('technical_officer', 'president', 'admin', 'owner'));
 
 -- Users: Read profiles based on role. Full list visible to members.
 DROP POLICY IF EXISTS "Anyone can read active members" ON users;
@@ -699,9 +699,9 @@ DROP POLICY IF EXISTS "Public can view active intake cycles" ON intake_cycles;
 DROP POLICY IF EXISTS "Authorized members can manage intake cycles" ON intake_cycles;
 CREATE POLICY "Public can view active intake cycles" ON intake_cycles FOR SELECT USING (is_active = true OR auth.uid() IS NOT NULL);
 CREATE POLICY "Authorized members can manage intake cycles" ON intake_cycles FOR ALL USING (
-  get_my_role() IN ('technical_officer', 'president', 'admin')
+  get_my_role() IN ('technical_officer', 'president', 'admin', 'owner')
 ) WITH CHECK (
-  get_my_role() IN ('technical_officer', 'president', 'admin')
+  get_my_role() IN ('technical_officer', 'president', 'admin', 'owner')
 );
 
 -- Assessments: Field Officers can create/read for their zone; others read all
@@ -731,15 +731,15 @@ DROP POLICY IF EXISTS "Members can view volunteer logs" ON volunteer_logs;
 DROP POLICY IF EXISTS "Members can insert own volunteer logs" ON volunteer_logs;
 DROP POLICY IF EXISTS "Members can update own volunteer logs" ON volunteer_logs;
 CREATE POLICY "Members can view volunteer logs" ON volunteer_logs FOR SELECT USING (
-  auth.uid() = member_id OR get_my_role() = 'admin'
+  auth.uid() = member_id OR get_my_role() IN ('admin', 'owner')
 );
 CREATE POLICY "Members can insert own volunteer logs" ON volunteer_logs FOR INSERT WITH CHECK (
   auth.uid() = member_id
 );
 CREATE POLICY "Members can update own volunteer logs" ON volunteer_logs FOR UPDATE USING (
-  auth.uid() = member_id OR get_my_role() = 'admin'
+  auth.uid() = member_id OR get_my_role() IN ('admin', 'owner')
 ) WITH CHECK (
-  auth.uid() = member_id OR get_my_role() = 'admin'
+  auth.uid() = member_id OR get_my_role() IN ('admin', 'owner')
 );
 
 -- Announcements: Public if marked public. Members view all. Admins/President/Advocacy can insert.
@@ -751,13 +751,13 @@ DROP POLICY IF EXISTS "Authorized members can delete announcements" ON announcem
 CREATE POLICY "Public view public announcements" ON announcements FOR SELECT USING (visibility = 'public');
 CREATE POLICY "Members view all announcements" ON announcements FOR SELECT USING (auth.uid() IS NOT NULL);
 CREATE POLICY "Authorized members can insert announcements" ON announcements FOR INSERT WITH CHECK (
-  get_my_role() IN ('advocacy_officer', 'president', 'admin')
+  get_my_role() IN ('advocacy_officer', 'president', 'admin', 'owner')
 );
 CREATE POLICY "Authorized members can update announcements" ON announcements FOR UPDATE USING (
-  get_my_role() IN ('advocacy_officer', 'president', 'admin')
+  get_my_role() IN ('advocacy_officer', 'president', 'admin', 'owner')
 );
 CREATE POLICY "Authorized members can delete announcements" ON announcements FOR DELETE USING (
-  get_my_role() IN ('president', 'admin')
+  get_my_role() IN ('president', 'admin', 'owner')
 );
 
 -- Notifications: members can read their own feed; news publishers can fan out to opted-in users.
@@ -766,7 +766,7 @@ DROP POLICY IF EXISTS "Users can insert news notifications" ON notifications;
 DROP POLICY IF EXISTS "Users can update own notifications" ON notifications;
 CREATE POLICY "Users can view own notifications" ON notifications FOR SELECT USING (auth.uid() = recipient_id);
 CREATE POLICY "Users can insert news notifications" ON notifications FOR INSERT WITH CHECK (
-  get_my_role() IN ('advocacy_officer', 'president', 'admin')
+  get_my_role() IN ('advocacy_officer', 'president', 'admin', 'owner')
   AND type = 'news_update'
   AND recipient_id IN (
     SELECT id FROM users WHERE notifications_enabled = true AND status = 'active'
@@ -802,13 +802,13 @@ DROP POLICY IF EXISTS "Authorized members can update wiki pages" ON wiki_pages;
 DROP POLICY IF EXISTS "Authorized members can delete wiki pages" ON wiki_pages;
 CREATE POLICY "Members can view wiki pages" ON wiki_pages FOR SELECT USING (auth.uid() IS NOT NULL);
 CREATE POLICY "Authorized members can insert wiki pages" ON wiki_pages FOR INSERT WITH CHECK (
-  get_my_role() IN ('documentation_officer', 'president', 'admin')
+  get_my_role() IN ('documentation_officer', 'president', 'admin', 'owner')
 );
 CREATE POLICY "Authorized members can update wiki pages" ON wiki_pages FOR UPDATE USING (
-  get_my_role() IN ('documentation_officer', 'president', 'admin')
+  get_my_role() IN ('documentation_officer', 'president', 'admin', 'owner')
 );
 CREATE POLICY "Authorized members can delete wiki pages" ON wiki_pages FOR DELETE USING (
-  get_my_role() IN ('president', 'admin')
+  get_my_role() IN ('president', 'admin', 'owner')
 );
 
 -- Activity logs: members read; authenticated users can write their own events.
@@ -828,9 +828,10 @@ CREATE POLICY "Members can insert own activity logs" ON activity_logs FOR INSERT
     'vice_president',
     'faculty_advisor',
     'works_dept',
-    'admin'
+    'admin',
+    'owner'
   )
 );
 CREATE POLICY "Admins can delete activity logs" ON activity_logs FOR DELETE USING (
-  get_my_role() = 'admin'
+  get_my_role() IN ('admin', 'owner')
 );
