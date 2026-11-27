@@ -41,3 +41,10 @@ export function sortByRoleHierarchy<T extends { role: string; full_name?: string
     return aName.localeCompare(bName);
   });
 }
+
+export function canAssignRole(actorRole: string | null | undefined, targetRole: string | null | undefined): boolean {
+  if (!actorRole || !targetRole) return false;
+  if (actorRole === "owner") return true;
+  if (actorRole === "admin") return targetRole !== "owner" && targetRole !== "admin";
+  return false;
+}
