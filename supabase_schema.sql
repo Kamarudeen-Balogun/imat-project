@@ -163,10 +163,29 @@ CREATE TABLE IF NOT EXISTS applications (
   email TEXT NOT NULL,
   matric_no TEXT NOT NULL,
   level INTEGER NOT NULL,
-  cgpa NUMERIC(3,2) NOT NULL,
+  cgpa NUMERIC(3,2),
+  cgpa_above_3 BOOLEAN,
+  phone TEXT,
+  gender TEXT,
+  address TEXT,
+  graduation_year TEXT,
+  leadership TEXT,
+  leadership_detail TEXT,
+  working_groups TEXT[],
+  skills TEXT[],
+  other_skills TEXT,
+  time_commitment TEXT,
+  referee_name TEXT,
+  referee_dept TEXT,
+  referee_email TEXT,
+  referee_phone TEXT,
+  agreement TEXT,
+  signature TEXT,
+  signature_date TEXT,
   department TEXT NOT NULL CHECK (department = 'Civil Engineering'),
   role_preference_1 TEXT NOT NULL,
   role_preference_2 TEXT,
+  role_preference_3 TEXT,
   motivation_statement TEXT NOT NULL,
   cv_url TEXT NOT NULL,
   transcript_url TEXT,
@@ -437,6 +456,7 @@ CREATE TABLE IF NOT EXISTS notifications (
   href TEXT NOT NULL,
   is_read BOOLEAN NOT NULL DEFAULT false,
   read_at TIMESTAMPTZ,
+  email_sent_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
@@ -561,6 +581,18 @@ VALUES
   ('facebook', 'Facebook', 'https://facebook.com/', true, 6)
 ON CONFLICT (platform) DO NOTHING;
 
+-- 18. CONTACT MESSAGES (dashboard inbox copy of contact-form submissions)
+CREATE TABLE IF NOT EXISTS contact_messages (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  purpose TEXT NOT NULL,
+  subject TEXT NOT NULL,
+  message TEXT NOT NULL,
+  is_read BOOLEAN NOT NULL DEFAULT false,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
 CREATE OR REPLACE FUNCTION prune_activity_logs()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -629,6 +661,7 @@ ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE site_social_links ENABLE ROW LEVEL SECURITY;
 ALTER TABLE applications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE intake_cycles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE contact_messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE wiki_pages FORCE ROW LEVEL SECURITY;
 ALTER TABLE activity_logs FORCE ROW LEVEL SECURITY;
 ALTER TABLE notifications FORCE ROW LEVEL SECURITY;
@@ -835,3 +868,11 @@ CREATE POLICY "Members can insert own activity logs" ON activity_logs FOR INSERT
 CREATE POLICY "Admins can delete activity logs" ON activity_logs FOR DELETE USING (
   get_my_role() IN ('admin', 'owner')
 );
+
+-- Contact messages: members can read every message; only the owner can delete one.
+-- Inserts come from the contact API via the service-role admin client,
+-- which bypasses RLS, so no INSERT policy is needed.
+DROP POLICY IF EXISTS "Members can read contact messages" ON contact_messages;
+DROP POLICY IF EXISTS "Only owner can delete contact messages" ON contact_messages;
+CREATE POLICY "Members can read contact messages" ON contact_messages FOR SELECT USING (auth.role() = 'authenticated');
+CREATE POLICY "Only owner can delete contact messages" ON contact_messages FOR DELETE USING (get_my_role() = 'owner');

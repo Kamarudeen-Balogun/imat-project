@@ -41,9 +41,19 @@ type Application = {
   email: string;
   matric_no: string;
   level: number;
-  cgpa: number | string;
+  cgpa: number | null;
+  cgpa_above_3: boolean | null;
+  phone: string | null;
+  gender: string | null;
+  leadership: string | null;
+  working_groups: string[] | null;
+  skills: string[] | null;
+  time_commitment: string | null;
+  referee_name: string | null;
+  referee_email: string | null;
   role_preference_1: string;
   role_preference_2: string | null;
+  role_preference_3: string | null;
   motivation_statement: string;
   status: string;
   created_at: string;
@@ -207,7 +217,7 @@ export default function ApplicationsPage() {
           {applications.map((app) => {
             const isPending = app.status === "submitted" || app.status === "under_review";
             const isReviewing = reviewingId === app.id;
-            const preferences = [app.role_preference_1, app.role_preference_2]
+            const preferences = [app.role_preference_1, app.role_preference_2, app.role_preference_3]
               .filter((r): r is string => Boolean(r))
               .map((role) => ROLE_LABELS_WITH_OWNER[role] ?? role.replace(/_/g, " "))
               .join(" · ");
@@ -237,13 +247,71 @@ export default function ApplicationsPage() {
                       </span>
                       <span className="flex items-center gap-2">
                         <GraduationCap size={14} className="text-text3" />
-                        Level {app.level} · CGPA {app.cgpa}
+                        Level {app.level} · CGPA above 3.00:{" "}
+                        {app.cgpa_above_3 === null || app.cgpa_above_3 === undefined
+                          ? "—"
+                          : app.cgpa_above_3
+                            ? "Yes"
+                            : "No"}
                       </span>
+                      {app.phone && (
+                        <span className="flex items-center gap-2">
+                          <User size={14} className="text-text3" />
+                          {app.phone}
+                        </span>
+                      )}
+                      {app.gender && (
+                        <span className="flex items-center gap-2">
+                          <User size={14} className="text-text3" />
+                          {app.gender}
+                        </span>
+                      )}
                     </div>
                     <p className="mt-2 text-sm text-text2">
                       <span className="font-bold text-textDefault">Role preferences: </span>
                       {preferences || "—"}
                     </p>
+                    {(app.working_groups?.length ||
+                      app.skills?.length ||
+                      app.time_commitment ||
+                      app.leadership ||
+                      app.referee_name ||
+                      app.referee_email) && (
+                      <div className="mt-2 space-y-1 text-sm text-text2">
+                        {app.working_groups?.length ? (
+                          <p>
+                            <span className="font-bold text-textDefault">Working groups: </span>
+                            {app.working_groups.join(" · ")}
+                          </p>
+                        ) : null}
+                        {app.skills?.length ? (
+                          <p>
+                            <span className="font-bold text-textDefault">Skills: </span>
+                            {app.skills.join(" · ")}
+                          </p>
+                        ) : null}
+                        {app.time_commitment ? (
+                          <p>
+                            <span className="font-bold text-textDefault">Time commitment: </span>
+                            {app.time_commitment}
+                          </p>
+                        ) : null}
+                        {app.leadership ? (
+                          <p>
+                            <span className="font-bold text-textDefault">Leadership experience: </span>
+                            {app.leadership}
+                          </p>
+                        ) : null}
+                        {app.referee_name || app.referee_email ? (
+                          <p>
+                            <span className="font-bold text-textDefault">Referee: </span>
+                            {[app.referee_name, app.referee_email]
+                              .filter((v): v is string => Boolean(v))
+                              .join(" · ")}
+                          </p>
+                        ) : null}
+                      </div>
+                    )}
                     <p className="mt-2 text-sm leading-relaxed text-text2">
                       {app.motivation_statement.length > 220
                         ? `${app.motivation_statement.slice(0, 220)}…`

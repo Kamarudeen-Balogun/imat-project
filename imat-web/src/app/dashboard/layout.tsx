@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
-import { LayoutDashboard, Users, Map, BookOpen, LogOut, Loader2, FileText, BarChart2, Megaphone, Activity, Menu, X, User, Share2, Moon, Sun, ClipboardList } from "lucide-react";
+import { LayoutDashboard, Users, Map, BookOpen, LogOut, Loader2, FileText, BarChart2, Megaphone, Activity, Menu, X, User, Share2, Moon, Sun, ClipboardList, Mail } from "lucide-react";
 import Image from "next/image";
 import optimizeCloudinaryUrl from "@/lib/cloudinary";
 import { toast } from "react-hot-toast";
@@ -135,6 +135,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     ...(canEditEvidenceGallery(profile?.role) ? [{ href: "/dashboard/evidence", label: "Evidence Gallery", icon: FileText, classes: "text-slate-300 hover:bg-white/5 hover:text-white" }] : []),
     ...(canManageSocialLinks(profile?.role) ? [{ href: "/dashboard/social-links", label: "Social Links", icon: Share2, classes: "text-slate-300 hover:bg-white/5 hover:text-white" }] : []),
     { href: "/dashboard/directory", label: "Member Directory", icon: Users, classes: "text-slate-300 hover:bg-white/5 hover:text-white" },
+    { href: "/dashboard/contact-messages", label: "Contact Inbox", icon: Mail, classes: "text-slate-300 hover:bg-white/5 hover:text-white" },
     ...(["owner", "admin", "president", "technical_officer"].includes(profile?.role || "") ? [{ href: "/dashboard/applications", label: "Applications", icon: ClipboardList, classes: "text-slate-300 hover:bg-white/5 hover:text-white" }] : []),
     { href: "/dashboard/profile", label: "My Profile", icon: User, classes: "text-slate-300 hover:bg-white/5 hover:text-white" },
     { href: "/dashboard/wiki", label: "Knowledge Base", icon: BookOpen, classes: "text-slate-300 hover:bg-white/5 hover:text-white" },

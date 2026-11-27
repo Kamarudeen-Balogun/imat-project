@@ -125,6 +125,42 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Bot verification failed. Please try again." }, { status: 403 });
     }
 
+    const supabase = getSupabaseClient();
+    const email = parsed.data.email;
+
+    // Duplicate guards, before anything is recorded. Email matches are
+    // case-insensitive; the pattern is escaped so %, _ and \ in an
+    // address cannot act as ilike wildcards.
+    const escapedEmail = email.replace(/[\\%_]/g, (ch) => `\\${ch}`);
+    const { data: pendingApplication } = await supabase
+      .from("applications")
+      .select("id")
+      .ilike("email", escapedEmail)
+      .in("status", ["submitted", "under_review"])
+      .limit(1)
+      .maybeSingle();
+
+    if (pendingApplication) {
+      return NextResponse.json(
+        { error: "You already have an application under review." },
+        { status: 409 }
+      );
+    }
+
+    const { data: existingMember } = await supabase
+      .from("users")
+      .select("id")
+      .ilike("email", escapedEmail)
+      .limit(1)
+      .maybeSingle();
+
+    if (existingMember) {
+      return NextResponse.json(
+        { error: "This email already belongs to a member." },
+        { status: 409 }
+      );
+    }
+
     const payloadForAppsScript = {
       fullName: parsed.data.fullName,
       matricNumber: parsed.data.matricNumber,
@@ -162,17 +198,38 @@ export async function POST(request: NextRequest) {
       console.warn(`GAS submit returned non-OK (${gasResponse.status}).`);
     }
 
-    const supabase = getSupabaseClient();
     const { error } = await supabase.from("applications").insert([
       {
         applicant_name: parsed.data.fullName,
         matric_no: parsed.data.matricNumber,
         email: parsed.data.email,
         level: Number.parseInt(parsed.data.level, 10) || 0,
-        cgpa: parsed.data.cgpa.toLowerCase() === "yes" ? 3.5 : 2.5,
+        // The form only asks "Is your CGPA above 3.00? Yes/No" — there
+        // is no numeric CGPA to store, so cgpa stays NULL and the real
+        // answer lives in cgpa_above_3. Never invent 3.5 / 2.5 again.
+        cgpa: null,
+        cgpa_above_3: parsed.data.cgpa.toLowerCase() === "yes",
+        phone: parsed.data.phone,
+        gender: parsed.data.gender,
+        address: parsed.data.address || null,
+        graduation_year: parsed.data.graduationYear || null,
+        leadership: parsed.data.leadership || null,
+        leadership_detail: parsed.data.leadershipDetail || null,
+        working_groups: parsed.data.workingGroups,
+        skills: parsed.data.skills,
+        other_skills: parsed.data.otherSkills || null,
+        time_commitment: parsed.data.timeCommitment,
+        referee_name: parsed.data.refereeName || null,
+        referee_dept: parsed.data.refereeDept || null,
+        referee_email: parsed.data.refereeEmail || null,
+        referee_phone: parsed.data.refereePhone || null,
+        agreement: parsed.data.agreement,
+        signature: parsed.data.signature,
+        signature_date: parsed.data.signatureDate,
         department: "Civil Engineering",
         role_preference_1: parsed.data.positions[0] || "",
         role_preference_2: parsed.data.positions[1] || null,
+        role_preference_3: parsed.data.positions[2] || null,
         motivation_statement: parsed.data.motivation,
         cv_url: "",
         status: "submitted",

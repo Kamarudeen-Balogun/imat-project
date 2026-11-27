@@ -6,6 +6,7 @@ import { createSupabaseClient } from "@/lib/supabase/server";
 import { canEditContent } from "@/lib/access";
 import { getAnnouncementHref } from "@/lib/news";
 import { sendAnnouncementPushNotifications } from "@/lib/push/server";
+import { sendAnnouncementEmails } from "@/lib/announcementEmail";
 import Image from "next/image";
 import optimizeCloudinaryUrl from "@/lib/cloudinary";
 import DeleteAnnouncementButton from "./DeleteAnnouncementButton";
@@ -113,6 +114,12 @@ async function toggleAnnouncementVisibility(formData: FormData) {
       await sendAnnouncementPushNotifications(announcementId);
     } catch (error) {
       console.warn("Push notification delivery failed.", error);
+    }
+
+    try {
+      await sendAnnouncementEmails(announcementId);
+    } catch (error) {
+      console.warn("Announcement email delivery failed.", error);
     }
   }
 

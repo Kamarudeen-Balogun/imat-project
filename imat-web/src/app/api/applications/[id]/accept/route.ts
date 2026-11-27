@@ -147,9 +147,9 @@ export async function POST(
       return NextResponse.json({ error: "Application not found." }, { status: 404 });
     }
 
-    if (application.status !== "submitted") {
+    if (application.status !== "submitted" && application.status !== "under_review") {
       return NextResponse.json(
-        { error: "Only submitted applications can be accepted." },
+        { error: "Only submitted or under-review applications can be accepted." },
         { status: 409 }
       );
     }
@@ -188,7 +188,7 @@ export async function POST(
         full_name: application.applicant_name,
         matric_no: application.matric_no,
         level: application.level,
-        cgpa: application.cgpa,
+        cgpa: application.cgpa ?? null,
         role,
         status: "active",
       },
