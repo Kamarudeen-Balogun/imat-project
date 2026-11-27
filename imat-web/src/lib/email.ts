@@ -84,6 +84,39 @@ export async function sendEmail({ to, subject, html, text }: SendEmailInput): Pr
   }
 }
 
+export function passwordResetEmail(name: string, resetLink: string): EmailTemplate {
+  const subject = "Reset your IMAT password";
+  const html = wrapEmail(
+    "Reset your password",
+    `<p>Hi ${escapeHtml(name)},</p>
+<p>We received a request to reset the password for your IMAT account. Use the button below to choose a new password:</p>
+${buttonHtml("Reset your password", resetLink)}
+<p style="color: #666; font-size: 13px;">If the button does not work, copy and paste this link into your browser:<br /><a href="${escapeHtml(resetLink)}">${escapeHtml(resetLink)}</a></p>
+<p>If you did not request a password reset, you can safely ignore this email — your password will not change.</p>
+<p>Best regards,<br />IMAT Team</p>`
+  );
+  const text = `Hi ${name},\n\nWe received a request to reset the password for your IMAT account. Use this link to choose a new password:\n${resetLink}\n\nIf you did not request a password reset, you can safely ignore this email — your password will not change.\n\nBest regards,\nIMAT Team`;
+  return { subject, html, text };
+}
+
+export function announcementEmail(opts: {
+  authorName: string;
+  title: string;
+  excerpt: string;
+  url: string;
+}): EmailTemplate {
+  const subject = `IMAT News: ${opts.title}`;
+  const html = wrapEmail(
+    opts.title,
+    `<p style="color: #666; font-size: 13px;">Published by ${escapeHtml(opts.authorName)} &middot; IMAT Newsroom</p>
+<p>${escapeHtml(opts.excerpt)}</p>
+${buttonHtml("Read the full post", opts.url)}
+<p style="color: #666; font-size: 13px;">If the button does not work, copy and paste this link into your browser:<br /><a href="${escapeHtml(opts.url)}">${escapeHtml(opts.url)}</a></p>`
+  );
+  const text = `${opts.title}\nPublished by ${opts.authorName} · IMAT Newsroom\n\n${opts.excerpt}\n\nRead the full post: ${opts.url}`;
+  return { subject, html, text };
+}
+
 export function applicationReceivedEmail(name: string): EmailTemplate {
   const subject = "IMAT application received";
   const html = wrapEmail(
