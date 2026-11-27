@@ -65,10 +65,10 @@ export default function InternalDefectsLogPage() {
 
   const getSeverityBadge = (level: number) => {
     switch(level) {
-      case 5: return <span className="badge badge-danger font-mono">LVL 5 (CRITICAL)</span>;
-      case 4: return <span className="badge badge-warning font-mono">LVL 4 (HIGH)</span>;
-      case 3: return <span className="badge badge-accent font-mono">LVL 3 (MODERATE)</span>;
-      default: return <span className="badge badge-info font-mono">LVL {level} (MINOR)</span>;
+      case 5: return <span className="badge badge-severity badge-danger font-mono">LVL 5 (CRITICAL)</span>;
+      case 4: return <span className="badge badge-severity badge-warning font-mono">LVL 4 (HIGH)</span>;
+      case 3: return <span className="badge badge-severity badge-info font-mono">LVL 3 (MODERATE)</span>;
+      default: return <span className="badge badge-severity badge-neutral font-mono">LVL {level} (MINOR)</span>;
     }
   };
 

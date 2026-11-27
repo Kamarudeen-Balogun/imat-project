@@ -394,6 +394,11 @@
     background: color-mix(in oklab, var(--accent) 10%, transparent);
     color: var(--accent);
   }
+  /* Severity badges: square-ish corners so severity never reads as a status pill */
+  .badge-severity {
+    border-radius: 0.375rem;
+    background: color-mix(in oklab, currentColor 12%, transparent);
+  }
 
   /* ── Shared empty state + filter chip ─────────────────────────── */
   .empty-state {
