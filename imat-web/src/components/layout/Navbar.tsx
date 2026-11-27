@@ -22,6 +22,13 @@ export function Navbar() {
       pathname === href ? "bg-bg3 text-textDefault" : "text-text2 hover:bg-bg3 hover:text-textDefault"
     }`;
 
+  const mobileNavLink = (href: string) =>
+    `block rounded-md border px-4 py-3 transition-colors ${
+      pathname === href
+        ? "border-primary/60 bg-primary/10 font-bold text-primary"
+        : "border-borderDark bg-bg text-textDefault hover:border-primary/60 hover:text-primary"
+    }`;
+
   useEffect(() => {
     setIsOpen(false);
   }, [pathname]);
@@ -70,6 +77,7 @@ export function Navbar() {
         </div>
 
         <div className="hidden items-center justify-center gap-1 lg:flex">
+          <Link href="/" className={navLink("/")}>Home</Link>
           <Link href="/issues" className={navLink("/issues")}>Tracker</Link>
           <Link href="/evidence" className={navLink("/evidence")}>Evidence</Link>
           <Link href="/newsroom" className={navLink("/newsroom")}>Newsroom</Link>
@@ -154,11 +162,12 @@ export function Navbar() {
               <div className="max-h-[calc(100vh-5.25rem)] overflow-y-auto rounded-lg border border-borderDark bg-surfaceStrong p-4 shadow-2xl">
 
                 <div className="grid grid-cols-1 gap-2 text-sm font-semibold">
-                  <Link href="/issues" className="block rounded-md border border-borderDark bg-bg px-4 py-3 text-textDefault transition-colors hover:border-primary/60 hover:text-primary">Issue Tracker</Link>
-                  <Link href="/evidence" className="block rounded-md border border-borderDark bg-bg px-4 py-3 text-textDefault transition-colors hover:border-primary/60 hover:text-primary">Evidence Gallery</Link>
-                  <Link href="/newsroom" className="block rounded-md border border-borderDark bg-bg px-4 py-3 text-textDefault transition-colors hover:border-primary/60 hover:text-primary">Newsroom</Link>
-                  <Link href="/members" className="block rounded-md border border-borderDark bg-bg px-4 py-3 text-textDefault transition-colors hover:border-primary/60 hover:text-primary">Members</Link>
-                  <Link href="/about" className="block rounded-md border border-borderDark bg-bg px-4 py-3 text-textDefault transition-colors hover:border-primary/60 hover:text-primary">About</Link>
+                  <Link href="/" className={mobileNavLink("/")}>Home</Link>
+                  <Link href="/issues" className={mobileNavLink("/issues")}>Issue Tracker</Link>
+                  <Link href="/evidence" className={mobileNavLink("/evidence")}>Evidence Gallery</Link>
+                  <Link href="/newsroom" className={mobileNavLink("/newsroom")}>Newsroom</Link>
+                  <Link href="/members" className={mobileNavLink("/members")}>Members</Link>
+                  <Link href="/about" className={mobileNavLink("/about")}>About</Link>
                 </div>
 
                 <div className="mt-4 grid grid-cols-1 gap-2">
