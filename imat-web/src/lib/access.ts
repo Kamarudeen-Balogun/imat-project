@@ -38,7 +38,10 @@ export function canManageSocialLinks(role: string | null | undefined) {
   return hasRole(role, socialLinksManagerRoles);
 }
 
-export const applicationReviewerRoles = ["owner", "admin", "president", "technical_officer"] as const;
+// Application review (accept/reject) and direct invites are owner/admin
+// only. The applications list itself is viewable by every member; the
+// page gates the review controls on this same helper.
+export const applicationReviewerRoles = ["owner", "admin"] as const;
 
 export function canReviewApplications(role: string | null | undefined) {
   return hasRole(role, applicationReviewerRoles);

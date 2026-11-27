@@ -136,7 +136,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     ...(canManageSocialLinks(profile?.role) ? [{ href: "/dashboard/social-links", label: "Social Links", icon: Share2, classes: "text-slate-300 hover:bg-white/5 hover:text-white" }] : []),
     { href: "/dashboard/directory", label: "Member Directory", icon: Users, classes: "text-slate-300 hover:bg-white/5 hover:text-white" },
     { href: "/dashboard/contact-messages", label: "Contact Inbox", icon: Mail, classes: "text-slate-300 hover:bg-white/5 hover:text-white" },
-    ...(["owner", "admin", "president", "technical_officer"].includes(profile?.role || "") ? [{ href: "/dashboard/applications", label: "Applications", icon: ClipboardList, classes: "text-slate-300 hover:bg-white/5 hover:text-white" }] : []),
+    { href: "/dashboard/applications", label: "Applications", icon: ClipboardList, classes: "text-slate-300 hover:bg-white/5 hover:text-white" },
     ...(["owner", "admin"].includes(profile?.role || "") ? [{ href: "/dashboard/invite", label: "Invite Member", icon: UserPlus, classes: "text-slate-300 hover:bg-white/5 hover:text-white" }] : []),
     ...(["owner", "admin"].includes(profile?.role || "") ? [{ href: "/dashboard/email-logs", label: "Mail Log", icon: Mail, classes: "text-slate-300 hover:bg-white/5 hover:text-white" }] : []),
     { href: "/dashboard/profile", label: "My Profile", icon: User, classes: "text-slate-300 hover:bg-white/5 hover:text-white" },
