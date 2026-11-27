@@ -65,7 +65,7 @@ export async function sendAnnouncementEmails(announcementId: string): Promise<An
     );
     const authorName = author?.full_name ?? "IMAT Official";
     const excerpt = buildExcerpt(announcement.body ?? "", announcement.title);
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://imat.codeflowx.dev";
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://imat-futa.vercel.app";
     const url = `${siteUrl}${getAnnouncementHref(announcement.slug ?? announcement.id)}`;
     const template = announcementEmail({ authorName, title: announcement.title, excerpt, url });
 

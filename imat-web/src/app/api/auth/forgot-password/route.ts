@@ -5,7 +5,7 @@ import { passwordResetEmail, sendEmail } from "@/lib/email";
 import { enforceRateLimit } from "@/lib/serverRateLimit";
 
 const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://imat.codeflowx.dev";
+  process.env.NEXT_PUBLIC_SITE_URL || "https://imat-futa.vercel.app";
 
 const bodySchema = z.object({
   email: z.string().trim().email().max(254),

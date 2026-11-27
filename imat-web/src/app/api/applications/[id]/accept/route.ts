@@ -8,7 +8,7 @@ import { acceptanceEmail, sendEmail } from "@/lib/email";
 import { sanitizePlainText } from "@/lib/inputSanitizer";
 import { enforceRateLimit } from "@/lib/serverRateLimit";
 
-const INVITE_REDIRECT_URL = "https://imat.codeflowx.dev/auth/callback";
+const INVITE_REDIRECT_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://imat-futa.vercel.app") + "/auth/callback";
 
 // Roles assignable through the application review flow. "applicant" is not
 // assignable: an accepted applicant becomes a member with a working role.

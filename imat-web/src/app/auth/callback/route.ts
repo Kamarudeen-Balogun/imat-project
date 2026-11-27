@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseClient } from "@/lib/supabase/server";
 
 const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://imat.codeflowx.dev";
+  process.env.NEXT_PUBLIC_SITE_URL || "https://imat-futa.vercel.app";
 
 function redirectTo(path: string) {
   return NextResponse.redirect(new URL(path, SITE_URL));
