@@ -7,6 +7,7 @@ import Image from "next/image";
 import optimizeCloudinaryUrl from "@/lib/cloudinary";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 import { GooeyInput } from "@/components/ui/gooey-input";
+import { toast } from "react-hot-toast";
 
 type Member = {
   id: string;
@@ -19,6 +20,7 @@ type Member = {
 };
 
 const ROLE_LABELS: Record<string, string> = {
+  owner: "Owner",
   admin: "Admin",
   president: "President",
   vice_president: "Vice President",
@@ -31,14 +33,45 @@ const ROLE_LABELS: Record<string, string> = {
   applicant: "Applicant",
 };
 
+// Display order for the role-change picker.
+const ROLE_OPTIONS = [
+  "owner",
+  "admin",
+  "president",
+  "vice_president",
+  "technical_officer",
+  "documentation_officer",
+  "field_officer",
+  "advocacy_officer",
+  "faculty_advisor",
+  "works_dept",
+  "applicant",
+];
+
 export default function MemberDirectoryPage() {
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [callerRole, setCallerRole] = useState<string | null>(null);
+  const [roleDrafts, setRoleDrafts] = useState<Record<string, string>>({});
+  const [savingRoleId, setSavingRoleId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchMembers = async () => {
       const supabase = createSupabaseClient();
+
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (session) {
+        const { data: profile } = await supabase
+          .from("users")
+          .select("role")
+          .eq("id", session.user.id)
+          .single();
+        if (profile) setCallerRole(profile.role);
+      }
+
       // Because we are logged in, RLS allows us to fetch active 'users'
       const { data, error } = await supabase
         .from("users")
@@ -55,11 +88,47 @@ export default function MemberDirectoryPage() {
     fetchMembers();
   }, []);
 
-  const filteredMembers = members.filter(m => 
-    m.full_name.toLowerCase().includes(search.toLowerCase()) || 
+  const filteredMembers = members.filter(m =>
+    m.full_name.toLowerCase().includes(search.toLowerCase()) ||
     m.email.toLowerCase().includes(search.toLowerCase()) ||
     m.role.toLowerCase().includes(search.toLowerCase())
   );
+
+  const canManageRoles = callerRole === "owner" || callerRole === "admin";
+  const ownerCount = members.filter((m) => m.role === "owner").length;
+
+  const handleRoleSave = async (member: Member) => {
+    const nextRole = roleDrafts[member.id] ?? member.role;
+    if (nextRole === member.role) return;
+
+    setSavingRoleId(member.id);
+    try {
+      const res = await fetch(`/api/members/${member.id}/role`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role: nextRole }),
+      });
+      const payload = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error(payload.error || "Could not update this member's role.");
+      }
+
+      toast.success(`${member.full_name} is now ${ROLE_LABELS[nextRole] ?? nextRole}.`);
+      setMembers((current) =>
+        current.map((item) => (item.id === member.id ? { ...item, role: nextRole } : item))
+      );
+      setRoleDrafts((current) => {
+        const next = { ...current };
+        delete next[member.id];
+        return next;
+      });
+    } catch (error) {
+      toast.error((error as Error).message || "Something went wrong. Please try again.");
+    } finally {
+      setSavingRoleId(null);
+    }
+  };
 
   const getRoleBadge = (role: string) => {
     if (role === 'admin' || role === 'president' || role === 'vice_president') {
@@ -73,9 +142,9 @@ export default function MemberDirectoryPage() {
 
    return (
      <div className="mx-auto max-w-6xl animate-in fade-in duration-500 px-4 py-6 sm:px-6">
-       
+
        <Breadcrumbs className="mb-8" />
-       
+
        <div className="mb-8">
         <h1 className="text-2xl md:text-3xl font-bold text-textDefault mb-2">Member Directory</h1>
         <p className="text-text2">Connect with active IMAT personnel and officers.</p>
@@ -98,9 +167,14 @@ export default function MemberDirectoryPage() {
             No active members matched your search.
           </div>
         ) : (
-          filteredMembers.map(member => (
+          filteredMembers.map(member => {
+            const isLastOwner = member.role === "owner" && ownerCount <= 1;
+            const draftRole = roleDrafts[member.id] ?? member.role;
+            const roleChanged = draftRole !== member.role;
+
+            return (
             <div key={member.id} className="glass-panel flex flex-col justify-between rounded-xl p-5 transition-colors hover:border-primary/50">
-               
+
                <div className="flex justify-between items-start mb-4">
                   <div>
                     <h3 className="font-bold text-textDefault text-lg truncate max-w-[180px]">{member.full_name}</h3>
@@ -134,12 +208,49 @@ export default function MemberDirectoryPage() {
                     <span>Level {member.level || "N/A"}</span>
                   </div>
                </div>
+
+               {canManageRoles && (
+                 <div className="mt-4 pt-4 border-t border-soft">
+                   <label className="block text-xs font-bold uppercase tracking-wider text-text3 mb-2">
+                     Change role
+                   </label>
+                   <div className="flex gap-2">
+                     <select
+                       value={draftRole}
+                       disabled={isLastOwner || savingRoleId === member.id}
+                       onChange={(e) =>
+                         setRoleDrafts((current) => ({ ...current, [member.id]: e.target.value }))
+                       }
+                       className="min-w-0 flex-1 rounded-lg border border-borderDark bg-surfaceStrong px-3 py-2 text-sm text-textDefault transition-colors focus:border-primary focus:outline-none disabled:opacity-50"
+                     >
+                       {ROLE_OPTIONS.map((role) => (
+                         <option key={role} value={role}>
+                           {ROLE_LABELS[role] ?? role.replace(/_/g, " ")}
+                         </option>
+                       ))}
+                     </select>
+                     <button
+                       type="button"
+                       disabled={!roleChanged || isLastOwner || savingRoleId === member.id}
+                       onClick={() => handleRoleSave(member)}
+                       className="shrink-0 rounded-lg bg-primary px-3 py-2 text-sm font-bold text-white transition-colors hover:bg-blue-500 disabled:opacity-50"
+                     >
+                       {savingRoleId === member.id ? "Saving..." : "Save"}
+                     </button>
+                   </div>
+                   {isLastOwner && (
+                     <p className="mt-2 text-xs text-warning">
+                       Last owner — assign another owner before changing this role.
+                     </p>
+                   )}
+                 </div>
+               )}
             </div>
-          ))
+            );
+          })
         )}
       </div>
 
     </div>
   );
 }
-
