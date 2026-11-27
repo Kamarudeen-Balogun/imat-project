@@ -125,14 +125,14 @@ export default function DefectDetailsPage() {
       <div className="bg-bg2 border border-soft rounded-xl overflow-hidden shadow-2xl">
          
          {/* HEADER */}
-         <div className="p-8 border-b border-soft">
+         <div className="p-4 sm:p-8 border-b border-soft">
             <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
               <div>
                 <div className="flex items-center gap-3 mb-2">
                    <span className="px-2 py-1 uppercase tracking-wider text-[10px] font-bold bg-bg3 text-text2 rounded border border-soft">
                       {defect.id}
                    </span>
-                   <span className="px-2 py-1 uppercase tracking-wider text-[10px] font-bold bg-blue-500/10 text-blue-400 rounded border border-blue-500/20">
+                   <span className="px-2 py-1 uppercase tracking-wider text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded border border-blue-500/20">
                       {defect.status.replace(/_/g, ' ')}
                    </span>
                 </div>
@@ -142,7 +142,7 @@ export default function DefectDetailsPage() {
                 </div>
               </div>
 
-              <div className="flex flex-col items-end text-right shrink-0">
+              <div className="flex flex-col items-start text-left md:items-end md:text-right shrink-0">
                  <div className="text-[10px] text-text3 font-mono uppercase tracking-wider mb-1">Structural Severity</div>
                  {defect.severity === 5 ? <span className="bg-danger/20 text-danger border border-danger/30 px-3 py-1.5 rounded font-bold font-mono text-sm shadow-[0_0_15px_rgba(239,68,68,0.2)]">LVL 5 EMERGENCY</span> :
                   defect.severity === 4 ? <span className="bg-warning/20 text-warning border border-warning/30 px-3 py-1.5 rounded font-bold font-mono text-sm">LVL 4 CRITICAL</span> :
@@ -152,7 +152,7 @@ export default function DefectDetailsPage() {
          </div>
 
          {/* MAIN CONTENT GRID */}
-         <div className="p-8 grid grid-cols-1 md:grid-cols-3 gap-8">
+         <div className="p-4 sm:p-8 grid grid-cols-1 md:grid-cols-3 gap-8">
             
             {/* LEFT COLUMN: Metadata & Map */}
             <div className="col-span-1 space-y-6">
@@ -187,7 +187,7 @@ export default function DefectDetailsPage() {
                      <div>
                        <div className="text-[10px] text-text3 uppercase tracking-wider mb-1">Assigned Supervising Officer</div>
                        <div className="flex items-center gap-2">
-                         <div className="w-6 h-6 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs font-bold border border-blue-500/30">
+                         <div className="w-6 h-6 rounded-full bg-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xs font-bold border border-blue-500/30">
                            {defect.assignee?.full_name ? defect.assignee.full_name.charAt(0) : "?"}
                          </div>
                          <div className="text-sm font-semibold text-textDefault">

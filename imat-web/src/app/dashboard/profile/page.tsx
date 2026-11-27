@@ -250,7 +250,7 @@ export default function DashboardProfilePage() {
           <div className="text-center sm:text-left flex-1">
             {!editingName ? (
               <div className="flex items-center gap-2">
-                <h2 className="text-xl font-bold text-textDefault">{profile.full_name ?? "IMAT Member"}</h2>
+                <h2 className="text-xl font-bold text-textDefault truncate">{profile.full_name ?? "IMAT Member"}</h2>
                 <button
                   onClick={() => setEditingName(true)}
                   className="p-1.5 rounded-lg hover:bg-bg3 transition-colors text-text3 hover:text-primary"
@@ -289,7 +289,7 @@ export default function DashboardProfilePage() {
                 </div>
               </div>
             )}
-            <p className="text-sm text-text2 mt-2">{profile.email}</p>
+            <p className="text-sm text-text2 mt-2 break-all">{profile.email}</p>
             <p className="mt-1 inline-flex rounded-full border border-soft bg-bg px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-text3">
               {getRoleLabel(profile.role)}
             </p>

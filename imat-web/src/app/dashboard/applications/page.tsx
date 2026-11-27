@@ -29,7 +29,7 @@ const ROLE_LABELS_WITH_OWNER: Record<string, string> = {
 
 const STATUS_STYLES: Record<string, string> = {
   submitted: "bg-warning/10 text-warning border-warning/20",
-  under_review: "bg-blue-500/10 text-blue-400 border-blue-500/20",
+  under_review: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
   accepted: "bg-success/10 text-success border-success/20",
   waitlisted: "bg-accent/10 text-accent border-accent/20",
   rejected: "bg-danger/10 text-danger border-danger/20",

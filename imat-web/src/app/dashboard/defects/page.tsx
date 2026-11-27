@@ -59,8 +59,8 @@ export default function InternalDefectsLogPage() {
     switch(level) {
       case 5: return <span className="bg-danger/20 text-danger px-2 py-0.5 rounded text-xs font-bold font-mono">LVL 5 (CRITICAL)</span>;
       case 4: return <span className="bg-warning/20 text-warning px-2 py-0.5 rounded text-xs font-bold font-mono">LVL 4 (HIGH)</span>;
-      case 3: return <span className="bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded text-xs font-bold font-mono">LVL 3 (MODERATE)</span>;
-      default: return <span className="bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded text-xs font-bold font-mono">LVL {level} (MINOR)</span>;
+      case 3: return <span className="bg-orange-500/20 text-orange-600 dark:text-orange-400 px-2 py-0.5 rounded text-xs font-bold font-mono">LVL 3 (MODERATE)</span>;
+      default: return <span className="bg-blue-500/20 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded text-xs font-bold font-mono">LVL {level} (MINOR)</span>;
     }
   };
 
@@ -88,7 +88,7 @@ export default function InternalDefectsLogPage() {
           </p>
         </div>
         
-        <Link href="/dashboard/defects/new" className="bg-warning hover:bg-orange-500 text-bg font-bold px-4 py-2 rounded-lg transition-colors flex items-center gap-2 text-sm shadow-lg shadow-warning/20">
+        <Link href="/dashboard/defects/new" className="bg-warning hover:bg-orange-500 text-black font-bold px-4 py-2 rounded-lg transition-colors flex items-center gap-2 text-sm shadow-lg shadow-warning/20">
           + New Assessment
         </Link>
       </div>
@@ -162,7 +162,7 @@ export default function InternalDefectsLogPage() {
                        <a 
                          href={`https://www.google.com/maps/search/?api=1&query=${defect.location_lat},${defect.location_lng}`} 
                          target="_blank" rel="noreferrer"
-                         className="inline-flex items-center gap-1.5 text-blue-400 hover:text-blue-300 font-mono text-xs hover:underline"
+                         className="inline-flex items-center gap-1.5 text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 font-mono text-xs hover:underline"
                        >
                          <MapIcon size={12}/> View Map
                        </a>

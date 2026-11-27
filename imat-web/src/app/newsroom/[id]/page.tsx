@@ -303,7 +303,7 @@ export default async function NewsPostPage({ params }: { params: Promise<{ id: s
       <div className="mx-auto w-full max-w-3xl space-y-4 px-4 py-8 sm:space-y-5 sm:px-6 sm:py-12 lg:px-8">
         {post.body.split("\n").map((paragraph, idx) =>
           paragraph.trim() ? (
-            <p key={idx} className="text-base leading-7 text-text2 sm:text-lg sm:leading-relaxed">
+            <p key={idx} className="text-base leading-7 text-text2 sm:text-lg sm:leading-relaxed break-words">
               {paragraph}
             </p>
           ) : (

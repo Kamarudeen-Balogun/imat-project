@@ -201,13 +201,13 @@ export default async function DashboardContactMessagesPage() {
               <div className="text-sm text-text2">
                 <p>
                   <span className="font-semibold text-textDefault">{message.name}</span>{" "}
-                  <a href={`mailto:${message.email}`} className="text-primary hover:underline">
+                  <a href={`mailto:${message.email}`} className="text-primary hover:underline break-all">
                     {message.email}
                   </a>
                 </p>
               </div>
 
-              <p className="mt-3 whitespace-pre-wrap text-sm text-text2">{message.message}</p>
+              <p className="mt-3 whitespace-pre-wrap break-words text-sm text-text2">{message.message}</p>
 
               <div className="flex flex-wrap items-center gap-4 text-xs font-mono text-text3 border-t border-soft pt-4 mt-4">
                 <span className="inline-flex items-center gap-2">

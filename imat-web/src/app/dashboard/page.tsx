@@ -106,7 +106,7 @@ export default function DashboardPage() {
             )}
 
               <Link href="/dashboard/wiki" className="group ticket-card block rounded-lg p-6 transition-colors hover:border-success">
-                <div className="flex items-center gap-3 mb-3 text-green-400">
+                <div className="flex items-center gap-3 mb-3 text-success">
                   <BookOpen size={20} />
                   <strong className="text-lg">Knowledge Base</strong>
                 </div>
@@ -128,7 +128,7 @@ export default function DashboardPage() {
               </Link>
             )}
               <Link href="/dashboard/activity" className="group ticket-card block rounded-lg p-6 transition-colors hover:border-warning">
-                <div className="flex items-center gap-3 mb-3 text-amber-400">
+                <div className="flex items-center gap-3 mb-3 text-warning">
                   <Activity size={20} />
                   <strong className="text-lg">Activity Timeline</strong>
                 </div>

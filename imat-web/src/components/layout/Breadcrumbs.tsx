@@ -40,7 +40,8 @@ export function Breadcrumbs({ items, className }: BreadcrumbsProps) {
 
     for (let i = 1; i < pathSegments.length; i++) {
       const segment = pathSegments[i];
-      const label = segmentLabels[segment] ?? segment;
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(segment);
+      const label = segmentLabels[segment] ?? (isUuid ? "Details" : segment);
 
       if (!label.startsWith("[")) {
         breadcrumbs.push({
@@ -58,21 +59,21 @@ export function Breadcrumbs({ items, className }: BreadcrumbsProps) {
       aria-label="Breadcrumb"
       className={`flex flex-wrap items-center gap-1.5 text-sm ${className}`}
     >
-      <ol className="flex items-center gap-1.5">
+      <ol className="flex flex-wrap items-center gap-1.5">
         {breadcrumbs.map((item, index) => {
           const isLast = index === breadcrumbs.length - 1;
           const isHome = index === 0;
           const isCurrentPage = isLast && item.href === pathname;
 
           return (
-            <li key={item.href ?? index} className="flex items-center gap-1.5">
+            <li key={item.href ?? index} className="flex min-w-0 items-center gap-1.5">
               {index > 0 && (
                 <ChevronRight className="h-3.5 w-3.5 text-text3" />
               )}
               {isCurrentPage ? (
                 <span
                   aria-current="page"
-                  className="font-semibold text-textDefault"
+                  className="min-w-0 max-w-[12rem] truncate font-semibold text-textDefault sm:max-w-none"
                 >
                   {item.label}
                 </span>
@@ -82,12 +83,12 @@ export function Breadcrumbs({ items, className }: BreadcrumbsProps) {
                   className="flex items-center gap-1 rounded-md px-1.5 py-1 text-text2 transition-colors hover:bg-primary/10 hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                 >
                   {isHome && <Home className="h-3.5 w-3.5" />}
-                  <span>{item.label}</span>
+                  <span className="min-w-0 max-w-[12rem] truncate sm:max-w-none">{item.label}</span>
                 </Link>
               ) : isLast ? (
-                <span aria-current="page" className="font-semibold text-textDefault">{item.label}</span>
+                <span aria-current="page" className="min-w-0 max-w-[12rem] truncate font-semibold text-textDefault sm:max-w-none">{item.label}</span>
               ) : (
-                <span className="text-text2">{item.label}</span>
+                <span className="min-w-0 max-w-[12rem] truncate text-text2 sm:max-w-none">{item.label}</span>
               )}
             </li>
           );

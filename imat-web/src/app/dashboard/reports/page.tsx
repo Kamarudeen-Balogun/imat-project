@@ -115,7 +115,7 @@ export default function ReportsMasterlist() {
                     {report.defects_included.length} Incidents
                   </td>
                   <td className="p-4 text-right">
-                    <Link href={`/dashboard/reports/${report.id}`} className="text-xs text-primary hover:text-blue-400 font-bold underline flex items-center justify-end gap-1">
+                    <Link href={`/dashboard/reports/${report.id}`} className="text-xs text-primary hover:text-blue-600 dark:hover:text-blue-400 font-bold underline flex items-center justify-end gap-1">
                        <Download size={14}/> Download PDF
                     </Link>
                   </td>

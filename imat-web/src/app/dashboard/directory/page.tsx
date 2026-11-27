@@ -134,7 +134,7 @@ export default function MemberDirectoryPage() {
       return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-danger/10 text-danger text-[10px] font-bold uppercase tracking-wider border border-danger/20"><Shield size={10}/> {ROLE_LABELS[role] ?? role.replace('_', ' ')}</span>;
     }
     if (role === 'technical_officer' || role === 'documentation_officer') {
-      return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-blue-500/10 text-blue-400 text-[10px] font-bold uppercase tracking-wider border border-blue-500/20"><User size={10}/> {ROLE_LABELS[role] ?? role.replace('_', ' ')}</span>;
+      return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[10px] font-bold uppercase tracking-wider border border-blue-500/20"><User size={10}/> {ROLE_LABELS[role] ?? role.replace('_', ' ')}</span>;
     }
     return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-bg3 text-text2 text-[10px] font-bold uppercase tracking-wider border border-soft">{ROLE_LABELS[role] ?? role.replace('_', ' ')}</span>;
   };

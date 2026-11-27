@@ -140,7 +140,7 @@ export function Navbar() {
             />
 
             <motion.div
-              className="fixed inset-x-0 top-16 px-3 md:hidden"
+              className="fixed inset-x-0 top-[4.5rem] px-3 md:hidden"
               initial={{ opacity: 0, y: -14 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -14 }}

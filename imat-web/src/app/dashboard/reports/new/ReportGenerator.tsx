@@ -214,7 +214,7 @@ export default function ReportGenerator() {
                     <PDFDownloadLink
                       document={<ReportDocument title={title} periodStart={periodStart} periodEnd={periodEnd} authorName={authorName} defects={defects} />}
                       fileName={`IMAT_Report_${periodEnd}.pdf`}
-                      className="w-full text-center px-4 py-3 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 font-bold text-sm rounded-lg border border-blue-500/30 transition-colors flex justify-center items-center gap-2"
+                      className="w-full text-center px-4 py-3 bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20 font-bold text-sm rounded-lg border border-blue-500/30 transition-colors flex justify-center items-center gap-2"
                     >
                       {({ loading }) => (loading ? <span>Rendering Component...</span> : <><Download size={16}/> Download PDF File</>)}
                     </PDFDownloadLink>
