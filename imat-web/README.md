@@ -150,6 +150,13 @@ Optional resilience key:
 - UPSTASH_REDIS_REST_URL
 - UPSTASH_REDIS_REST_TOKEN
 
+Email (Resend):
+
+- RESEND_API_KEY
+- EMAIL_FROM (default: noreply@imat.codeflowx.dev)
+
+Application emails (application received, acceptance with invite link, rejection) are sent via the Resend REST API from `src/lib/email.ts`. Supabase email is not used for these flows — do not enable Supabase Auth email templates for them.
+
 Local testing note:
 
 - Turnstile bypass is enabled by default outside production.
@@ -189,6 +196,8 @@ The schema contains:
 - wiki and related content tables
 
 For existing projects, rerun the latest schema safely since it uses idempotent patterns where possible.
+
+The owner role (and its last-owner safeguard) can also be applied on its own via `../supabase_migrations/20261127_add_owner_role.sql`.
 
 ## 9. News Alerts (Web Push)
 
