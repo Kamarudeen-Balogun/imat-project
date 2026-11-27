@@ -1,4 +1,5 @@
 export const ROLE_PRIORITY: Record<string, number> = {
+  owner: 0,
   admin: 1,
   faculty_advisor: 2,
   president: 3,
@@ -12,6 +13,7 @@ export const ROLE_PRIORITY: Record<string, number> = {
 };
 
 export const ROLE_LABELS: Record<string, string> = {
+  owner: "Owner",
   admin: "Admin",
   president: "President",
   vice_president: "Vice President",
