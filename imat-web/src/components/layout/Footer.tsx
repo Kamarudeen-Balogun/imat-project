@@ -133,7 +133,14 @@ export function Footer() {
         <FloatingDock items={dockItems} />
       </div>
 
-      <div className="mx-auto mt-12 flex max-w-6xl flex-col items-center justify-between gap-2 border-t border-white/10 px-4 pt-8 text-center text-xs text-slate-400 sm:px-6 md:flex-row md:text-left">
+      <div className="mx-auto mt-12 flex max-w-6xl flex-wrap items-center justify-center gap-x-6 gap-y-2 px-4 text-xs text-slate-400 sm:px-6">
+        <Link href="/privacy" className="transition-all hover:text-accent hover:underline">Privacy Policy</Link>
+        <Link href="/terms" className="transition-all hover:text-accent hover:underline">Terms of Use</Link>
+        <Link href="/accessibility" className="transition-all hover:text-accent hover:underline">Accessibility</Link>
+        <Link href="/cookies" className="transition-all hover:text-accent hover:underline">Cookie Policy</Link>
+      </div>
+
+      <div className="mx-auto mt-8 flex max-w-6xl flex-col items-center justify-between gap-2 border-t border-white/10 px-4 pt-8 text-center text-xs text-slate-400 sm:px-6 md:flex-row md:text-left">
         <p suppressHydrationWarning>&copy; {new Date().getFullYear()} IMAT FUTA. All rights reserved.</p>
         <p>Built with <span className="text-accent">♦</span> by <a href="mailto:codeflowx1@gmail.com" className="transition-all hover:text-accent hover:underline">codeflowx1@gmail.com</a></p>
       </div>

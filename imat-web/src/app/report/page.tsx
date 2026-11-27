@@ -701,7 +701,7 @@ export default function ReportPage() {
           </div>
         </section>
 
-        <div className="flex flex-col-reverse gap-3 rounded-lg border border-borderDark bg-bg p-4 md:flex-row md:items-start md:justify-end">
+        <div className="flex flex-col gap-3 rounded-lg border border-borderDark bg-bg p-4 md:flex-row md:items-start md:justify-end">
           <div className="w-full md:mr-auto md:max-w-md">
             <div className="rounded-lg border border-borderDark bg-surfaceStrong p-4">
               <h3 className="flex items-center gap-2 text-sm font-black uppercase tracking-wide text-textDefault">

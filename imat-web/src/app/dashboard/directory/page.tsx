@@ -178,14 +178,14 @@ export default function MemberDirectoryPage() {
             return (
             <div key={member.id} className="glass-panel flex flex-col justify-between rounded-xl p-5 transition-colors hover:border-primary/50">
 
-               <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="font-bold text-textDefault text-lg truncate max-w-[180px]">{member.full_name}</h3>
+               <div className="flex justify-between items-start gap-3 mb-4">
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-bold text-textDefault text-lg break-words leading-snug">{member.full_name}</h3>
                     <div className="flex items-center gap-2 mt-1">
                       {getRoleBadge(member.role)}
                     </div>
                   </div>
-                  <div className="w-10 h-10 rounded-full text-primary flex items-center justify-center font-bold text-lg font-mono uppercase border border-primary/20 overflow-hidden bg-gradient-to-br from-primary/20 to-accent/10">
+                  <div className="w-10 h-10 shrink-0 rounded-full text-primary flex items-center justify-center font-bold text-lg font-mono uppercase border border-primary/20 overflow-hidden bg-gradient-to-br from-primary/20 to-accent/10">
                      {member.avatar_url ? (
                        <Image
                          src={member.avatar_url && member.avatar_url.includes('res.cloudinary.com') ? optimizeCloudinaryUrl(member.avatar_url) : member.avatar_url}

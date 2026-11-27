@@ -221,7 +221,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               >
                 {menuOpen ? <X size={18} /> : <Menu size={18} />}
               </button>
-              <h1 className="truncate font-mono text-xs text-text3 sm:text-sm">Operations console / <strong className="text-textDefault">{profile?.full_name}</strong></h1>
+              <h1 className="truncate font-mono text-xs text-text3 sm:text-sm"><span className="hidden sm:inline">Operations console / </span><strong className="text-textDefault">{profile?.full_name}</strong></h1>
             </div>
             <div className="flex items-center gap-3">
               {mounted && (

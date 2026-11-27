@@ -66,6 +66,15 @@ export default function ReportsMasterlist() {
         </Link>
       </div>
 
+      {loading ? (
+        <div className="glass-panel rounded-xl p-12 text-center font-mono text-text3 shadow-xl">
+          Compiling report indices...
+        </div>
+      ) : reports.length === 0 ? (
+        <div className="glass-panel rounded-xl p-12 text-center font-mono text-text3 shadow-xl">
+          NO REPORTS GENERATED YET
+        </div>
+      ) : (
       <div className="glass-panel overflow-x-auto rounded-xl shadow-xl">
         <table className="w-full text-left border-collapse min-w-[800px]">
           <thead>
@@ -79,20 +88,7 @@ export default function ReportsMasterlist() {
             </tr>
           </thead>
           <tbody className="divide-y divide-borderDark/50 text-sm text-textDefault">
-            {loading ? (
-              <tr>
-                <td colSpan={6} className="p-12 text-center text-text3 font-mono">
-                  Compiling report indices...
-                </td>
-              </tr>
-            ) : reports.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="p-12 text-center text-text3 font-mono bg-bg/50">
-                  NO REPORTS GENERATED YET
-                </td>
-              </tr>
-            ) : (
-              reports.map(report => (
+            {reports.map(report => (
                 <tr key={report.id} className="hover:bg-bg/50 transition-colors">
                   <td className="p-4">
                     <div className="font-bold text-textDefault">{report.title}</div>
@@ -120,11 +116,11 @@ export default function ReportsMasterlist() {
                     </Link>
                   </td>
                 </tr>
-              ))
-            )}
+              ))}
           </tbody>
         </table>
       </div>
+      )}
     </div>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createSupabaseClient } from "@/lib/supabase/client";
+import { useTheme } from "@/components/ThemeProvider";
 import {
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
@@ -30,6 +31,14 @@ const CATEGORY_COLORS: Record<string, string> = {
 const SEVERITY_COLORS = ["#3ec97a", "#4a9eff", "#f5a623", "#ff7a40", "#ff5a5a"];
 
 export default function AnalyticsCharts() {
+  const { theme } = useTheme();
+  // Chart text must stay readable in both themes: the old hardcoded pale
+  // greys (#d0daea / #7a8aaa) were near-invisible on a white light-mode
+  // background. Tooltips keep their dark background, so their pale text stays.
+  const axisTick = theme === "dark" ? "#7a8aaa" : "#475569";
+  const labelText = theme === "dark" ? "#d0daea" : "#1e293b";
+  const gridStroke = theme === "dark" ? "#2a3347" : "#e2e8f0";
+
   const [defects, setDefects] = useState<Defect[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -162,9 +171,9 @@ export default function AnalyticsCharts() {
           <ChartCard title="Defects Reported per Month" subtitle="12-month rolling window">
             <ResponsiveContainer width="100%" height={240}>
               <LineChart data={monthlyData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#2a3347" />
-                <XAxis dataKey="month" tick={{ fill: "#7a8aaa", fontSize: 11 }} />
-                <YAxis tick={{ fill: "#7a8aaa", fontSize: 11 }} allowDecimals={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} />
+                <XAxis dataKey="month" tick={{ fill: axisTick, fontSize: 11 }} />
+                <YAxis tick={{ fill: axisTick, fontSize: 11 }} allowDecimals={false} />
                 <Tooltip
                   contentStyle={{ background: "#161b25", border: "1px solid #2a3347", borderRadius: 8, color: "#d0daea" }}
                 />
@@ -203,7 +212,7 @@ export default function AnalyticsCharts() {
                 <Tooltip
                   contentStyle={{ background: "#161b25", border: "1px solid #2a3347", borderRadius: 8, color: "#d0daea" }}
                 />
-                <Legend formatter={(v) => <span style={{ color: "#d0daea", fontSize: 12, textTransform: "capitalize" }}>{v}</span>} />
+                <Legend formatter={(v) => <span style={{ color: labelText, fontSize: 12, textTransform: "capitalize" }}>{v}</span>} />
               </PieChart>
             </ResponsiveContainer>
           )}
@@ -218,9 +227,9 @@ export default function AnalyticsCharts() {
           ) : (
             <ResponsiveContainer width="100%" height={260}>
               <BarChart data={zoneBarData} layout="vertical" margin={{ left: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#2a3347" horizontal={false} />
-                <XAxis type="number" tick={{ fill: "#7a8aaa", fontSize: 11 }} allowDecimals={false} />
-                <YAxis dataKey="zone" type="category" tick={{ fill: "#d0daea", fontSize: 11 }} width={110} />
+                <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} horizontal={false} />
+                <XAxis type="number" tick={{ fill: axisTick, fontSize: 11 }} allowDecimals={false} />
+                <YAxis dataKey="zone" type="category" tick={{ fill: labelText, fontSize: 11 }} width={110} />
                 <Tooltip
                   contentStyle={{ background: "#161b25", border: "1px solid #2a3347", borderRadius: 8, color: "#d0daea" }}
                 />
@@ -233,13 +242,13 @@ export default function AnalyticsCharts() {
         <ChartCard title="Severity Trend by Month" subtitle="Stacked — is campus getting better?">
           <ResponsiveContainer width="100%" height={260}>
             <BarChart data={severityMonthly}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#2a3347" />
-              <XAxis dataKey="month" tick={{ fill: "#7a8aaa", fontSize: 11 }} />
-              <YAxis tick={{ fill: "#7a8aaa", fontSize: 11 }} allowDecimals={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} />
+              <XAxis dataKey="month" tick={{ fill: axisTick, fontSize: 11 }} />
+              <YAxis tick={{ fill: axisTick, fontSize: 11 }} allowDecimals={false} />
               <Tooltip
                 contentStyle={{ background: "#161b25", border: "1px solid #2a3347", borderRadius: 8, color: "#d0daea" }}
               />
-              <Legend formatter={(v) => <span style={{ color: "#7a8aaa", fontSize: 11 }}>{v}</span>} />
+              <Legend formatter={(v) => <span style={{ color: axisTick, fontSize: 11 }}>{v}</span>} />
               {[1, 2, 3, 4, 5].map((s, i) => (
                 <Bar key={s} dataKey={`Sev${s}`} name={`Level ${s}`} stackId="a" fill={SEVERITY_COLORS[i]} />
               ))}

@@ -79,6 +79,22 @@ const nextConfig = {
       },
     ];
   },
+
+  // ── Redirects ────────────────────────────────────────────────────────────────
+  // Friendly aliases for guessed / legacy URLs (verified: none of these sources
+  // exist as routes; the destinations are the real routes).
+  async redirects() {
+    return [
+      { source: "/contact", destination: "/about", permanent: true },
+      { source: "/tracker", destination: "/issues", permanent: true },
+      { source: "/gallery", destination: "/evidence", permanent: true },
+      { source: "/dashboard/analytics", destination: "/portal/analytics", permanent: true },
+      { source: "/dashboard/members", destination: "/dashboard/directory", permanent: true },
+      { source: "/portal/members", destination: "/members", permanent: true },
+      { source: "/dashboard/inbox", destination: "/dashboard/contact-messages", permanent: true },
+      { source: "/dashboard/hours", destination: "/dashboard/volunteer", permanent: true },
+    ];
+  },
 };
 
 export default nextConfig;
