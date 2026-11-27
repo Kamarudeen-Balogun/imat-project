@@ -143,7 +143,7 @@ export function Footer() {
 
       <div className="mx-auto mt-8 flex max-w-6xl flex-col items-center justify-between gap-2 border-t border-white/10 px-4 pt-8 text-center text-xs text-slate-400 sm:px-6 md:flex-row md:text-left">
         <p suppressHydrationWarning>&copy; {new Date().getFullYear()} IMAT FUTA. All rights reserved.</p>
-        <p>Built with <span className="text-accent">♦</span> by <a href="mailto:codeflowx1@gmail.com" className="transition-all hover:text-accent hover:underline">codeflowx1@gmail.com</a></p>
+        <p>Built by <a href="https://codeflowx.dev" target="_blank" rel="noreferrer" className="transition-all hover:text-accent hover:underline">Balogun Kamarudeen</a> · <a href="https://github.com/Kamarudeen-Balogun" target="_blank" rel="noreferrer" className="transition-all hover:text-accent hover:underline">GitHub</a></p>
       </div>
     </footer>
   );
