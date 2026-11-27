@@ -6,6 +6,7 @@ import Link from "next/link";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import { toast } from "react-hot-toast";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
+import { PasswordField } from "@/components/PasswordField";
 
 export default function SetPasswordPage() {
   const [password, setPassword] = useState("");
@@ -127,33 +128,27 @@ export default function SetPasswordPage() {
           </div>
         ) : (
           <form onSubmit={handleSetPassword} className="glass-panel rounded-xl p-8 space-y-6 shadow-2xl">
-            <div>
-              <label className="block text-sm font-bold text-textDefault mb-2">New Password</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="At least 8 characters"
-                required
-                minLength={8}
-                autoComplete="new-password"
-                className="w-full rounded-lg border border-borderDark bg-surfaceStrong p-4 text-sm text-textDefault transition-colors focus:border-primary focus:outline-none"
-              />
-            </div>
+            <PasswordField
+              id="password"
+              label="New Password"
+              value={password}
+              onChange={setPassword}
+              placeholder="At least 8 characters"
+              required
+              minLength={8}
+              autoComplete="new-password"
+            />
 
-            <div>
-              <label className="block text-sm font-bold text-textDefault mb-2">Confirm Password</label>
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Repeat your new password"
-                required
-                minLength={8}
-                autoComplete="new-password"
-                className="w-full rounded-lg border border-borderDark bg-surfaceStrong p-4 text-sm text-textDefault transition-colors focus:border-primary focus:outline-none"
-              />
-            </div>
+            <PasswordField
+              id="confirm-password"
+              label="Confirm Password"
+              value={confirmPassword}
+              onChange={setConfirmPassword}
+              placeholder="Repeat your new password"
+              required
+              minLength={8}
+              autoComplete="new-password"
+            />
 
             <button
               type="submit"

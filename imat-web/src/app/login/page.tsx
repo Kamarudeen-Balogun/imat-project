@@ -6,6 +6,7 @@ import Link from "next/link";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import { toast } from "react-hot-toast";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
+import { PasswordField } from "@/components/PasswordField";
 
 function hasSupabaseAuthCookie() {
   return /(?:^|;\s*)sb-[^=;]+-auth-token(?:\.\d+)?=/i.test(document.cookie);
@@ -121,16 +122,13 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="block text-sm font-bold text-textDefault">Password</label>
-            </div>
-            <input 
-              type="password" 
+            <PasswordField
+              id="password"
+              label="Password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••" 
-              required 
-              className="w-full rounded-lg border border-borderDark bg-surfaceStrong p-4 text-sm text-textDefault transition-colors focus:border-primary focus:outline-none" 
+              onChange={setPassword}
+              placeholder="••••••••"
+              required
             />
             <div className="mt-2 text-right">
               <Link href="/auth/forgot-password" className="text-sm text-primary hover:underline">Forgot password?</Link>
