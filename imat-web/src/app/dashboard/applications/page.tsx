@@ -19,7 +19,6 @@ const BASE_ASSIGNABLE_ROLES = [
   "technical_officer",
   "faculty_advisor",
   "works_dept",
-  "applicant",
 ];
 const OWNER_ASSIGNABLE_ROLES = ["owner", "admin", ...BASE_ASSIGNABLE_ROLES];
 
