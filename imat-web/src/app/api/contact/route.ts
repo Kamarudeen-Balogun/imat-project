@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { sanitizeEmail, sanitizePlainText } from "@/lib/inputSanitizer";
 import { enforceRateLimit } from "@/lib/serverRateLimit";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 const contactSchema = z.object({
   name: z.string().min(2).max(80),
@@ -93,6 +94,26 @@ export async function POST(request: Request) {
         { error: "Contact service is temporarily unavailable." },
         { status: 502 }
       );
+    }
+
+    // Best-effort copy into the members inbox. The Google Apps Script sheet
+    // above stays the source of truth; a failed inbox save must never fail
+    // the contact submission.
+    try {
+      const admin = createSupabaseAdminClient();
+      const { error } = await admin.from("contact_messages").insert({
+        name: payload.name,
+        email: payload.email,
+        purpose: payload.purpose,
+        subject: payload.subject,
+        message: payload.message,
+      });
+
+      if (error) {
+        console.warn("Failed to save contact message to inbox.", error);
+      }
+    } catch (error) {
+      console.warn("Failed to save contact message to inbox.", error);
     }
 
     return NextResponse.json({ success: true }, { status: 200 });

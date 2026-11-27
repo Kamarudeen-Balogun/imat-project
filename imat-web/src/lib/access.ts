@@ -37,3 +37,24 @@ export function canModerateActivity(role: string | null | undefined) {
 export function canManageSocialLinks(role: string | null | undefined) {
   return hasRole(role, socialLinksManagerRoles);
 }
+
+export const applicationReviewerRoles = ["owner", "admin", "president", "technical_officer"] as const;
+
+export function canReviewApplications(role: string | null | undefined) {
+  return hasRole(role, applicationReviewerRoles);
+}
+
+export function isOwner(role: string | null | undefined) {
+  return role === "owner";
+}
+
+export function isAdminOrOwner(role: string | null | undefined) {
+  return role === "admin" || role === "owner";
+}
+
+export function canAssignRole(actorRole: string | null | undefined, targetRole: string | null | undefined) {
+  if (!actorRole || !targetRole) return false;
+  if (actorRole === "owner") return true;
+  if (actorRole === "admin") return targetRole !== "owner" && targetRole !== "admin";
+  return false;
+}

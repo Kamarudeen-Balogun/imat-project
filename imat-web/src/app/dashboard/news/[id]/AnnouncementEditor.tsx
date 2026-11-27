@@ -131,6 +131,23 @@ export default function AnnouncementEditor({
       } catch (pushError) {
         console.warn("Push delivery failed.", pushError);
       }
+
+      try {
+        const emailResponse = await fetch("/api/announcements/email", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ announcementId: announcement.id }),
+        });
+
+        if (!emailResponse.ok) {
+          const payload = await emailResponse.text().catch(() => "");
+          console.warn("Announcement email delivery failed.", payload);
+        }
+      } catch (emailError) {
+        console.warn("Announcement email delivery failed.", emailError);
+      }
     }
 
     if (announcement.visibility !== visibility && visibility === "members_only") {

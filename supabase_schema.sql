@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS users (
   matric_no TEXT,
   level INTEGER,
   cgpa NUMERIC(3,2),
-  role TEXT NOT NULL DEFAULT 'applicant' CHECK (role IN ('applicant', 'field_officer', 'documentation_officer', 'advocacy_officer', 'technical_officer', 'president', 'vice_president', 'faculty_advisor', 'works_dept', 'admin')),
+  role TEXT NOT NULL DEFAULT 'applicant' CHECK (role IN ('applicant', 'field_officer', 'documentation_officer', 'advocacy_officer', 'technical_officer', 'president', 'vice_president', 'faculty_advisor', 'works_dept', 'admin', 'owner')),
   status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'inactive', 'graduated')),
   notifications_enabled BOOLEAN NOT NULL DEFAULT false,
   zone_id UUID REFERENCES campus_zones(id),
@@ -56,6 +56,36 @@ ADD COLUMN IF NOT EXISTS avatar_url TEXT;
 CREATE INDEX IF NOT EXISTS users_status_idx ON users(status);
 CREATE INDEX IF NOT EXISTS users_status_notifications_idx ON users(status, notifications_enabled);
 CREATE INDEX IF NOT EXISTS users_role_status_idx ON users(role, status);
+
+-- Widen the users.role CHECK to include 'owner' on existing databases.
+-- (CREATE TABLE IF NOT EXISTS above only applies to fresh installs, and the
+-- inline CHECK is unnamed, so Postgres auto-named it users_role_check.
+-- Drop whichever role CHECK exists, matched by definition, not by name.)
+DO $$
+DECLARE
+  r RECORD;
+BEGIN
+  FOR r IN
+    SELECT conname
+    FROM pg_constraint
+    WHERE conrelid = 'public.users'::regclass
+      AND contype = 'c'
+      AND (conname = 'users_role_check' OR pg_get_constraintdef(oid) ILIKE '%role%')
+  LOOP
+    EXECUTE format('ALTER TABLE public.users DROP CONSTRAINT %I', r.conname);
+  END LOOP;
+
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'users_role_check'
+      AND conrelid = 'public.users'::regclass
+  ) THEN
+    ALTER TABLE public.users
+    ADD CONSTRAINT users_role_check
+    CHECK (role IN ('applicant', 'field_officer', 'documentation_officer', 'advocacy_officer', 'technical_officer', 'president', 'vice_president', 'faculty_advisor', 'works_dept', 'admin', 'owner'));
+  END IF;
+END $$;
 
 -- Utility Function: Get current user's role
 CREATE OR REPLACE FUNCTION get_my_role()
@@ -83,6 +113,34 @@ BEGIN
 END;
 $$;
 
+-- Last-owner safeguard: the final active owner cannot be demoted to another
+-- role or deactivated. Other owners/admins must exist first.
+CREATE OR REPLACE FUNCTION protect_last_owner()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  IF OLD.role = 'owner' AND OLD.status = 'active'
+    AND (NEW.role <> 'owner' OR NEW.status = 'inactive') THEN
+    IF NOT EXISTS (
+      SELECT 1 FROM users
+      WHERE role = 'owner'
+        AND status = 'active'
+        AND id <> OLD.id
+    ) THEN
+      RAISE EXCEPTION 'Cannot remove the last remaining owner.';
+    END IF;
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS protect_last_owner_before_update ON users;
+CREATE TRIGGER protect_last_owner_before_update
+BEFORE UPDATE ON users
+FOR EACH ROW EXECUTE PROCEDURE protect_last_owner();
+
 
 -- 3. INTAKE CYCLES
 CREATE TABLE IF NOT EXISTS intake_cycles (
@@ -105,10 +163,29 @@ CREATE TABLE IF NOT EXISTS applications (
   email TEXT NOT NULL,
   matric_no TEXT NOT NULL,
   level INTEGER NOT NULL,
-  cgpa NUMERIC(3,2) NOT NULL,
+  cgpa NUMERIC(3,2),
+  cgpa_above_3 BOOLEAN,
+  phone TEXT,
+  gender TEXT,
+  address TEXT,
+  graduation_year TEXT,
+  leadership TEXT,
+  leadership_detail TEXT,
+  working_groups TEXT[],
+  skills TEXT[],
+  other_skills TEXT,
+  time_commitment TEXT,
+  referee_name TEXT,
+  referee_dept TEXT,
+  referee_email TEXT,
+  referee_phone TEXT,
+  agreement TEXT,
+  signature TEXT,
+  signature_date TEXT,
   department TEXT NOT NULL CHECK (department = 'Civil Engineering'),
   role_preference_1 TEXT NOT NULL,
   role_preference_2 TEXT,
+  role_preference_3 TEXT,
   motivation_statement TEXT NOT NULL,
   cv_url TEXT NOT NULL,
   transcript_url TEXT,
@@ -379,6 +456,7 @@ CREATE TABLE IF NOT EXISTS notifications (
   href TEXT NOT NULL,
   is_read BOOLEAN NOT NULL DEFAULT false,
   read_at TIMESTAMPTZ,
+  email_sent_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
@@ -503,6 +581,18 @@ VALUES
   ('facebook', 'Facebook', 'https://facebook.com/', true, 6)
 ON CONFLICT (platform) DO NOTHING;
 
+-- 18. CONTACT MESSAGES (dashboard inbox copy of contact-form submissions)
+CREATE TABLE IF NOT EXISTS contact_messages (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  purpose TEXT NOT NULL,
+  subject TEXT NOT NULL,
+  message TEXT NOT NULL,
+  is_read BOOLEAN NOT NULL DEFAULT false,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
 CREATE OR REPLACE FUNCTION prune_activity_logs()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -571,6 +661,7 @@ ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE site_social_links ENABLE ROW LEVEL SECURITY;
 ALTER TABLE applications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE intake_cycles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE contact_messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE wiki_pages FORCE ROW LEVEL SECURITY;
 ALTER TABLE activity_logs FORCE ROW LEVEL SECURITY;
 ALTER TABLE notifications FORCE ROW LEVEL SECURITY;
@@ -585,9 +676,9 @@ DROP POLICY IF EXISTS "Public can read site social links" ON site_social_links;
 DROP POLICY IF EXISTS "Admins can manage site social links" ON site_social_links;
 CREATE POLICY "Public can read site social links" ON site_social_links FOR SELECT USING (true);
 CREATE POLICY "Admins can manage site social links" ON site_social_links FOR ALL USING (
-  get_my_role() = 'admin'
+  get_my_role() IN ('admin', 'owner')
 ) WITH CHECK (
-  get_my_role() = 'admin'
+  get_my_role() IN ('admin', 'owner')
 );
 
 -- Defects: Public can report, public can see (anonymous basic details)
@@ -605,13 +696,13 @@ CREATE POLICY "Evidence gallery editors can manage evidence" ON evidence_gallery
   EXISTS (
     SELECT 1 FROM users
     WHERE users.id = auth.uid()
-      AND users.role IN ('documentation_officer', 'admin')
+      AND users.role IN ('documentation_officer', 'admin', 'owner')
   )
 ) WITH CHECK (
   EXISTS (
     SELECT 1 FROM users
     WHERE users.id = auth.uid()
-      AND users.role IN ('documentation_officer', 'admin')
+      AND users.role IN ('documentation_officer', 'admin', 'owner')
   )
 );
 
@@ -622,8 +713,8 @@ DROP POLICY IF EXISTS "Admins read all applications" ON applications;
 DROP POLICY IF EXISTS "Admins update applications" ON applications;
 CREATE POLICY "Applicants can read own application" ON applications FOR SELECT USING (email IN (SELECT email FROM auth.users WHERE id = auth.uid()));
 CREATE POLICY "Anyone can submit application" ON applications FOR INSERT WITH CHECK (true);
-CREATE POLICY "Admins read all applications" ON applications FOR SELECT USING (get_my_role() IN ('technical_officer', 'president', 'admin'));
-CREATE POLICY "Admins update applications" ON applications FOR UPDATE USING (get_my_role() IN ('technical_officer', 'president', 'admin'));
+CREATE POLICY "Admins read all applications" ON applications FOR SELECT USING (get_my_role() IN ('technical_officer', 'president', 'admin', 'owner'));
+CREATE POLICY "Admins update applications" ON applications FOR UPDATE USING (get_my_role() IN ('technical_officer', 'president', 'admin', 'owner'));
 
 -- Users: Read profiles based on role. Full list visible to members.
 DROP POLICY IF EXISTS "Anyone can read active members" ON users;
@@ -641,9 +732,9 @@ DROP POLICY IF EXISTS "Public can view active intake cycles" ON intake_cycles;
 DROP POLICY IF EXISTS "Authorized members can manage intake cycles" ON intake_cycles;
 CREATE POLICY "Public can view active intake cycles" ON intake_cycles FOR SELECT USING (is_active = true OR auth.uid() IS NOT NULL);
 CREATE POLICY "Authorized members can manage intake cycles" ON intake_cycles FOR ALL USING (
-  get_my_role() IN ('technical_officer', 'president', 'admin')
+  get_my_role() IN ('technical_officer', 'president', 'admin', 'owner')
 ) WITH CHECK (
-  get_my_role() IN ('technical_officer', 'president', 'admin')
+  get_my_role() IN ('technical_officer', 'president', 'admin', 'owner')
 );
 
 -- Assessments: Field Officers can create/read for their zone; others read all
@@ -673,15 +764,15 @@ DROP POLICY IF EXISTS "Members can view volunteer logs" ON volunteer_logs;
 DROP POLICY IF EXISTS "Members can insert own volunteer logs" ON volunteer_logs;
 DROP POLICY IF EXISTS "Members can update own volunteer logs" ON volunteer_logs;
 CREATE POLICY "Members can view volunteer logs" ON volunteer_logs FOR SELECT USING (
-  auth.uid() = member_id OR get_my_role() = 'admin'
+  auth.uid() = member_id OR get_my_role() IN ('admin', 'owner')
 );
 CREATE POLICY "Members can insert own volunteer logs" ON volunteer_logs FOR INSERT WITH CHECK (
   auth.uid() = member_id
 );
 CREATE POLICY "Members can update own volunteer logs" ON volunteer_logs FOR UPDATE USING (
-  auth.uid() = member_id OR get_my_role() = 'admin'
+  auth.uid() = member_id OR get_my_role() IN ('admin', 'owner')
 ) WITH CHECK (
-  auth.uid() = member_id OR get_my_role() = 'admin'
+  auth.uid() = member_id OR get_my_role() IN ('admin', 'owner')
 );
 
 -- Announcements: Public if marked public. Members view all. Admins/President/Advocacy can insert.
@@ -693,13 +784,13 @@ DROP POLICY IF EXISTS "Authorized members can delete announcements" ON announcem
 CREATE POLICY "Public view public announcements" ON announcements FOR SELECT USING (visibility = 'public');
 CREATE POLICY "Members view all announcements" ON announcements FOR SELECT USING (auth.uid() IS NOT NULL);
 CREATE POLICY "Authorized members can insert announcements" ON announcements FOR INSERT WITH CHECK (
-  get_my_role() IN ('advocacy_officer', 'president', 'admin')
+  get_my_role() IN ('advocacy_officer', 'president', 'admin', 'owner')
 );
 CREATE POLICY "Authorized members can update announcements" ON announcements FOR UPDATE USING (
-  get_my_role() IN ('advocacy_officer', 'president', 'admin')
+  get_my_role() IN ('advocacy_officer', 'president', 'admin', 'owner')
 );
 CREATE POLICY "Authorized members can delete announcements" ON announcements FOR DELETE USING (
-  get_my_role() IN ('president', 'admin')
+  get_my_role() IN ('president', 'admin', 'owner')
 );
 
 -- Notifications: members can read their own feed; news publishers can fan out to opted-in users.
@@ -708,7 +799,7 @@ DROP POLICY IF EXISTS "Users can insert news notifications" ON notifications;
 DROP POLICY IF EXISTS "Users can update own notifications" ON notifications;
 CREATE POLICY "Users can view own notifications" ON notifications FOR SELECT USING (auth.uid() = recipient_id);
 CREATE POLICY "Users can insert news notifications" ON notifications FOR INSERT WITH CHECK (
-  get_my_role() IN ('advocacy_officer', 'president', 'admin')
+  get_my_role() IN ('advocacy_officer', 'president', 'admin', 'owner')
   AND type = 'news_update'
   AND recipient_id IN (
     SELECT id FROM users WHERE notifications_enabled = true AND status = 'active'
@@ -744,13 +835,13 @@ DROP POLICY IF EXISTS "Authorized members can update wiki pages" ON wiki_pages;
 DROP POLICY IF EXISTS "Authorized members can delete wiki pages" ON wiki_pages;
 CREATE POLICY "Members can view wiki pages" ON wiki_pages FOR SELECT USING (auth.uid() IS NOT NULL);
 CREATE POLICY "Authorized members can insert wiki pages" ON wiki_pages FOR INSERT WITH CHECK (
-  get_my_role() IN ('documentation_officer', 'president', 'admin')
+  get_my_role() IN ('documentation_officer', 'president', 'admin', 'owner')
 );
 CREATE POLICY "Authorized members can update wiki pages" ON wiki_pages FOR UPDATE USING (
-  get_my_role() IN ('documentation_officer', 'president', 'admin')
+  get_my_role() IN ('documentation_officer', 'president', 'admin', 'owner')
 );
 CREATE POLICY "Authorized members can delete wiki pages" ON wiki_pages FOR DELETE USING (
-  get_my_role() IN ('president', 'admin')
+  get_my_role() IN ('president', 'admin', 'owner')
 );
 
 -- Activity logs: members read; authenticated users can write their own events.
@@ -770,9 +861,18 @@ CREATE POLICY "Members can insert own activity logs" ON activity_logs FOR INSERT
     'vice_president',
     'faculty_advisor',
     'works_dept',
-    'admin'
+    'admin',
+    'owner'
   )
 );
 CREATE POLICY "Admins can delete activity logs" ON activity_logs FOR DELETE USING (
-  get_my_role() = 'admin'
+  get_my_role() IN ('admin', 'owner')
 );
+
+-- Contact messages: members can read every message; only the owner can delete one.
+-- Inserts come from the contact API via the service-role admin client,
+-- which bypasses RLS, so no INSERT policy is needed.
+DROP POLICY IF EXISTS "Members can read contact messages" ON contact_messages;
+DROP POLICY IF EXISTS "Only owner can delete contact messages" ON contact_messages;
+CREATE POLICY "Members can read contact messages" ON contact_messages FOR SELECT USING (auth.role() = 'authenticated');
+CREATE POLICY "Only owner can delete contact messages" ON contact_messages FOR DELETE USING (get_my_role() = 'owner');

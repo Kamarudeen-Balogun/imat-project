@@ -193,6 +193,23 @@ export default function CampaignForm({ userId }: { userId: string }) {
         console.warn("Push delivery failed.", error);
       }
 
+      try {
+        const emailResponse = await fetch("/api/announcements/email", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ announcementId: announcement?.id ?? null }),
+        });
+
+        if (!emailResponse.ok) {
+          const payload = await emailResponse.text().catch(() => "");
+          console.warn("Announcement email delivery failed.", payload);
+        }
+      } catch (error) {
+        console.warn("Announcement email delivery failed.", error);
+      }
+
       await logActivityEvent(supabase, {
         eventType: "announcement_published",
         entityType: "announcement",

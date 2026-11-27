@@ -1,4 +1,5 @@
 export const ROLE_PRIORITY: Record<string, number> = {
+  owner: 0,
   admin: 1,
   faculty_advisor: 2,
   president: 3,
@@ -12,6 +13,7 @@ export const ROLE_PRIORITY: Record<string, number> = {
 };
 
 export const ROLE_LABELS: Record<string, string> = {
+  owner: "Owner",
   admin: "Admin",
   president: "President",
   vice_president: "Vice President",
@@ -38,4 +40,11 @@ export function sortByRoleHierarchy<T extends { role: string; full_name?: string
     const bName = (b.full_name ?? "").toLowerCase();
     return aName.localeCompare(bName);
   });
+}
+
+export function canAssignRole(actorRole: string | null | undefined, targetRole: string | null | undefined): boolean {
+  if (!actorRole || !targetRole) return false;
+  if (actorRole === "owner") return true;
+  if (actorRole === "admin") return targetRole !== "owner" && targetRole !== "admin";
+  return false;
 }
