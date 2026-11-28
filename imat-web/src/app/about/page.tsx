@@ -1,5 +1,14 @@
+import type { Metadata } from "next";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 import AboutContactForm from "./AboutContactForm";
+import { buildPageMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = buildPageMetadata({
+  title: "About IMAT · IMAT FUTA",
+  description:
+    "The Infrastructure Maintenance Awareness Team (IMAT) is a student-led advocacy body established in 2026 within the Civil Engineering Department at FUTA, bridging the gap between students and university management on campus infrastructure issues.",
+  path: "/about",
+});
 
 export default function AboutPage() {
   return (

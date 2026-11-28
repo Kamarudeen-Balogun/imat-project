@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import { LegalPage } from "@/components/legal/LegalPage";
+import { buildPageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPageMetadata({
   title: "Accessibility · IMAT FUTA",
   description: "IMAT FUTA's commitment to making this website usable by everyone.",
-};
+  path: "/accessibility",
+});
 
 export default function AccessibilityPage() {
   return (

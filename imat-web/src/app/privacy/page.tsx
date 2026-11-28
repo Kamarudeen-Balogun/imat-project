@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import { LegalPage } from "@/components/legal/LegalPage";
+import { buildPageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPageMetadata({
   title: "Privacy Policy · IMAT FUTA",
   description: "How IMAT FUTA collects, uses and protects your information.",
-};
+  path: "/privacy",
+});
 
 export default function PrivacyPage() {
   return (

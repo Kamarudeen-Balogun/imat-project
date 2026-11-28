@@ -9,6 +9,7 @@ import { notFound, redirect } from "next/navigation";
 import { extractAnnouncementSuffix, getAnnouncementHref, toCompactAnnouncementSlug } from "@/lib/news";
 import { markdownToPlainText } from "@/lib/markdown";
 import { parseVideoUrl } from "@/lib/video";
+import { buildPageMetadata, OG_IMAGE_PATH } from "@/lib/seo";
 import ArticleBody from "@/components/news/ArticleBody";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 
@@ -165,29 +166,22 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const canonicalHref = getAnnouncementHref(data.slug ?? data.id);
   const description = data.excerpt?.trim() || `${markdownToPlainText(data.body).substring(0, 160)}...`;
 
-  return {
+  return buildPageMetadata({
     title: `${data.title} | IMAT FUTA Newsroom`,
     description,
-    alternates: {
-      canonical: canonicalHref,
-    },
-    openGraph: {
-      type: "article",
-      title: data.title,
-      description,
-      url: canonicalHref,
-      publishedTime: data.published_at,
-      modifiedTime: data.updated_at,
-      images: data.image_url
-        ? [
-            {
-              url: data.image_url && data.image_url.includes('res.cloudinary.com') ? optimizeCloudinaryUrl(data.image_url) : data.image_url,
-              alt: data.title,
-            },
-          ]
-        : undefined,
-    },
-  };
+    path: canonicalHref,
+    type: "article",
+    publishedTime: data.published_at,
+    modifiedTime: data.updated_at,
+    image: data.image_url
+      ? {
+          url: data.image_url.includes("res.cloudinary.com")
+            ? optimizeCloudinaryUrl(data.image_url)
+            : data.image_url,
+          alt: data.title,
+        }
+      : undefined,
+  });
 }
 
 export default async function NewsPostPage({ params }: { params: Promise<{ id: string }> }) {
@@ -217,7 +211,7 @@ export default async function NewsPostPage({ params }: { params: Promise<{ id: s
     "@type": "Article",
     headline: post.title,
     description: post.excerpt?.trim() || markdownToPlainText(post.body).substring(0, 160),
-    image: post.image_url ? [post.image_url] : [`${siteUrl}/images/logo.png`],
+    image: post.image_url ? [post.image_url] : [`${siteUrl}${OG_IMAGE_PATH}`],
     datePublished: post.published_at,
     dateModified: post.updated_at,
     author: {

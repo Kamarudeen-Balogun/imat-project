@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import { LegalPage } from "@/components/legal/LegalPage";
+import { buildPageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPageMetadata({
   title: "Cookie Policy · IMAT FUTA",
   description: "What cookies and local storage IMAT FUTA uses, and why.",
-};
+  path: "/cookies",
+});
 
 export default function CookiesPage() {
   return (

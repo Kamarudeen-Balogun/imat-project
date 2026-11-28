@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { OG_IMAGE_PATH, ogImage } from "@/lib/seo";
 
 const ibmPlexSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -41,20 +42,15 @@ export const metadata: Metadata = {
     url: "/",
     siteName: "IMAT FUTA",
     type: "website",
-    images: [
-      {
-        url: "/images/logo.png",
-        width: 1200,
-        height: 630,
-        alt: "IMAT FUTA",
-      },
-    ],
+    // Real 1200x630 card served by src/app/og-image.png/route.ts (the old
+    // /images/logo.png is a 2048x2048 square, wrong for link previews).
+    images: [ogImage()],
   },
   twitter: {
     card: "summary_large_image",
     title: "IMAT · Infrastructure Maintenance Awareness Team",
     description: "Track, report, and advocate for better campus infrastructure at FUTA.",
-    images: ["/images/logo.png"],
+    images: [OG_IMAGE_PATH],
   },
   icons: {
     icon: "/icon.png?v=20260425-1",
