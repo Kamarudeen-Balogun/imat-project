@@ -296,18 +296,18 @@ export default function ApplyPage() {
               </div>
               <div>
                 <label className="block font-bold text-textDefault mb-2">Gender <span className="text-danger">*</span></label>
-                <div className="flex gap-6 mt-3 text-textDefault">
-                  <label className="flex items-center gap-2 cursor-pointer"><input type="radio" name="gender" value="Male" required className="w-4 h-4 cursor-pointer" /> Male</label>
-                  <label className="flex items-center gap-2 cursor-pointer"><input type="radio" name="gender" value="Female" required className="w-4 h-4 cursor-pointer" /> Female</label>
+                <div className="mt-3 grid grid-cols-2 gap-3">
+                  <label className="radio-card"><input type="radio" name="gender" value="Male" required className="h-4 w-4 shrink-0 cursor-pointer" /> Male</label>
+                  <label className="radio-card"><input type="radio" name="gender" value="Female" required className="h-4 w-4 shrink-0 cursor-pointer" /> Female</label>
                 </div>
               </div>
             </div>
             <div>
               <label className="block font-bold text-textDefault mb-2">Current Level <span className="text-danger">*</span></label>
-              <div className="flex flex-wrap gap-6 mt-3 text-textDefault">
+              <div className="mt-3 grid grid-cols-2 gap-3">
                 {["200L", "300L", "400L", "500L"].map(lvl => (
-                  <label key={lvl} className="flex items-center gap-2 cursor-pointer">
-                    <input type="radio" name="level" value={lvl} required className="w-4 h-4 cursor-pointer" /> {lvl}
+                  <label key={lvl} className="radio-card">
+                    <input type="radio" name="level" value={lvl} required className="h-4 w-4 shrink-0 cursor-pointer" /> {lvl}
                   </label>
                 ))}
               </div>

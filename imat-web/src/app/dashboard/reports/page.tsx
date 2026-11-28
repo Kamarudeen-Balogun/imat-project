@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { createSupabaseClient } from "@/lib/supabase/client";
-import { FileText, Download, Plus } from "lucide-react";
+import { FileText, Download, Plus, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { formatDistanceToNow } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 
 type ReportRecord = {
@@ -67,15 +67,19 @@ export default function ReportsMasterlist() {
       </div>
 
       {loading ? (
-        <div className="glass-panel rounded-xl p-12 text-center font-mono text-text3 shadow-xl">
-          Compiling report indices...
+        <div className="glass-panel rounded-xl p-12 text-center shadow-xl">
+          <Loader2 size={28} className="mx-auto mb-3 animate-spin text-primary" />
+          <p className="font-mono text-text3">Compiling report indices...</p>
+          <p className="mt-1 text-sm text-text3">Loading…</p>
         </div>
       ) : reports.length === 0 ? (
         <div className="glass-panel rounded-xl p-12 text-center font-mono text-text3 shadow-xl">
           NO REPORTS GENERATED YET
         </div>
       ) : (
-      <div className="glass-panel overflow-x-auto rounded-xl shadow-xl">
+      <>
+      {/* Desktop: table. Phones: stacked cards. */}
+      <div className="glass-panel overflow-x-auto rounded-xl shadow-xl hidden md:block">
         <table className="w-full text-left border-collapse min-w-[800px]">
           <thead>
             <tr className="bg-bg border-b border-soft font-mono text-[10px] uppercase text-text3 tracking-wider">
@@ -120,6 +124,39 @@ export default function ReportsMasterlist() {
           </tbody>
         </table>
       </div>
+
+      <div className="space-y-4 md:hidden">
+        {reports.map((report) => (
+          <article key={report.id} className="glass-panel rounded-xl p-4 shadow-xl">
+            <div className="flex flex-wrap items-start justify-between gap-2">
+              <h2 className="min-w-0 flex-1 text-base font-bold leading-snug text-textDefault">
+                {report.title}
+              </h2>
+              {report.status === "published" ? (
+                <span className="bg-success/20 text-success border border-success/30 px-2 py-0.5 rounded font-bold font-mono text-xs">PUBLISHED</span>
+              ) : (
+                <span className="bg-warningDim text-warning border border-warning/30 px-2 py-0.5 rounded font-bold font-mono text-xs">DRAFT</span>
+              )}
+            </div>
+            <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-text2">
+              <span>
+                {format(new Date(report.period_start), "MMM d, yyyy")} –{" "}
+                {format(new Date(report.period_end), "MMM d, yyyy")}
+              </span>
+              <span>{report.authored_by?.full_name || "Unknown Author"}</span>
+              <span>{report.defects_included.length} incidents</span>
+              <span>{formatDistanceToNow(new Date(report.created_at))} ago</span>
+            </div>
+            <Link
+              href={`/dashboard/reports/${report.id}`}
+              className="btn btn-outline mt-4 w-full"
+            >
+              <Download size={14} /> Download PDF
+            </Link>
+          </article>
+        ))}
+      </div>
+      </>
       )}
     </div>
   );

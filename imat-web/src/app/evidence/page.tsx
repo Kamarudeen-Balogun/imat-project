@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Check, ChevronDown, FolderKanban, SlidersHorizontal } from "lucide-react";
+import { Check, ChevronDown, FolderKanban, SlidersHorizontal, Camera } from "lucide-react";
+import Link from "next/link";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import EvidenceGalleryGrid, { type EvidenceGalleryItem } from "@/components/evidence/EvidenceGalleryGrid";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
@@ -114,7 +115,12 @@ export default function EvidencePage() {
         </div>
       ) : filteredItems.length === 0 ? (
         <div className="empty-state">
-          No evidence items have been published yet. Add the first record in the dashboard evidence manager.
+          <Camera size={28} className="mx-auto mb-3 text-text3" />
+          <p className="font-bold text-textDefault">No evidence items have been published yet.</p>
+          <p className="mt-1">Be the first to report a defect — your report starts the board.</p>
+          <Link href="/report" className="btn btn-accent btn-sm mt-4">
+            Report a defect
+          </Link>
         </div>
       ) : (
         <EvidenceGalleryGrid items={filteredItems} mobileHorizontal={false} compact className="md:overflow-visible" />

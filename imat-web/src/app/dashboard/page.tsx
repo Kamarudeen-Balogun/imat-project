@@ -43,25 +43,23 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="overflow-x-auto md:overflow-visible">
-      <div className="grid grid-cols-3 gap-2 sm:gap-4 md:gap-6 min-w-[360px] md:min-w-0">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:gap-6">
         <div className="kpi-tile flex flex-col items-center rounded-lg p-3 text-center transition-transform hover:-translate-y-0.5 sm:p-4 md:p-6">
           <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-md border border-danger/25 bg-danger/10 text-danger md:mb-4 md:h-12 md:w-12"><Clock size={16} className="md:hidden" /><Clock size={24} className="hidden md:block" /></div>
-          <div className="text-2xl md:text-3xl font-bold text-textDefault mb-1">{loading ? "--" : stats.reported}</div>
-          <div className="text-[10px] sm:text-xs md:text-sm text-text3 font-mono uppercase tracking-wider leading-tight">Defects Reported</div>
+          <div className="text-2xl md:text-3xl font-bold text-textDefault mb-1">{loading ? <span className="skeleton-shimmer inline-block h-8 w-14 rounded" /> : stats.reported}</div>
+          <div className="text-[10px] sm:text-xs md:text-sm text-text3 font-mono uppercase tracking-wider leading-tight whitespace-nowrap">Defects Reported</div>
          </div>
         <div className="kpi-tile flex flex-col items-center rounded-lg p-3 text-center transition-transform hover:-translate-y-0.5 sm:p-4 md:p-6">
           <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-md border border-warning/25 bg-warning/10 text-warning md:mb-4 md:h-12 md:w-12"><AlertTriangle size={16} className="md:hidden" /><AlertTriangle size={24} className="hidden md:block" /></div>
-          <div className="text-2xl md:text-3xl font-bold text-textDefault mb-1">{loading ? "--" : stats.underAssessment}</div>
-          <div className="text-[10px] sm:text-xs md:text-sm text-text3 font-mono uppercase tracking-wider leading-tight">Under Assessment</div>
+          <div className="text-2xl md:text-3xl font-bold text-textDefault mb-1">{loading ? <span className="skeleton-shimmer inline-block h-8 w-14 rounded" /> : stats.underAssessment}</div>
+          <div className="text-[10px] sm:text-xs md:text-sm text-text3 font-mono uppercase tracking-wider leading-tight whitespace-nowrap">Under Assessment</div>
          </div>
-        <div className="kpi-tile flex flex-col items-center rounded-lg p-3 text-center transition-transform hover:-translate-y-0.5 sm:p-4 md:p-6">
+        <div className="kpi-tile col-span-2 flex flex-col items-center rounded-lg p-3 text-center transition-transform hover:-translate-y-0.5 sm:col-span-1 sm:p-4 md:p-6">
           <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-md border border-success/25 bg-success/10 text-success md:mb-4 md:h-12 md:w-12"><CheckCircle size={16} className="md:hidden" /><CheckCircle size={24} className="hidden md:block" /></div>
-          <div className="text-2xl md:text-3xl font-bold text-textDefault mb-1">{loading ? "--" : stats.resolved}</div>
-          <div className="text-[10px] sm:text-xs md:text-sm text-text3 font-mono uppercase tracking-wider leading-tight">Resolved Issues</div>
+          <div className="text-2xl md:text-3xl font-bold text-textDefault mb-1">{loading ? <span className="skeleton-shimmer inline-block h-8 w-14 rounded" /> : stats.resolved}</div>
+          <div className="text-[10px] sm:text-xs md:text-sm text-text3 font-mono uppercase tracking-wider leading-tight whitespace-nowrap">Resolved Issues</div>
          </div>
       </div>
-        </div>
 
       <div>
          <h2 className="mb-6 border-b border-soft pb-2 text-xl font-black text-textDefault">Quick Actions ({role.replace("_", " ")})</h2>

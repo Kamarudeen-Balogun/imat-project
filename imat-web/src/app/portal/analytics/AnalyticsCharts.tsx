@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import { useTheme } from "@/components/ThemeProvider";
 import {
-  BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
+  BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, LabelList,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from "recharts";
 import { TrendingUp, Activity, AlertTriangle, CheckCircle, MapPin, BarChart2 } from "lucide-react";
@@ -105,7 +105,7 @@ export default function AnalyticsCharts() {
     zoneScores[key].count += 1;
   });
   const shrData = Object.entries(zoneScores).map(([zone, { score, factor }]) => ({
-    zone: zone.replace("Zone", "Zn"),
+    zone,
     shr: Math.max(0, Math.round(100 - (score / factor))),
   })).sort((a, b) => b.shr - a.shr);
 
@@ -129,8 +129,9 @@ export default function AnalyticsCharts() {
     </div>
   );
 
+  // Taller cards (≥260px) so charts breathe on phones.
   const ChartCard = ({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) => (
-    <div className="bg-bg2 border border-borderDark rounded-xl p-6">
+    <div className="bg-bg2 border border-borderDark rounded-xl p-4 sm:p-6">
       <div className="mb-6">
         <h3 className="font-bold text-textDefault text-base">{title}</h3>
         {subtitle && <p className="text-text3 text-xs font-mono mt-1">{subtitle}</p>}
@@ -169,11 +170,15 @@ export default function AnalyticsCharts() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
           <ChartCard title="Defects Reported per Month" subtitle="12-month rolling window">
-            <ResponsiveContainer width="100%" height={240}>
+            <ResponsiveContainer width="100%" height={280}>
               <LineChart data={monthlyData}>
                 <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} />
                 <XAxis dataKey="month" tick={{ fill: axisTick, fontSize: 11 }} />
-                <YAxis tick={{ fill: axisTick, fontSize: 11 }} allowDecimals={false} />
+                <YAxis
+                  tick={{ fill: axisTick, fontSize: 11 }}
+                  allowDecimals={false}
+                  domain={[0, (dataMax: number) => Math.max(dataMax + 2, 3)]}
+                />
                 <Tooltip
                   contentStyle={{ background: "#161b25", border: "1px solid #2a3347", borderRadius: 8, color: "#d0daea" }}
                 />
@@ -194,7 +199,7 @@ export default function AnalyticsCharts() {
           {categoryData.length === 0 ? (
             <div className="h-[240px] flex items-center justify-center text-text3 font-mono text-sm">No data yet</div>
           ) : (
-            <ResponsiveContainer width="100%" height={240}>
+            <ResponsiveContainer width="100%" height={280}>
               <PieChart>
                 <Pie
                   data={categoryData}
@@ -208,11 +213,15 @@ export default function AnalyticsCharts() {
                   {categoryData.map((entry, i) => (
                     <Cell key={i} fill={CATEGORY_COLORS[entry.name] ?? "#4a9eff"} />
                   ))}
+                  <LabelList dataKey="value" position="inside" fill="#fff" fontSize={12} fontWeight={700} />
                 </Pie>
                 <Tooltip
                   contentStyle={{ background: "#161b25", border: "1px solid #2a3347", borderRadius: 8, color: "#d0daea" }}
                 />
-                <Legend formatter={(v) => <span style={{ color: labelText, fontSize: 12, textTransform: "capitalize" }}>{v}</span>} />
+                <Legend
+                  wrapperStyle={{ paddingTop: 12 }}
+                  formatter={(v) => <span style={{ color: labelText, fontSize: 12, textTransform: "capitalize" }}>{v}</span>}
+                />
               </PieChart>
             </ResponsiveContainer>
           )}
@@ -226,14 +235,21 @@ export default function AnalyticsCharts() {
             <div className="h-[260px] flex items-center justify-center text-text3 font-mono text-sm">No zone data yet</div>
           ) : (
             <ResponsiveContainer width="100%" height={260}>
-              <BarChart data={zoneBarData} layout="vertical" margin={{ left: 0 }}>
+              <BarChart data={zoneBarData} layout="vertical" margin={{ left: 0, right: 32 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} horizontal={false} />
-                <XAxis type="number" tick={{ fill: axisTick, fontSize: 11 }} allowDecimals={false} />
+                <XAxis
+                  type="number"
+                  tick={{ fill: axisTick, fontSize: 11 }}
+                  allowDecimals={false}
+                  domain={[0, (dataMax: number) => Math.max(dataMax, 3)]}
+                />
                 <YAxis dataKey="zone" type="category" tick={{ fill: labelText, fontSize: 11 }} width={110} />
                 <Tooltip
                   contentStyle={{ background: "#161b25", border: "1px solid #2a3347", borderRadius: 8, color: "#d0daea" }}
                 />
-                <Bar dataKey="defects" fill="#4a9eff" radius={[0, 4, 4, 0]} />
+                <Bar dataKey="defects" fill="#4a9eff" radius={[0, 4, 4, 0]}>
+                  <LabelList dataKey="defects" position="right" fill={labelText} fontSize={12} fontWeight={700} />
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           )}
@@ -248,7 +264,10 @@ export default function AnalyticsCharts() {
               <Tooltip
                 contentStyle={{ background: "#161b25", border: "1px solid #2a3347", borderRadius: 8, color: "#d0daea" }}
               />
-              <Legend formatter={(v) => <span style={{ color: axisTick, fontSize: 11 }}>{v}</span>} />
+              <Legend
+                wrapperStyle={{ paddingTop: 12 }}
+                formatter={(v) => <span style={{ color: axisTick, fontSize: 11 }}>{v}</span>}
+              />
               {[1, 2, 3, 4, 5].map((s, i) => (
                 <Bar key={s} dataKey={`Sev${s}`} name={`Level ${s}`} stackId="a" fill={SEVERITY_COLORS[i]} />
               ))}
@@ -272,8 +291,8 @@ export default function AnalyticsCharts() {
               const color = shr >= 75 ? "#3ec97a" : shr >= 50 ? "#f5a623" : shr >= 25 ? "#ff7a40" : "#ff5a5a";
               return (
                 <div key={zone} className="bg-bg border border-borderDark rounded-lg p-4 text-center">
-                  <div className="text-xs font-mono text-text3 uppercase tracking-wider mb-3 flex items-center justify-center gap-1">
-                    <MapPin size={11} /> {zone}
+                  <div className="text-xs font-mono text-text3 uppercase tracking-wider mb-3 flex items-center justify-center gap-1 text-center break-words">
+                    <MapPin size={11} className="shrink-0" /> {zone}
                   </div>
                   <div
                     className="text-4xl font-bold mb-1"

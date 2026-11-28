@@ -159,7 +159,9 @@ export default async function DashboardEmailLogsPage({
           No emails match these filters yet.
         </div>
       ) : (
-        <div className="glass-panel rounded-2xl overflow-x-auto">
+        <>
+        {/* Desktop: table. Phones: stacked cards. */}
+        <div className="glass-panel rounded-2xl overflow-x-auto hidden md:block">
           <table className="w-full min-w-[720px] text-left text-sm">
             <thead>
               <tr className="border-b border-soft text-xs uppercase tracking-wider text-text3">
@@ -206,6 +208,36 @@ export default async function DashboardEmailLogsPage({
             </tbody>
           </table>
         </div>
+
+        <div className="space-y-4 md:hidden">
+          {logs.map((log) => (
+            <article key={log.id} className="glass-panel rounded-xl p-4">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center rounded-full border border-soft bg-bg px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-text3">
+                  {formatType(log.type)}
+                </span>
+                {log.status === "sent" ? (
+                  <span className="inline-flex items-center rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-primary">
+                    Sent
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center rounded-full border border-danger/30 bg-danger/10 px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-danger">
+                    Failed
+                  </span>
+                )}
+              </div>
+              <p className="mt-2 break-all text-sm font-semibold text-textDefault">{log.recipient}</p>
+              <p className="mt-1 break-words text-sm text-text2">{log.subject}</p>
+              {log.status === "failed" && log.error && (
+                <p className="mt-1 break-words text-xs text-danger">{log.error}</p>
+              )}
+              <p className="mt-2 text-xs text-text3">
+                {format(new Date(log.created_at), "MMM d, yyyy HH:mm")}
+              </p>
+            </article>
+          ))}
+        </div>
+        </>
       )}
     </div>
   );

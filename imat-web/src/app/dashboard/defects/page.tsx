@@ -122,7 +122,9 @@ export default function InternalDefectsLogPage() {
             </div>
          </div>
 
-      <div className="glass-panel overflow-x-auto rounded-xl shadow-xl">
+      {/* Desktop: table. Phones: stacked cards (same pattern as the
+          applications page), with the full action as a wide button. */}
+      <div className="glass-panel hidden overflow-x-auto rounded-xl shadow-xl md:block">
         <table className="w-full text-left border-collapse min-w-[900px]">
           <thead>
             <tr className="bg-bg border-b border-soft font-mono text-[10px] uppercase text-text3 tracking-wider">
@@ -193,6 +195,55 @@ export default function InternalDefectsLogPage() {
             )}
           </tbody>
         </table>
+      </div>
+
+      <div className="space-y-4 md:hidden">
+        {loading ? (
+          <div className="p-12 text-center text-text3 font-mono">
+            Loading secure database records...
+          </div>
+        ) : filteredDefects.length === 0 ? (
+          <div className="empty-state">No internal records found.</div>
+        ) : (
+          filteredDefects.map((defect) => (
+            <article key={defect.id} className="glass-panel rounded-xl overflow-hidden">
+              <div className="px-4 py-4">
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                  <h2 className="min-w-0 flex-1 text-base font-bold leading-snug text-textDefault">
+                    {defect.title}
+                  </h2>
+                  <span className={`badge ${STATUS_BADGE[defect.status] ?? "badge-neutral"}`}>
+                    {defect.status.replace(/_/g, " ")}
+                  </span>
+                </div>
+                <div className="mt-2">{getSeverityBadge(defect.severity)}</div>
+                <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-text2">
+                  <span className="font-mono">{defect.id}</span>
+                  <span>{defect.campus_zones?.name || "Unmapped"}</span>
+                  <span>{defect.assignee?.full_name || "Unassigned"}</span>
+                  <span>{formatDistanceToNow(new Date(defect.created_at))} ago</span>
+                  {defect.location_lat && defect.location_lng ? (
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${defect.location_lat},${defect.location_lng}`}
+                      target="_blank" rel="noreferrer"
+                      className="inline-flex items-center gap-1 font-mono text-blue-600 dark:text-blue-400 hover:underline"
+                    >
+                      <MapIcon size={12} /> View Map
+                    </a>
+                  ) : (
+                    <span className="font-mono text-text3">No GPS data</span>
+                  )}
+                </div>
+                <Link
+                  href={`/dashboard/defects/${defect.id}`}
+                  className="btn btn-outline mt-4 w-full"
+                >
+                  <FileText size={14} /> Assess Full Setup
+                </Link>
+              </div>
+            </article>
+          ))
+        )}
       </div>
     </div>
   );

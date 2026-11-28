@@ -19,19 +19,19 @@ export default function AboutPage() {
           <h2 className="text-2xl font-black text-textDefault mb-6 border-b border-borderDark pb-4">Core Activities</h2>
           <ul className="space-y-4 text-textDefault">
             <li className="flex items-start gap-3">
-              <span className="text-primary mt-1">01.</span>
+              <span className="w-8 shrink-0 font-mono text-primary">01.</span>
               <span>Quarterly field assessments of campus infrastructure (roads, drains, walkways, buildings).</span>
             </li>
             <li className="flex items-start gap-3">
-              <span className="text-primary mt-1">02.</span>
+              <span className="w-8 shrink-0 font-mono text-primary">02.</span>
               <span>Maintaining a live, real-time database of campus defects and repair history.</span>
             </li>
             <li className="flex items-start gap-3">
-              <span className="text-primary mt-1">03.</span>
+              <span className="w-8 shrink-0 font-mono text-primary">03.</span>
               <span>Delivering biannual technical reports with prioritized engineering recommendations to the Works & Physical Planning Department.</span>
             </li>
             <li className="flex items-start gap-3">
-              <span className="text-primary mt-1">04.</span>
+              <span className="w-8 shrink-0 font-mono text-primary">04.</span>
               <span>Running advocacy campaigns and workshops for the broader campus community.</span>
             </li>
           </ul>
@@ -66,31 +66,36 @@ export default function AboutPage() {
       </div>
 
       <h2 className="text-2xl font-black text-textDefault mb-8">Organizational Structure</h2>
-      <div className="glass-panel rounded-xl p-8 mb-8">
-        <div className="flex flex-col items-center gap-5 mb-10">
-          <div className="w-full max-w-sm text-center p-4 border border-primary/35 bg-primary/10 rounded-lg">
-            <h3 className="font-bold text-textDefault">Faculty Advisor</h3>
+      <div className="glass-panel rounded-xl p-5 sm:p-8 mb-8">
+        {/* Indented hierarchy: each level sits further in than the one
+            above it, joined by a thin line on the left. */}
+        <div className="space-y-4">
+          <div className="w-full max-w-sm p-3 sm:p-4 border border-primary/35 bg-primary/10 rounded-lg sm:text-center">
+            <h3 className="font-bold text-textDefault text-sm sm:text-base">Faculty Advisor</h3>
             <p className="text-xs text-text2 mt-1">Academic and strategic oversight</p>
           </div>
-          <div className="w-full max-w-sm text-center p-4 border border-soft bg-bg rounded-lg">
-            <h3 className="font-bold text-textDefault">President & Vice President</h3>
-            <p className="text-xs text-text2 mt-1">Executive leadership and coordination</p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
-          {[
-            "Documentation Officer",
-            "Field Officer",
-            "Advocacy Officer",
-            "Technical Officer",
-            "Works Dept Liaison",
-            "Admin",
-          ].map((role) => (
-            <div key={role} className="text-center p-4 border border-soft rounded-lg transition-colors bg-surfaceStrong">
-              <h4 className="font-semibold text-textDefault text-sm">{role}</h4>
+          <div className="ml-4 sm:ml-8 border-l-2 border-primary/30 pl-4">
+            <div className="w-full max-w-sm p-3 sm:p-4 border border-soft bg-bg rounded-lg sm:text-center">
+              <h3 className="font-bold text-textDefault text-sm sm:text-base">President & Vice President</h3>
+              <p className="text-xs text-text2 mt-1">Executive leadership and coordination</p>
             </div>
-          ))}
+          </div>
+          <div className="ml-8 sm:ml-16 border-l-2 border-primary/30 pl-4">
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 w-full">
+              {[
+                "Documentation Officer",
+                "Field Officer",
+                "Advocacy Officer",
+                "Technical Officer",
+                "Works Dept Liaison",
+                "Admin",
+              ].map((role) => (
+                <div key={role} className="p-3 border border-soft rounded-lg transition-colors bg-surfaceStrong sm:text-center sm:p-4">
+                  <h4 className="font-semibold text-textDefault text-xs sm:text-sm">{role}</h4>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 

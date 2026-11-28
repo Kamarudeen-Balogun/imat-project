@@ -594,12 +594,14 @@ export default function ReportPage() {
                 ].map(sev => {
                   const isSelected = draft.severity === String(sev.val);
                   return (
-                    <label key={sev.val} className={`flex cursor-pointer flex-col gap-2 rounded-md border p-3 transition-colors ${isSelected ? "border-accent bg-accent/10" : "border-borderDark bg-surfaceStrong hover:border-accent"} ${sev.val >= 4 ? "text-danger" : "text-textDefault"}`}>
-                      <div className="flex items-center justify-between gap-2">
-                        <input type="radio" name="severity" value={sev.val} checked={isSelected} onChange={(e) => setDraft((prev) => ({ ...prev, severity: e.target.value }))} required className="h-4 w-4 cursor-pointer accent-accent" />
+                    <label key={sev.val} className={`flex cursor-pointer flex-col gap-1.5 rounded-md border p-3 transition-colors ${isSelected ? "border-accent bg-accent/10" : "border-borderDark bg-surfaceStrong hover:border-accent"} ${sev.val >= 4 ? "text-danger" : "text-textDefault"}`}>
+                      <span className="flex items-center justify-between gap-2">
+                        <span className="flex items-center gap-2">
+                          <input type="radio" name="severity" value={sev.val} checked={isSelected} onChange={(e) => setDraft((prev) => ({ ...prev, severity: e.target.value }))} required className="h-4 w-4 shrink-0 cursor-pointer accent-accent" />
+                          <strong className="text-sm">{sev.label}</strong>
+                        </span>
                         <strong className="font-mono text-xs">LVL {sev.val}</strong>
-                      </div>
-                      <strong className="block text-sm">{sev.label}</strong>
+                      </span>
                       <span className="text-[11px] leading-tight text-text3">{sev.desc}</span>
                     </label>
                   );
@@ -648,7 +650,7 @@ export default function ReportPage() {
                   ? "Capturing location..."
                   : draft.location_lat !== null && draft.location_lng !== null
                     ? `LAT ${draft.location_lat.toFixed(5)} / LNG ${draft.location_lng.toFixed(5)}`
-                    : "Capture Current GPS Coordinates (Optional)"}
+                    : "Use my GPS location"}
               </button>
             </div>
             

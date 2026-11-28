@@ -17,36 +17,91 @@ type ActivityLog = {
 
 type Props = {
   logs: ActivityLog[];
+  defectTitles: Record<string, string>;
   canModerate: boolean;
   deleteActivityLog: (formData: FormData) => void | Promise<void>;
 };
 
-export default function ActivityTimelineClient({ logs, canModerate, deleteActivityLog }: Props) {
+const EVENT_LABELS: Record<string, string> = {
+  defect_status_updated: "Status updated",
+  defect_created: "Defect reported",
+  new_defect_reported: "Defect reported",
+  announcement_published: "Broadcast published",
+  announcement_updated: "Broadcast updated",
+  announcement_deleted: "Broadcast deleted",
+  report_published: "Report published",
+  wiki_created: "Wiki page created",
+  wiki_updated: "Wiki page updated",
+  wiki_deleted: "Wiki page deleted",
+};
+
+const ENTITY_LABELS: Record<string, string> = {
+  defect: "Defect",
+  report: "Report",
+  announcement: "Broadcast",
+  wiki_page: "Wiki page",
+  application: "Application",
+  user: "Member",
+  campaign: "Campaign",
+};
+
+const STATUS_LABELS: Record<string, string> = {
+  reported: "Reported",
+  assessed: "Assessed",
+  escalated: "Escalated",
+  acknowledged_by_works: "Acknowledged by Works",
+  resolved: "Resolved",
+};
+
+// Stored titles and codes are raw database values ("acknowledged_by_works",
+// "defect_status_updated") — render them the way a person would say them.
+function humanise(value: string) {
+  return value.replace(/[a-z0-9]+(?:_[a-z0-9]+)+/gi, (word) => {
+    const lower = word.toLowerCase();
+    if (STATUS_LABELS[lower]) return STATUS_LABELS[lower];
+    return word
+      .split("_")
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(" ");
+  });
+}
+
+function eventLabel(eventType: string) {
+  return EVENT_LABELS[eventType] ?? humanise(eventType);
+}
+
+function entityLabel(entityType: string) {
+  return ENTITY_LABELS[entityType] ?? humanise(entityType);
+}
+
+export default function ActivityTimelineClient({ logs, defectTitles, canModerate, deleteActivityLog }: Props) {
   const [deletingLog, setDeletingLog] = useState<ActivityLog | null>(null);
 
   return (
     <>
       <div className="space-y-4">
-        {logs.map((log) => (
+        {logs.map((log) => {
+          const title = defectTitles[log.entity_id ?? ""];
+          const entityRef =
+            log.entity_type === "defect" && log.entity_id
+              ? title
+                ? `${log.entity_id} — ${title}`
+                : log.entity_id
+              : "";
+          const actor = log.actor?.full_name || log.actor?.email || "Unknown user";
+          return (
           <div key={log.id} className="rounded-xl border border-soft bg-bg2 p-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <h2 className="text-base font-semibold text-textDefault">{log.title}</h2>
+              <h2 className="text-base font-semibold text-textDefault">{humanise(log.title)}</h2>
               <span className="text-xs font-mono text-text3 inline-flex items-center gap-1">
                 <Clock3 size={12} /> {formatDistanceToNow(new Date(log.created_at), { addSuffix: true })}
               </span>
             </div>
 
-            <div className="mt-3 flex flex-wrap items-center gap-2 text-xs font-mono">
-              <span className="px-2 py-1 rounded bg-bg border border-soft text-text3 uppercase">{log.event_type}</span>
-              <span className="px-2 py-1 rounded bg-bg border border-soft text-text3 uppercase">{log.entity_type}</span>
-              {log.entity_id && (
-                <span className="px-2 py-1 rounded bg-bg border border-soft text-text3">{log.entity_id}</span>
-              )}
-            </div>
-
-            <div className="mt-3 text-sm text-text2">
-              By {log.actor?.full_name || log.actor?.email || "Unknown user"}
-            </div>
+            <p className="mt-2 text-xs text-text3">
+              {eventLabel(log.event_type)} · {entityLabel(log.entity_type)}
+              {entityRef ? ` · ${entityRef}` : ""} · by {actor}
+            </p>
 
             {canModerate ? (
               <div className="mt-4 flex flex-wrap gap-2">
@@ -60,7 +115,8 @@ export default function ActivityTimelineClient({ logs, canModerate, deleteActivi
               </div>
             ) : null}
           </div>
-        ))}
+          );
+        })}
       </div>
 
       {deletingLog ? (

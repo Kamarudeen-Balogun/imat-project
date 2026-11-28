@@ -66,10 +66,10 @@ export default function ContactMessagesList({
   return (
     <>
       <div className="mb-4 flex flex-wrap items-center gap-2">
-        <button type="button" onClick={expandAll} className="btn btn-ghost btn-sm">
+        <button type="button" onClick={expandAll} className="btn btn-outline btn-sm">
           Expand all
         </button>
-        <button type="button" onClick={collapseAll} className="btn btn-ghost btn-sm">
+        <button type="button" onClick={collapseAll} className="btn btn-outline btn-sm">
           Collapse all
         </button>
         <span className="ml-auto text-xs font-mono text-text3">

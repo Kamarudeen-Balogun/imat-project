@@ -286,15 +286,23 @@ export default function DashboardProfilePage() {
 
           <div className="text-center sm:text-left flex-1">
             {!editingName ? (
-              <div className="flex items-center gap-2">
+              <div
+                onClick={() => setEditingName(true)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    setEditingName(true);
+                  }
+                }}
+                className="flex cursor-pointer items-center gap-2 rounded-lg px-1 py-1 transition-colors hover:bg-bg3/60"
+                title="Tap to edit name"
+              >
                 <h2 className="text-xl font-bold text-textDefault truncate">{profile.full_name ?? "IMAT Member"}</h2>
-                <button
-                  onClick={() => setEditingName(true)}
-                  className="p-1.5 rounded-lg hover:bg-bg3 transition-colors text-text3 hover:text-primary"
-                  title="Edit name"
-                >
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-text3 hover:text-primary">
                   <Edit2 size={16} />
-                </button>
+                </span>
               </div>
             ) : (
               <div className="flex flex-col gap-2">
@@ -337,15 +345,23 @@ export default function DashboardProfilePage() {
           <div className="rounded-xl border border-soft bg-bg p-3">
             <p className="text-[10px] font-mono uppercase tracking-wider text-text3">Phone</p>
             {!editingPhone ? (
-              <div className="mt-2 flex items-center justify-between gap-2">
+              <div
+                onClick={() => setEditingPhone(true)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    setEditingPhone(true);
+                  }
+                }}
+                className="mt-2 flex cursor-pointer items-center justify-between gap-2 rounded-lg px-1 py-1 transition-colors hover:bg-bg3/60"
+                title="Tap to edit phone number"
+              >
                 <p className="text-sm font-semibold text-textDefault break-all">{profile.phone || "Not set"}</p>
-                <button
-                  onClick={() => setEditingPhone(true)}
-                  className="p-1.5 rounded-lg hover:bg-bg3 transition-colors text-text3 hover:text-primary"
-                  title="Edit phone number"
-                >
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-text3 hover:text-primary">
                   <Edit2 size={14} />
-                </button>
+                </span>
               </div>
             ) : (
               <div className="mt-2 space-y-2">
@@ -383,15 +399,23 @@ export default function DashboardProfilePage() {
           <div className="rounded-xl border border-soft bg-bg p-3">
             <p className="text-[10px] font-mono uppercase tracking-wider text-text3">Current Level</p>
             {!editingLevel ? (
-              <div className="mt-2 flex items-center justify-between gap-2">
+              <div
+                onClick={() => setEditingLevel(true)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    setEditingLevel(true);
+                  }
+                }}
+                className="mt-2 flex cursor-pointer items-center justify-between gap-2 rounded-lg px-1 py-1 transition-colors hover:bg-bg3/60"
+                title="Tap to edit level"
+              >
                 <p className="text-sm font-semibold text-textDefault">{profile.level ? `${profile.level}L` : "Not set"}</p>
-                <button
-                  onClick={() => setEditingLevel(true)}
-                  className="p-1.5 rounded-lg hover:bg-bg3 transition-colors text-text3 hover:text-primary"
-                  title="Edit level"
-                >
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-text3 hover:text-primary">
                   <Edit2 size={14} />
-                </button>
+                </span>
               </div>
             ) : (
               <div className="mt-2 space-y-2">

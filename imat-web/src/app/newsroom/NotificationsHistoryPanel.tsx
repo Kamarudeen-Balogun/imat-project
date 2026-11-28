@@ -158,7 +158,7 @@ export default function NotificationsHistoryPanel() {
           className="w-full flex items-center justify-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-6 py-3 text-sm font-semibold text-primary hover:bg-primary/20 transition-colors shadow-lg"
         >
           <History size={16} />
-          {panelTitle} ({notifications.length})
+          History ({notifications.length})
           {unreadCount > 0 && (
             <span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold text-white">
               {unreadCount} unread

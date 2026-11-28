@@ -53,6 +53,7 @@ export function Navbar() {
   }, []);
 
   return (
+    <>
     <nav className="sticky top-0 z-50 border-b border-borderDark bg-surfaceStrong/95 backdrop-blur-xl">
       <div className="mx-auto grid h-[4.5rem] max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-3 px-4 sm:px-6">
         <div className="flex min-w-0 items-center">
@@ -140,12 +141,18 @@ export function Navbar() {
           </button>
         </div>
       </div>
+    </nav>
 
+      {/* The mobile menu lives outside the sticky nav: the nav's
+          backdrop-blur creates a containing block, so a fixed overlay
+          rendered inside it would only cover the header strip instead
+          of the whole page. The panel is a solid background so page
+          text can never bleed through it. */}
       <AnimatePresence>
         {isOpen && (
           <>
              <motion.div
-              className="fixed inset-0 bg-black/70 backdrop-blur-sm lg:hidden"
+              className="fixed inset-0 z-40 bg-black/80 lg:hidden"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -153,13 +160,13 @@ export function Navbar() {
             />
 
             <motion.div
-              className="fixed inset-x-0 top-[4.5rem] px-3 md:hidden"
+              className="fixed inset-x-0 top-[4.5rem] z-50 px-3 md:hidden"
               initial={{ opacity: 0, y: -14 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -14 }}
               transition={{ duration: 0.2, ease: "easeOut" }}
             >
-              <div className="max-h-[calc(100vh-5.25rem)] overflow-y-auto rounded-lg border border-borderDark bg-surfaceStrong p-4 shadow-2xl">
+              <div className="max-h-[calc(100vh-5.25rem)] overflow-y-auto rounded-lg border border-borderDark bg-bg p-4 shadow-2xl">
 
                 <div className="grid grid-cols-1 gap-2 text-sm font-semibold">
                   <Link href="/" className={mobileNavLink("/")}>Home</Link>
@@ -194,6 +201,6 @@ export function Navbar() {
           </>
         )}
       </AnimatePresence>
-    </nav>
+    </>
   );
 }

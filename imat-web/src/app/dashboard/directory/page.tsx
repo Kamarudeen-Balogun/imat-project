@@ -208,7 +208,7 @@ export default function MemberDirectoryPage() {
                   </div>
                   <div className="flex items-center gap-3 text-sm text-text2">
                     <GraduationCap size={14} className="text-text3" />
-                    <span>Level {member.level || "N/A"}</span>
+                    <span>Level&nbsp;{member.level || "N/A"}</span>
                   </div>
                </div>
 
@@ -217,7 +217,7 @@ export default function MemberDirectoryPage() {
                    <label className="block text-xs font-bold uppercase tracking-wider text-text3 mb-2">
                      Change role
                    </label>
-                   <div className="flex gap-2">
+                   <div className="flex flex-col gap-2 sm:flex-row">
                      <select
                        value={draftRole}
                        disabled={isLastOwner || savingRoleId === member.id}
@@ -236,7 +236,7 @@ export default function MemberDirectoryPage() {
                        type="button"
                        disabled={!roleChanged || isLastOwner || savingRoleId === member.id}
                        onClick={() => handleRoleSave(member)}
-                       className="shrink-0 rounded-lg bg-primary px-3 py-2 text-sm font-bold text-white transition-colors hover:bg-blue-500 disabled:opacity-50"
+                       className="w-full rounded-lg bg-primary px-3 py-2 text-sm font-bold text-white transition-colors hover:bg-blue-500 disabled:opacity-50 sm:w-auto sm:shrink-0"
                      >
                        {savingRoleId === member.id ? "Saving..." : "Save"}
                      </button>

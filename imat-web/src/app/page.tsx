@@ -12,6 +12,7 @@ import {
   Clock,
   FileText,
   Gauge,
+  Megaphone,
   ShieldCheck,
   Users,
   type LucideIcon,
@@ -138,6 +139,14 @@ export default function Home() {
     void loadAnnouncements();
   }, []);
 
+  const filteredEvidence = useMemo(
+    () =>
+      evidenceItems
+        .filter((item) => filter === "All" || item.category === filter)
+        .slice(0, 3),
+    [evidenceItems, filter]
+  );
+
   const cards = useMemo(
     () => [
       { label: "Defects Reported", value: stats.reported, icon: AlertTriangle, tone: "orange" as const },
@@ -210,7 +219,7 @@ export default function Home() {
                     <stat.icon className="text-accent" size={18} />
                     <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-slate-500">KPI 0{i + 1}</span>
                   </div>
-                  <p className="font-mono text-3xl font-black tabular-nums text-white">{loading ? "--" : stat.value}</p>
+                  <p className="font-mono text-3xl font-black tabular-nums text-white">{loading ? <span className="skeleton-shimmer inline-block h-9 w-14 rounded" /> : stat.value}</p>
                   <p className="mt-2 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400">{stat.label}</p>
                 </div>
               ))}
@@ -275,11 +284,20 @@ export default function Home() {
             </div>
           ) : evidenceItems.length === 0 ? (
             <div className="empty-state">
-              No evidence items are published yet. Upload the first before-and-after record from the dashboard to populate this board.
+              <Camera size={28} className="mx-auto mb-3 text-text3" />
+              <p className="font-bold text-textDefault">No evidence items are published yet.</p>
+              <p className="mt-1">Be the first to report a defect — your report starts the board.</p>
+              <Link href="/report" className="btn btn-accent btn-sm mt-4">
+                Report a defect
+              </Link>
+            </div>
+          ) : filteredEvidence.length === 0 ? (
+            <div className="empty-state">
+              Nothing in this category yet — try another filter.
             </div>
           ) : (
             <EvidenceGalleryGrid
-              items={evidenceItems.filter((item) => filter === "All" || item.category === filter).slice(0, 3)}
+              items={filteredEvidence}
               mobileHorizontal
               compact
               className="md:overflow-visible"
@@ -314,7 +332,9 @@ export default function Home() {
             </div>
           ) : announcements.length === 0 ? (
             <div className="empty-state">
-              No public broadcasts are published yet.
+              <Megaphone size={28} className="mx-auto mb-3 text-text3" />
+              <p className="font-bold text-textDefault">No public broadcasts are published yet.</p>
+              <p className="mt-1">Check back soon — new broadcasts appear here first.</p>
             </div>
           ) : (
             <div className="grid gap-4 md:grid-cols-2">

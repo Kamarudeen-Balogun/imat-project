@@ -74,6 +74,26 @@ export default async function ActivityPage() {
 
   const logs = (data ?? []) as unknown as ActivityLog[];
 
+  // Resolve defect codes to titles so the timeline never shows a bare
+  // UUID for a defect event.
+  const defectIds = [
+    ...new Set(
+      logs
+        .filter((log) => log.entity_type === "defect" && log.entity_id?.startsWith("DEF-"))
+        .map((log) => log.entity_id as string)
+    ),
+  ];
+  let defectTitles: Record<string, string> = {};
+  if (defectIds.length > 0) {
+    const { data: defectRows } = await supabase
+      .from("defects")
+      .select("id, title")
+      .in("id", defectIds);
+    defectTitles = Object.fromEntries(
+      ((defectRows ?? []) as { id: string; title: string }[]).map((row) => [row.id, row.title])
+    );
+  }
+
    return (
      <div className="mx-auto max-w-5xl animate-in fade-in duration-500 px-4 pb-16 pt-6 sm:px-6">
        <Breadcrumbs className="mb-8" />
@@ -93,6 +113,7 @@ export default async function ActivityPage() {
       ) : (
         <ActivityTimelineClient
           logs={logs}
+          defectTitles={defectTitles}
           canModerate={canModerate}
           deleteActivityLog={deleteActivityLog}
         />

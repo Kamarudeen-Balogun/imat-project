@@ -308,26 +308,26 @@ export default function ApplicationsPage() {
         </div>
       ) : (
         <>
-          <div className="mb-4 flex flex-wrap items-center gap-2">
+          <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
             {canReview && (
               <>
-                <label className="flex items-center gap-2 text-xs font-bold text-text2">
+                <label className="flex w-full items-center gap-2 text-xs font-bold text-text2 sm:w-auto">
                   From
                   <input
                     type="date"
                     value={fromDate}
                     onChange={(e) => setFromDate(e.target.value)}
-                    className="rounded-lg border border-borderDark bg-surfaceStrong px-2 py-1.5 text-sm text-textDefault transition-colors focus:border-primary focus:outline-none"
+                    className="min-w-0 flex-1 rounded-lg border border-borderDark bg-surfaceStrong px-2 py-1.5 text-sm text-textDefault transition-colors focus:border-primary focus:outline-none sm:w-auto sm:flex-none"
                     aria-label="Export from date"
                   />
                 </label>
-                <label className="flex items-center gap-2 text-xs font-bold text-text2">
+                <label className="flex w-full items-center gap-2 text-xs font-bold text-text2 sm:w-auto">
                   To
                   <input
                     type="date"
                     value={toDate}
                     onChange={(e) => setToDate(e.target.value)}
-                    className="rounded-lg border border-borderDark bg-surfaceStrong px-2 py-1.5 text-sm text-textDefault transition-colors focus:border-primary focus:outline-none"
+                    className="min-w-0 flex-1 rounded-lg border border-borderDark bg-surfaceStrong px-2 py-1.5 text-sm text-textDefault transition-colors focus:border-primary focus:outline-none sm:w-auto sm:flex-none"
                     aria-label="Export to date"
                   />
                 </label>
@@ -335,7 +335,7 @@ export default function ApplicationsPage() {
                   type="button"
                   disabled={downloading}
                   onClick={handleDownloadCsv}
-                  className="btn btn-outline btn-sm disabled:opacity-50"
+                  className="btn btn-outline btn-sm w-full disabled:opacity-50 sm:w-auto"
                 >
                   <Download size={15} />
                   {downloading ? "Preparing CSV..." : "Download CSV"}
@@ -345,18 +345,18 @@ export default function ApplicationsPage() {
             <button
               type="button"
               onClick={expandAll}
-              className="btn btn-ghost btn-sm"
+              className="btn btn-outline btn-sm"
             >
               Expand all
             </button>
             <button
               type="button"
               onClick={collapseAll}
-              className="btn btn-ghost btn-sm"
+              className="btn btn-outline btn-sm"
             >
               Collapse all
             </button>
-            <span className="ml-auto text-xs font-mono text-text3">
+            <span className="text-xs font-mono text-text3 sm:ml-auto">
               {applications.length} application{applications.length === 1 ? "" : "s"}
             </span>
           </div>

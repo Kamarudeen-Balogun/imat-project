@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AlertCircle, Clock, CheckCircle } from "lucide-react";
+import { AlertCircle, Clock, CheckCircle, ImageOff } from "lucide-react";
+import Link from "next/link";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import { formatDistanceToNow } from "date-fns";
 import { ExpandableSearch } from "@/components/ExpandableSearch";
@@ -15,6 +16,7 @@ type Defect = {
   category: string;
   status: string;
   created_at: string;
+  photos: string[] | null;
   campus_zones: { name: string } | null;
 };
 
@@ -33,7 +35,8 @@ export default function IssuesTrackerPage() {
           title, 
           category, 
           status, 
-          created_at, 
+          created_at,
+          photos,
           campus_zones(name)
         `)
         .order("created_at", { ascending: false });
@@ -104,7 +107,9 @@ export default function IssuesTrackerPage() {
         whileInView="visible"
         viewport={{ once: true }}
       >
-        <div className="ticket-card overflow-x-auto rounded-lg">
+        {/* Desktop: table. Phones: stacked cards with a photo thumbnail —
+            tapping a card opens the public defect detail view. */}
+        <div className="ticket-card hidden overflow-x-auto rounded-lg md:block">
         <table className="w-full text-left border-collapse min-w-[700px]">
           <thead>
             <tr className="border-b border-borderDark bg-bg font-mono text-xs uppercase tracking-wider text-text3">
@@ -154,6 +159,49 @@ export default function IssuesTrackerPage() {
             )}
           </tbody>
         </table>
+      </div>
+
+      <div className="space-y-4 md:hidden">
+        {loading ? (
+          <div className="p-12 text-center text-text3 font-mono">Loading reports...</div>
+        ) : filteredDefects.length === 0 ? (
+          <div className="empty-state">No defects found.</div>
+        ) : (
+          filteredDefects.map((defect) => {
+            const firstPhoto = defect.photos?.[0];
+            return (
+              <Link
+                key={defect.id}
+                href={`/issues/${defect.id}`}
+                className="ticket-card block overflow-hidden rounded-lg transition-colors hover:border-primary/50"
+              >
+                {firstPhoto ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={firstPhoto} alt="" className="h-40 w-full object-cover" />
+                ) : (
+                  <div className="flex h-20 w-full items-center justify-center gap-2 bg-bg3 text-text3">
+                    <ImageOff size={18} />
+                    <span className="text-xs font-mono uppercase tracking-wider">No photo</span>
+                  </div>
+                )}
+                <div className="p-4">
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <h2 className="min-w-0 flex-1 text-base font-bold leading-snug text-textDefault">
+                      {defect.title}
+                    </h2>
+                    {getStatusBadge(defect.status)}
+                  </div>
+                  <div className="mt-2 flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-text2">
+                    <span className="font-mono">{defect.id}</span>
+                    <span>{defect.campus_zones?.name || "Unspecified zone"}</span>
+                    <span className="uppercase tracking-wider">{defect.category}</span>
+                    <span>{formatDistanceToNow(new Date(defect.created_at), { addSuffix: true })}</span>
+                  </div>
+                </div>
+              </Link>
+            );
+          })
+        )}
       </div>
       </motion.div>
     </div>

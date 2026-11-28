@@ -60,10 +60,10 @@ export default async function WikiIndexPage() {
       </div>
 
       {error || pages.length === 0 ? (
-        <div className="glass-panel rounded-2xl border border-soft border-dashed p-12 text-center">
+        <div className="glass-panel rounded-2xl border border-soft border-dashed p-8 text-center">
           <BookOpen size={40} className="mx-auto text-text3 mb-4" />
-          <h3 className="text-lg font-bold text-textDefault mb-2">No wiki pages yet</h3>
-          <p className="text-text3 text-sm">Add entries to the wiki_pages table to populate the knowledge base.</p>
+          <h3 className="text-lg font-bold text-textDefault mb-2">No articles yet</h3>
+          <p className="text-text3 text-sm">No articles yet. Ask a documentation officer or an admin to add the first guide.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
