@@ -217,10 +217,10 @@ export default function Home() {
 
   const cards = useMemo(
     () => [
-      { label: "Defects Reported", value: stats.reported, icon: AlertTriangle, tone: "orange" as const },
-      { label: "Under Assessment", value: stats.underAssessment, icon: Clock, tone: "amber" as const },
-      { label: "Issues Resolved", value: stats.resolved, icon: ShieldCheck, tone: "green" as const },
-      { label: "Active Members", value: stats.activeMembers, icon: Users, tone: "teal" as const },
+      { label: "Defects Reported", value: stats.reported, icon: AlertTriangle, tone: "var(--danger)" as const },
+      { label: "Under Assessment", value: stats.underAssessment, icon: Clock, tone: "var(--warning)" as const },
+      { label: "Issues Resolved", value: stats.resolved, icon: ShieldCheck, tone: "var(--success)" as const },
+      { label: "Active Members", value: stats.activeMembers, icon: Users, tone: "var(--primary)" as const },
     ],
     [stats]
   );
@@ -265,40 +265,54 @@ export default function Home() {
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.55, delay: 0.12 }}
-            className="rounded-lg border border-white/15 bg-white/[0.04] p-4shadow-lg shadow-black/20"
+            className="rounded-lg border border-white/15 bg-white/[0.04] p-4 shadow-lg shadow-black/20 sm:p-5"
           >
             <div className="mb-4 flex items-center justify-between border-b border-white/10 pb-4">
               <div>
                 <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">Operations Board</p>
-                <h2 className="mt-1 text-xl font-black text-white">Live Infrastructure Metrics</h2>
+                <h2 className="mt-1 text-2xl font-black tracking-tight text-white">Live Infrastructure Metrics</h2>
               </div>
-              <Activity className="text-accent" size={22} />
+              <span
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
+                style={{ color: "var(--accent)", background: "color-mix(in oklab, var(--accent) 12%, transparent)" }}
+              >
+                <Activity size={20} />
+              </span>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               {cards.map((stat, i) => (
-                <div key={stat.label} className="rounded-md border border-white/10 bg-black/20 p-4">
+                <div
+                  key={stat.label}
+                  className="rounded-md border border-white/10 bg-black/20 p-4"
+                  style={{ borderColor: `color-mix(in oklab, ${stat.tone} 28%, transparent)` }}
+                >
                   <div className="mb-4 flex items-center justify-between">
-                    <stat.icon className="text-accent" size={18} />
+                    <span
+                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
+                      style={{ color: stat.tone, background: `color-mix(in oklab, ${stat.tone} 12%, transparent)` }}
+                    >
+                      <stat.icon size={17} />
+                    </span>
                     <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-slate-500">KPI 0{i + 1}</span>
                   </div>
-                  <p className="font-mono text-3xl font-black tabular-nums text-white">{loading ? <span className="skeleton-shimmer inline-block h-9 w-14 rounded" /> : stat.value}</p>
+                  <p className="font-mono text-4xl font-black tabular-nums text-white">{loading ? <span className="skeleton-shimmer inline-block h-9 w-14 rounded" /> : stat.value}</p>
                   <p className="mt-2 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400">{stat.label}</p>
                 </div>
               ))}
             </div>
 
             <div className="mt-4 grid gap-2 text-xs text-slate-300 sm:grid-cols-3">
-              <div className="rounded border border-white/10 bg-white/[0.03] p-3">
-                <span className="block font-mono text-[9px] uppercase tracking-[0.16em] text-slate-500">Input</span>
+              <div className="rounded border border-white/10 bg-white/[0.06] p-3">
+                <span className="block font-mono text-[9px] uppercase tracking-[0.16em]" style={{ color: "var(--primary)" }}>Input</span>
                 Public reports
               </div>
-              <div className="rounded border border-white/10 bg-white/[0.03] p-3">
-                <span className="block font-mono text-[9px] uppercase tracking-[0.16em] text-slate-500">Review</span>
+              <div className="rounded border border-white/10 bg-white/[0.06] p-3">
+                <span className="block font-mono text-[9px] uppercase tracking-[0.16em]" style={{ color: "var(--warning)" }}>Review</span>
                 Technical assessment
               </div>
-              <div className="rounded border border-white/10 bg-white/[0.03] p-3">
-                <span className="block font-mono text-[9px] uppercase tracking-[0.16em] text-slate-500">Output</span>
+              <div className="rounded border border-white/10 bg-white/[0.06] p-3">
+                <span className="block font-mono text-[9px] uppercase tracking-[0.16em]" style={{ color: "var(--success)" }}>Output</span>
                 Verified closure
               </div>
             </div>
