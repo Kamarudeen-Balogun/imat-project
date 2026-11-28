@@ -52,7 +52,7 @@ export default async function WikiPageDetail({ params }: { params: Promise<{ slu
       .eq("id", user.id)
       .single();
 
-    canEdit = ["documentation_officer", "president", "admin"].includes(profile?.role ?? "");
+    canEdit = ["documentation_officer", "president", "admin", "owner"].includes(profile?.role ?? "");
   }
 
   const { data, error } = await supabase

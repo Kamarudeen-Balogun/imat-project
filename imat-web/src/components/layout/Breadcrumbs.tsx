@@ -38,6 +38,14 @@ export function Breadcrumbs({ items, className }: BreadcrumbsProps) {
       edit: "Edit",
     };
 
+    // Some intermediate path segments have no index page of their own:
+    // "Campaigns" is the news manager, which lives at /dashboard/news
+    // (only /dashboard/campaigns/new exists). Point those crumbs at the
+    // real list page instead of a 404.
+    const segmentHrefs: Record<string, string> = {
+      campaigns: "/dashboard/news",
+    };
+
     for (let i = 1; i < pathSegments.length; i++) {
       const segment = pathSegments[i];
       const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(segment);
@@ -46,7 +54,7 @@ export function Breadcrumbs({ items, className }: BreadcrumbsProps) {
       if (!label.startsWith("[")) {
         breadcrumbs.push({
           label: label.charAt(0).toUpperCase() + label.slice(1),
-          href: `/dashboard/${pathSegments.slice(1, i + 1).join("/")}`,
+          href: segmentHrefs[segment] ?? `/dashboard/${pathSegments.slice(1, i + 1).join("/")}`,
         });
       }
     }

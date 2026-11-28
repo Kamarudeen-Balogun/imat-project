@@ -30,7 +30,7 @@ export default async function WikiIndexPage() {
       .eq("id", user.id)
       .single();
 
-    canWrite = ["documentation_officer", "president", "admin"].includes(profile?.role ?? "");
+    canWrite = ["documentation_officer", "president", "admin", "owner"].includes(profile?.role ?? "");
   }
 
   const { data, error } = await supabase

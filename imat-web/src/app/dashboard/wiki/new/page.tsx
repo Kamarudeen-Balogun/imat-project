@@ -10,7 +10,7 @@ import { toast } from "react-hot-toast";
 import { sanitizePlainText } from "@/lib/inputSanitizer";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 
-const ALLOWED_ROLES = ["documentation_officer", "president", "admin"];
+const ALLOWED_ROLES = ["documentation_officer", "president", "admin", "owner"];
 const CATEGORIES = ["SOPs", "Assessment Guides", "Past Reports", "Decisions", "Operations"];
 
 function toSlug(value: string) {

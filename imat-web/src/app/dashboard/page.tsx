@@ -67,7 +67,7 @@ export default function DashboardPage() {
          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             
             {/* Action Cards that depend on role */}
-            {['field_officer', 'admin', 'technical_officer'].includes(role) && (
+            {['field_officer', 'admin', 'owner', 'technical_officer'].includes(role) && (
               <Link href="/dashboard/defects/new" className="group card card-hover block p-6 hover:border-accent">
                  <div className="flex items-center gap-3 mb-3 text-primary">
                     <MapPin size={20} />
@@ -79,7 +79,7 @@ export default function DashboardPage() {
               </Link>
             )}
 
-            {['documentation_officer', 'admin'].includes(role) && (
+            {['documentation_officer', 'admin', 'owner'].includes(role) && (
               <Link href="/dashboard/reports/new" className="group card card-hover block p-6 hover:border-primary">
                  <div className="flex items-center gap-3 mb-3 text-primary">
                     <FileText size={20} />
@@ -91,7 +91,7 @@ export default function DashboardPage() {
               </Link>
             )}
 
-            {['advocacy_officer', 'president', 'admin'].includes(role) && (
+            {['advocacy_officer', 'president', 'admin', 'owner'].includes(role) && (
               <Link href="/dashboard/campaigns/new" className="group card card-hover block p-6 hover:border-accent">
                  <div className="flex items-center gap-3 mb-3 text-accent">
                     <Megaphone size={20} />

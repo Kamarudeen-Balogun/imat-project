@@ -385,7 +385,7 @@ export default async function DashboardNewsPage() {
                         ? "border-primary bg-primary/10 text-primary"
                         : "border-soft text-text3 hover:border-primary/40 hover:text-primary"
                     }`}
-                    disabled={item.visibility === "public"}
+                    disabled={item.visibility === "public" && item.status !== "draft"}
                   >
                     Set Public
                   </button>

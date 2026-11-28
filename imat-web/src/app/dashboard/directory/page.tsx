@@ -130,7 +130,7 @@ export default function MemberDirectoryPage() {
   };
 
   const getRoleBadge = (role: string) => {
-    if (role === 'admin' || role === 'president' || role === 'vice_president') {
+    if (role === 'owner' || role === 'admin' || role === 'president' || role === 'vice_president') {
       return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-danger/10 text-danger text-[10px] font-bold uppercase tracking-wider border border-danger/20"><Shield size={10}/> {ROLE_LABELS[role] ?? role.replace('_', ' ')}</span>;
     }
     if (role === 'technical_officer' || role === 'documentation_officer') {

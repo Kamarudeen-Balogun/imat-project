@@ -62,66 +62,67 @@ export default function NewsroomNotificationSettings() {
       return;
     }
 
+    // Ask for the browser permission BEFORE touching the saved
+    // preference, so a refusal leaves everything unchanged.
+    if (willEnable && typeof window !== "undefined" && "Notification" in window && Notification.permission === "default") {
+      const permission = await Notification.requestPermission();
+      if (permission !== "granted") {
+        toast.error("Browser notification permission was not granted.");
+        return;
+      }
+    }
+
+    if (willEnable && typeof window !== "undefined" && "Notification" in window && Notification.permission === "denied") {
+      toast.error("Browser notifications are blocked. Please allow them in browser settings.");
+      return;
+    }
+
     setEnabled(willEnable);
     if (typeof window !== "undefined") {
       window.localStorage.setItem(ALERTS_STORAGE_KEY, String(willEnable));
     }
 
-    let profileUpdated = false;
+    // The saved preference (email + in-app alerts) is independent of
+    // browser push enrolment: a push failure must NOT roll it back,
+    // or nobody could ever enable alerts on a browser where push
+    // is unconfigured.
+    if (data.session) {
+      const { error } = await supabase
+        .from("users")
+        .update({ notifications_enabled: willEnable })
+        .eq("id", data.session.user.id);
+
+      if (error) {
+        setEnabled(previousEnabled);
+        if (typeof window !== "undefined") {
+          window.localStorage.setItem(ALERTS_STORAGE_KEY, String(previousEnabled));
+        }
+        toast.error("Could not save your notification preference.");
+        return;
+      }
+    }
+
+    if (willEnable) {
+      try {
+        await enableBrowserPushNotifications();
+        toast.success("News alerts enabled on this browser.");
+      } catch (error) {
+        // Alerts stay ON: email + in-app notifications still work.
+        // Only the browser pop-up enrolment failed (e.g. push is not
+        // configured on the server). Say so plainly instead of
+        // silently switching the preference back off.
+        const message = error instanceof Error ? error.message : "Browser push could not be enabled.";
+        toast.error(`News alerts are on, but browser push failed: ${message} You will still get email and in-app alerts.`);
+      }
+      return;
+    }
 
     try {
-      if (willEnable && typeof window !== "undefined" && "Notification" in window && Notification.permission === "default") {
-        const permission = await Notification.requestPermission();
-        if (permission !== "granted") {
-          throw new Error("Browser notification permission was not granted.");
-        }
-      }
-
-      if (willEnable && typeof window !== "undefined" && "Notification" in window && Notification.permission === "denied") {
-        throw new Error("Browser notifications are blocked. Please allow them in browser settings.");
-      }
-
-      if (data.session) {
-        const { error } = await supabase
-          .from("users")
-          .update({ notifications_enabled: willEnable })
-          .eq("id", data.session.user.id);
-
-        if (error) {
-          throw new Error("Could not save your notification preference.");
-        }
-
-        profileUpdated = true;
-      }
-
-      if (willEnable) {
-        await enableBrowserPushNotifications();
-      } else {
-        await disableBrowserPushNotifications();
-      }
-
-      toast.success(willEnable ? "News alerts enabled on this browser." : "News alerts turned off.");
-      return;
-    } catch (error) {
-      if (willEnable) {
-        await disableBrowserPushNotifications().catch(() => undefined);
-      }
-
-      if (data.session && profileUpdated) {
-        await supabase
-          .from("users")
-          .update({ notifications_enabled: previousEnabled })
-          .eq("id", data.session.user.id);
-      }
-
-      setEnabled(previousEnabled);
-      if (typeof window !== "undefined") {
-        window.localStorage.setItem(ALERTS_STORAGE_KEY, String(previousEnabled));
-      }
-
-      const message = error instanceof Error ? error.message : "Could not update your notification preference.";
-      toast.error(message);
+      await disableBrowserPushNotifications();
+    } catch {
+      // Best effort only — the preference is already off.
     }
+    toast.success("News alerts turned off.");
   };
 
   if (loading) return null;

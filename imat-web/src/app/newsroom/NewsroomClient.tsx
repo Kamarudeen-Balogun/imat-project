@@ -155,8 +155,8 @@ export default function NewsroomClient() {
             ))}
           </div>
         ) : loadError ? (
-          <div className="glass-panel rounded-2xl border border-borderDark border-dashed py-20 text-center">
-            <Megaphone size={48} className="mx-auto mb-4 text-borderLit" />
+          <div className="glass-panel rounded-2xl border border-borderDark border-dashed py-12 text-center">
+            <Megaphone size={40} className="mx-auto mb-4 text-borderLit" />
             <h3 className="mb-2 text-xl font-bold text-textDefault">Unable to load broadcasts</h3>
             <p className="mx-auto max-w-sm text-sm text-text3">{loadError}</p>
           </div>

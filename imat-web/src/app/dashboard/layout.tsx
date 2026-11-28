@@ -181,13 +181,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             
             <div className="px-4 pb-1 pt-2 font-mono text-[10px] uppercase tracking-wider text-slate-500">Field Operations</div>
             
-            {['admin', 'field_officer', 'technical_officer'].includes(profile?.role || '') && (
+            {['admin', 'owner', 'field_officer', 'technical_officer'].includes(profile?.role || '') && (
               <Link href="/dashboard/defects/new" className="flex items-center gap-3 rounded-md px-4 py-3 text-sm font-bold text-warning transition-colors hover:bg-warning/10 hover:text-warning">
                  + New Assessment
                </Link>
             )}
 
-            {['admin', 'advocacy_officer', 'president', 'vice_president'].includes(profile?.role || '') && (
+            {['admin', 'owner', 'advocacy_officer', 'president', 'vice_president'].includes(profile?.role || '') && (
                <Link href="/dashboard/campaigns/new" className="flex items-center gap-3 rounded-md px-4 py-3 text-sm font-medium text-slate-300 transition-colors hover:bg-white/5 hover:text-white">
                  <Megaphone size={18} /> Broadcast & Campaigns
                </Link>
@@ -281,12 +281,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       <item.icon size={18} /> {item.label}
                     </Link>
                   ))}
-                  {['admin', 'field_officer', 'technical_officer'].includes(profile?.role || '') && (
+                  {['admin', 'owner', 'field_officer', 'technical_officer'].includes(profile?.role || '') && (
                     <Link href="/dashboard/defects/new" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 rounded-md px-4 py-3 text-sm font-bold text-warning transition-colors hover:bg-warning/10 hover:text-warning">
                       + New Assessment
                     </Link>
                   )}
-                  {['admin', 'advocacy_officer', 'president', 'vice_president'].includes(profile?.role || '') && (
+                  {['admin', 'owner', 'advocacy_officer', 'president', 'vice_president'].includes(profile?.role || '') && (
                     <Link href="/dashboard/campaigns/new" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 rounded-md px-4 py-3 text-sm font-medium text-slate-300 transition-colors hover:bg-white/5 hover:text-white">
                       <Megaphone size={18} /> Broadcast & Campaigns
                     </Link>

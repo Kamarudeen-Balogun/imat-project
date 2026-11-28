@@ -1,10 +1,10 @@
-export const contentEditorRoles = ["advocacy_officer", "president", "admin"] as const;
-export const contentDeleterRoles = ["president", "admin"] as const;
-export const wikiEditorRoles = ["documentation_officer", "president", "admin"] as const;
-export const wikiDeleterRoles = ["president", "admin"] as const;
-export const evidenceGalleryEditorRoles = ["documentation_officer", "admin"] as const;
-export const activityModeratorRoles = ["admin"] as const;
-export const socialLinksManagerRoles = ["admin"] as const;
+export const contentEditorRoles = ["advocacy_officer", "president", "admin", "owner"] as const;
+export const contentDeleterRoles = ["president", "admin", "owner"] as const;
+export const wikiEditorRoles = ["documentation_officer", "president", "admin", "owner"] as const;
+export const wikiDeleterRoles = ["president", "admin", "owner"] as const;
+export const evidenceGalleryEditorRoles = ["documentation_officer", "admin", "owner"] as const;
+export const activityModeratorRoles = ["admin", "owner"] as const;
+export const socialLinksManagerRoles = ["admin", "owner"] as const;
 
 function hasRole(role: string | null | undefined, allowedRoles: readonly string[]) {
   return Boolean(role && allowedRoles.includes(role));
