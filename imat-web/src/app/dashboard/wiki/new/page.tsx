@@ -169,7 +169,7 @@ export default function NewWikiPage() {
         <p className="text-text2">Document decisions, procedures, and implementation notes for team continuity.</p>
       </div>
 
-      <form onSubmit={handleSave} className="space-y-6 rounded-2xl border border-soft bg-bg2 p-6 md:p-8">
+      <form onSubmit={handleSave} className="space-y-6 rounded-xl border border-soft bg-bg2 p-6 md:p-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-xs font-mono uppercase tracking-wider text-text3 mb-2">Title</label>
@@ -217,7 +217,7 @@ export default function NewWikiPage() {
           <button type="button" onClick={(e) => void handleSave(e, "draft")} disabled={saving} className="px-5 py-3 rounded-lg border border-soft text-textDefault font-semibold hover:border-text3 transition-colors disabled:opacity-70">
             Save as draft
           </button>
-          <button type="submit" disabled={saving} className="px-5 py-3 rounded-lg bg-primary hover:bg-blue-500 text-white font-semibold inline-flex items-center justify-center gap-2 disabled:opacity-70">
+          <button type="submit" disabled={saving} className="px-5 py-3 rounded-lg bg-primary hover:brightness-110 text-white font-semibold inline-flex items-center justify-center gap-2 disabled:opacity-70">
             {saving ? <Loader2 size={16} className="animate-spin" /> : <PlusCircle size={16} />} {canPublish ? "Save Page" : "Submit for approval"}
           </button>
         </div>

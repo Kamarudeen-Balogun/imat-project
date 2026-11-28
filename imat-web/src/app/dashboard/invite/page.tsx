@@ -121,7 +121,7 @@ export default function InviteMemberPage() {
     return (
       <div className="mx-auto max-w-2xl animate-in fade-in duration-500 pb-20">
         <Breadcrumbs className="mb-8" />
-        <div className="glass-panel rounded-2xl p-8 text-center text-text3">
+        <div className="glass-panel rounded-xl p-8 text-center text-text3">
           <Loader2 size={20} className="mx-auto mb-3 animate-spin" />
           Loading...
         </div>
@@ -133,7 +133,7 @@ export default function InviteMemberPage() {
     return (
       <div className="mx-auto max-w-2xl animate-in fade-in duration-500 pb-20">
         <Breadcrumbs className="mb-8" />
-        <div className="glass-panel rounded-2xl p-8 text-center">
+        <div className="glass-panel rounded-xl p-8 text-center">
           <h1 className="text-xl font-bold text-textDefault">Access denied</h1>
           <p className="mt-2 text-sm text-text2">
             Only the owner and admins can invite members directly.
@@ -159,7 +159,7 @@ export default function InviteMemberPage() {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6 bg-bg2 border border-soft rounded-xl p-6 md:p-10 shadow-xl">
+      <form onSubmit={handleSubmit} className="space-y-6 bg-bg2 border border-soft rounded-xl p-6 md:p-10">
         <div>
           <label className="block font-bold text-textDefault mb-2 uppercase tracking-wide font-mono text-xs">Full name</label>
           <input
@@ -205,7 +205,7 @@ export default function InviteMemberPage() {
         <button
           type="submit"
           disabled={saving}
-          className="w-full py-4 bg-primary hover:bg-blue-500 text-white font-bold rounded-lg transition-all flex items-center justify-center gap-2 transform active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed shadow-lg shadow-primary/20"
+          className="w-full py-4 bg-primary hover:brightness-110 text-white font-bold rounded-lg transition-all flex items-center justify-center gap-2 transform active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed"
         >
           {saving ? <span className="animate-pulse">Sending invite...</span> : "Send Invite"}
         </button>
@@ -220,7 +220,7 @@ export default function InviteMemberPage() {
           <button
             type="button"
             onClick={() => void copyLink()}
-            className="mt-3 rounded-lg bg-primary px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-blue-500"
+            className="mt-3 rounded-lg bg-primary px-4 py-2 text-sm font-bold text-white transition-colors hover:brightness-110"
           >
             {linkCopied ? "Copied" : "Copy invite link"}
           </button>

@@ -91,7 +91,7 @@ export default function LoginPage() {
   };
 
    return (
-     <div className="relative flex min-h-screen items-center justify-center px-4 py-20 sm:px-6">
+     <div className="relative flex min-h-screen items-center justify-center px-4 py-12 sm:px-6">
        <div className="pointer-events-none absolute left-[12%] top-[10%] h-40 w-40 rounded-full bg-primary/20 blur-3xl" />
        <div className="pointer-events-none absolute right-[10%] bottom-[12%] h-40 w-40 rounded-full bg-success/20 blur-3xl" />
 
@@ -108,7 +108,7 @@ export default function LoginPage() {
           <p className="text-text2">Sign in to access your administrative dashboard.</p>
         </div>
 
-        <form onSubmit={handleLogin} className="glass-panel rounded-xl p-8 space-y-6 shadow-2xl">
+        <form onSubmit={handleLogin} className="glass-panel rounded-xl p-8 space-y-6">
           <div>
             <label className="block text-sm font-bold text-textDefault mb-2">School Email Address</label>
             <input 
@@ -138,7 +138,7 @@ export default function LoginPage() {
           <button 
             type="submit" 
             disabled={isLoading} 
-            className="w-full py-4 bg-primary hover:bg-blue-500 text-white font-bold rounded-lg transition-colors flex items-center justify-center gap-2"
+            className="w-full py-4 bg-primary hover:brightness-110 text-white font-bold rounded-lg transition-colors flex items-center justify-center gap-2"
           >
             {isLoading ? <span className="animate-pulse">Authenticating...</span> : "Member Login"}
           </button>

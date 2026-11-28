@@ -160,7 +160,7 @@ export default function AnalyticsCharts() {
 
       {/* Summary Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={Activity} label="Total Logged" value={total} color="bg-blue-500/10 text-blue-600 dark:text-blue-400" />
+        <StatCard icon={Activity} label="Total Logged" value={total} color="bg-primary/10 text-primary" />
         <StatCard icon={AlertTriangle} label="Critical / Emergency" value={critical} color="bg-danger/10 text-danger" />
         <StatCard icon={TrendingUp} label="Under Assessment" value={assessed} color="bg-warning/10 text-warning" />
         <StatCard icon={CheckCircle} label="Resolved" value={resolved} color="bg-success/10 text-success" />

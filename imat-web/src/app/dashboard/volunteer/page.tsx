@@ -139,7 +139,7 @@ export default function VolunteerHoursPage() {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6 bg-bg2 border border-soft rounded-xl p-6 md:p-10 shadow-xl">
+      <form onSubmit={handleSubmit} className="space-y-6 bg-bg2 border border-soft rounded-xl p-6 md:p-10">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
             <label className="block font-bold text-textDefault mb-2 uppercase tracking-wide font-mono text-xs">Date</label>
@@ -197,7 +197,7 @@ export default function VolunteerHoursPage() {
         <button
           type="submit"
           disabled={saving}
-          className="w-full py-4 bg-primary hover:bg-blue-500 text-white font-bold rounded-lg transition-all flex items-center justify-center gap-2 transform active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed shadow-lg shadow-primary/20"
+          className="w-full py-4 bg-primary hover:brightness-110 text-white font-bold rounded-lg transition-all flex items-center justify-center gap-2 transform active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed"
         >
           {saving ? <span className="animate-pulse">Saving hours...</span> : "Log Volunteer Hours"}
         </button>
@@ -213,7 +213,7 @@ export default function VolunteerHoursPage() {
         </div>
 
         {loadingLogs ? (
-          <div className="glass-panel rounded-2xl p-8 text-center text-text3">
+          <div className="glass-panel rounded-xl p-8 text-center text-text3">
             <Loader2 size={20} className="mx-auto mb-3 animate-spin" />
             Loading your hours...
           </div>

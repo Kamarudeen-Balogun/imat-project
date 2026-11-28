@@ -312,7 +312,7 @@ export default function DashboardEvidencePage() {
 
   if (loading) {
     return (
-      <div className="glass-panel rounded-2xl p-8 text-center text-text3">
+      <div className="glass-panel rounded-xl p-8 text-center text-text3">
         <Loader2 size={20} className="mx-auto mb-3 animate-spin" />
         Loading evidence gallery...
       </div>
@@ -334,7 +334,7 @@ export default function DashboardEvidencePage() {
         </Link>
       </div>
 
-      <div className="glass-panel space-y-3 rounded-2xl p-6 md:p-8">
+      <div className="glass-panel space-y-3 rounded-xl p-6 md:p-8">
         <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-mono uppercase tracking-wider text-primary">
           <Edit3 size={14} /> Evidence Gallery Manager
         </div>
@@ -351,7 +351,7 @@ export default function DashboardEvidencePage() {
         )}
       </div>
 
-      <div className="glass-panel space-y-4 rounded-2xl p-6 shadow-lg shadow-black/5">
+      <div className="glass-panel space-y-4 rounded-xl p-6 shadow-lg shadow-black/5">
         <h2 className="text-lg font-bold text-textDefault">Add new evidence item</h2>
         <div className="grid gap-4 md:grid-cols-2">
           <label className="space-y-2">
@@ -472,7 +472,7 @@ export default function DashboardEvidencePage() {
 
           <div className="grid gap-6">
             {items.map((item) => (
-              <div key={item.id} className="rounded-2xl border border-soft bg-bg2 p-5 space-y-4 shadow-lg shadow-black/5">
+              <div key={item.id} className="rounded-xl border border-soft bg-bg2 p-5 space-y-4 shadow-lg shadow-black/5">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-xs font-mono uppercase tracking-wider text-text3">{item.category}</span>
                   {item.status === "pending_approval" && (
@@ -496,7 +496,7 @@ export default function DashboardEvidencePage() {
                     <p className="text-sm font-semibold text-textDefault">Waiting for your approval — publishing shows this on the public board.</p>
                     <form action={approveEvidence}>
                       <input type="hidden" name="evidence_id" value={item.id} />
-                      <button type="submit" className="w-full rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500 transition-colors">
+                      <button type="submit" className="w-full rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:brightness-110 transition-colors">
                         Approve & publish
                       </button>
                     </form>

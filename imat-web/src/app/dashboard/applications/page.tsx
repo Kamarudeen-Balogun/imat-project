@@ -32,7 +32,7 @@ const ROLE_LABELS_WITH_OWNER: Record<string, string> = {
 
 const STATUS_STYLES: Record<string, string> = {
   submitted: "bg-warning/10 text-warning border-warning/20",
-  under_review: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
+  under_review: "bg-primary/10 text-primary border-primary/20",
   accepted: "bg-success/10 text-success border-success/20",
   waitlisted: "bg-accent/10 text-accent border-accent/20",
   rejected: "bg-danger/10 text-danger border-danger/20",
@@ -588,7 +588,7 @@ export default function ApplicationsPage() {
                           <button
                             type="button"
                             onClick={() => openReview(app)}
-                            className="rounded-lg bg-primary px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-blue-500"
+                            className="rounded-lg bg-primary px-4 py-2 text-sm font-bold text-white transition-colors hover:brightness-110"
                           >
                             Review application
                           </button>
@@ -638,7 +638,7 @@ export default function ApplicationsPage() {
                                 type="button"
                                 disabled={submitting}
                                 onClick={() => handleUnderReview(app)}
-                                className="flex items-center gap-2 rounded-lg bg-blue-500 px-4 py-2 text-sm font-bold text-white transition-colors hover:opacity-90 disabled:opacity-50"
+                                className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-bold text-white transition-colors hover:opacity-90 disabled:opacity-50"
                               >
                                 <Eye size={16} /> Mark Under Review
                               </button>

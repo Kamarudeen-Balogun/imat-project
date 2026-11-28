@@ -59,7 +59,7 @@ export default function AboutContactForm() {
   };
 
   return (
-    <section className="mt-16 rounded-2xl border border-primary/20 bg-gradient-to-br from-bg2 via-bg to-bg p-6 shadow-sm ring-1 ring-white/10 dark:from-[#070d18] dark:via-[#030712] dark:to-[#02040a] dark:ring-primary/15 sm:p-8">
+    <section className="mt-16 rounded-xl border border-primary/20 bg-bg2 p-6 shadow-sm ring-1 ring-borderDark sm:p-8">
       <div className="mb-6">
         <p className="mb-2 inline-flex rounded-full border border-success/35 bg-success/10 px-3 py-1 text-[11px] font-mono uppercase tracking-[0.16em] text-success">
           Contact IMAT
@@ -181,7 +181,7 @@ export default function AboutContactForm() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="inline-flex items-center justify-center rounded-xl border border-primary bg-primary px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-70"
+            className="inline-flex items-center justify-center rounded-xl border border-primary bg-primary px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70"
           >
             {isSubmitting ? "Sending..." : "Send Message"}
           </button>

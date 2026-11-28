@@ -70,11 +70,11 @@ export default function MembersPage() {
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {Array.from({ length: 6 }).map((_, index) => (
-            <div key={index} className="h-44 rounded-2xl border border-borderDark bg-surface animate-pulse" />
+            <div key={index} className="h-44 rounded-xl border border-borderDark bg-surface animate-pulse" />
           ))}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="rounded-2xl border border-borderDark border-dashed bg-surface p-8 text-center text-text3">
+        <div className="rounded-xl border border-borderDark border-dashed bg-surface p-8 text-center text-text3">
           No members matched your search.
         </div>
       ) : (
@@ -82,9 +82,9 @@ export default function MembersPage() {
           {filtered.map((member) => {
             const initials = (member.full_name || "M").slice(0, 1).toUpperCase();
             return (
-              <article key={member.id} className="glass-panel rounded-2xl p-5 transition-all hover:-translate-y-0.5 hover:border-primary/40">
+              <article key={member.id} className="glass-panel rounded-xl p-5 transition-all hover:-translate-y-0.5 hover:border-primary/40">
                 <div className="flex items-center gap-4">
-                  <div className="h-16 w-16 rounded-2xl border border-borderDark overflow-hidden bg-gradient-to-br from-primary/30 to-accent/20 flex items-center justify-center text-xl font-bold text-textDefault">
+                  <div className="h-16 w-16 rounded-xl border border-borderDark overflow-hidden bg-primary/10 flex items-center justify-center text-xl font-bold text-textDefault">
                     {member.avatar_url ? (
                       <Image
                         src={member.avatar_url && member.avatar_url.includes('res.cloudinary.com') ? optimizeCloudinaryUrl(member.avatar_url) : member.avatar_url}

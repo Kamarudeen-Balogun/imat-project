@@ -135,13 +135,13 @@ export default function ExistingReportViewer({ reportId }: { reportId: string })
              defects={defects} 
           />}
           fileName={`IMAT_Report_${reportConfig.period_end}.pdf`}
-          className="px-6 py-3 bg-primary hover:bg-blue-500 text-white font-bold text-sm rounded-lg transition-colors flex justify-center items-center gap-2 shadow-lg shadow-primary/20"
+          className="px-6 py-3 bg-primary hover:brightness-110 text-white font-bold text-sm rounded-lg transition-colors flex justify-center items-center gap-2"
         >
           {({ loading }) => (loading ? <span>Rendering...</span> : <><Download size={16}/> Download PDF</>)}
         </PDFDownloadLink>
       </div>
 
-      <div className="bg-bg2 border border-soft rounded-xl overflow-hidden shadow-2xl min-h-[420px] md:h-[800px] flex flex-col">
+      <div className="bg-bg2 border border-soft rounded-xl overflow-hidden min-h-[420px] md:h-[800px] flex flex-col">
          <div className="p-3 bg-bg border-b border-soft flex items-center justify-between">
            <div className="text-xs font-mono text-text3">Read-only Archive Viewer</div>
          </div>
@@ -160,7 +160,7 @@ export default function ExistingReportViewer({ reportId }: { reportId: string })
                     defects={defects} 
                  />}
                  fileName={`IMAT_Report_${reportConfig.period_end}.pdf`}
-                 className="inline-flex w-full justify-center px-4 py-3 bg-primary hover:bg-blue-500 text-white font-bold text-sm rounded-lg transition-colors"
+                 className="inline-flex w-full justify-center px-4 py-3 bg-primary hover:brightness-110 text-white font-bold text-sm rounded-lg transition-colors"
                >
                  {({ loading }) => (loading ? <span>Preparing PDF...</span> : <span>Download PDF</span>)}
                </PDFDownloadLink>

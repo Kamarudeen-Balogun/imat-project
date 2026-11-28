@@ -69,7 +69,7 @@ export function EvidenceImageSlot({
             );
           })()
         ) : (
-          <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-gradient-to-br from-bg2 to-bg3 px-4 text-center text-text3">
+          <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-bg3 px-4 text-center text-text3">
             <ImageOff size={18} />
             <span className="text-[11px] font-mono uppercase tracking-wider">{placeholder ?? "Image pending"}</span>
           </div>

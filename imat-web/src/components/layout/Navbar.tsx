@@ -1,19 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { AlertTriangle, ArrowUpRight, Gauge, Menu, Moon, Sun, X } from "lucide-react";
+import { AlertTriangle, ArrowUpRight, Gauge, Menu, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { usePathname } from "next/navigation";
 
 import Image from "next/image";
-import { useTheme } from "@/components/ThemeProvider";
+import ThemeToggle from "@/components/ThemeToggle";
 import { createSupabaseClient } from "@/lib/supabase/client";
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
-  const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const pathname = usePathname();
 
@@ -42,8 +40,6 @@ export function Navbar() {
   }, [isOpen]);
 
   useEffect(() => {
-    setMounted(true);
-
     const checkAuth = async () => {
       const supabase = createSupabaseClient();
       const { data } = await supabase.auth.getSession();
@@ -58,7 +54,7 @@ export function Navbar() {
       <div className="mx-auto grid h-[4.5rem] max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-3 px-4 sm:px-6">
         <div className="flex min-w-0 items-center">
           <Link href="/" className="group flex min-w-0 items-center gap-3 font-mono text-xl font-bold tracking-tight text-textDefault">
-              <span className="relative inline-flex h-11 w-11 items-center justify-center rounded-lg border border-borderLit/40 bg-asphalt shadow-[0_10px_24px_rgba(0,0,0,0.28)]">
+              <span className="relative inline-flex h-11 w-11 items-center justify-center rounded-lg border border-borderLit/40 bg-asphalt">
                 <Image
                   src="/images/logo.png"
                   alt="IMAT Logo"
@@ -87,16 +83,7 @@ export function Navbar() {
         </div>
 
         <div className="hidden items-center justify-end gap-2 lg:flex">
-
-          {mounted && (
-            <button
-              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="rounded-md border border-borderDark bg-bg p-2.5 text-text2 transition-all hover:border-accent hover:text-accent"
-              aria-label="Toggle theme"
-            >
-              {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
-            </button>
-          )}
+          <ThemeToggle />
 
           {isLoggedIn ? (
             <Link href="/dashboard" className="btn-primary btn-sm">
@@ -121,15 +108,7 @@ export function Navbar() {
         </div>
 
         <div className="flex items-center justify-end gap-2 lg:hidden">
-          {mounted && (
-            <button
-              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="rounded-md border border-borderDark bg-surface px-2.5 py-2 text-text3 transition-colors hover:text-textDefault"
-              aria-label="Toggle theme"
-            >
-              {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
-            </button>
-          )}
+          <ThemeToggle compact />
 
           <button
             onClick={() => setIsOpen(!isOpen)}
@@ -166,7 +145,7 @@ export function Navbar() {
               exit={{ opacity: 0, y: -14 }}
               transition={{ duration: 0.2, ease: "easeOut" }}
             >
-              <div className="max-h-[calc(100vh-5.25rem)] overflow-y-auto rounded-lg border border-borderDark bg-bg p-4 shadow-2xl">
+              <div className="max-h-[calc(100vh-5.25rem)] overflow-y-auto rounded-lg border border-borderDark bg-bg p-4 shadow-lg">
 
                 <div className="grid grid-cols-1 gap-2 text-sm font-semibold">
                   <Link href="/" className={mobileNavLink("/")}>Home</Link>

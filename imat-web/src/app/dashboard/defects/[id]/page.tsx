@@ -130,7 +130,7 @@ export default function DefectDetailsPage() {
     <div className="max-w-4xl mx-auto animate-in fade-in duration-500 pb-20">
       <Breadcrumbs className="mb-8" />
       
-      <div className="bg-bg2 border border-soft rounded-xl overflow-hidden shadow-2xl">
+      <div className="bg-bg2 border border-soft rounded-xl overflow-hidden">
          
          {/* HEADER */}
          <div className="p-4 sm:p-8 border-b border-soft">
@@ -140,7 +140,7 @@ export default function DefectDetailsPage() {
                    <span className="px-2 py-1 uppercase tracking-wider text-[10px] font-bold bg-bg3 text-text2 rounded border border-soft">
                       {defect.id}
                    </span>
-                   <span className="px-2 py-1 uppercase tracking-wider text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded border border-blue-500/20">
+                   <span className="px-2 py-1 uppercase tracking-wider text-[10px] font-bold bg-primary/10 text-primary rounded border border-primary/20">
                       {defect.status.replace(/_/g, ' ')}
                    </span>
                 </div>
@@ -195,7 +195,7 @@ export default function DefectDetailsPage() {
                      <div>
                        <div className="text-[10px] text-text3 uppercase tracking-wider mb-1">Assigned Supervising Officer</div>
                        <div className="flex items-center gap-2">
-                         <div className="w-6 h-6 rounded-full bg-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xs font-bold border border-blue-500/30">
+                         <div className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold border border-primary/30">
                            {defect.assignee?.full_name ? defect.assignee.full_name.charAt(0) : "?"}
                          </div>
                          <div className="text-sm font-semibold text-textDefault">
@@ -306,7 +306,7 @@ export default function DefectDetailsPage() {
              <button 
                onClick={() => handleUpdateStatus('assessed')}
                disabled={updating || defect.status === 'assessed'}
-               className="px-4 py-2 bg-blue-500/10 border border-blue-500/20 hover:border-blue-400 hover:text-blue-400 text-blue-500 text-sm font-bold rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+               className="px-4 py-2 bg-primary/10 border border-primary/20 hover:border-primary hover:text-primary text-primary text-sm font-bold rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
              >
                <Activity size={16}/> Under Assessment
              </button>

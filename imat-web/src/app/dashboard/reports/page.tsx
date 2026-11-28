@@ -61,25 +61,25 @@ export default function ReportsMasterlist() {
           </p>
         </div>
         
-        <Link href="/dashboard/reports/new" className="bg-primary hover:bg-blue-500 text-white font-bold px-4 py-2 rounded-lg transition-colors flex items-center gap-2 text-sm shadow-lg shadow-primary/20">
+        <Link href="/dashboard/reports/new" className="bg-primary hover:brightness-110 text-white font-bold px-4 py-2 rounded-lg transition-colors flex items-center gap-2 text-sm">
           <Plus size={16} /> Generate New Report
         </Link>
       </div>
 
       {loading ? (
-        <div className="glass-panel rounded-xl p-12 text-center shadow-xl">
+        <div className="glass-panel rounded-xl p-8 text-center">
           <Loader2 size={28} className="mx-auto mb-3 animate-spin text-primary" />
           <p className="font-mono text-text3">Compiling report indices...</p>
           <p className="mt-1 text-sm text-text3">Loading…</p>
         </div>
       ) : reports.length === 0 ? (
-        <div className="glass-panel rounded-xl p-12 text-center font-mono text-text3 shadow-xl">
+        <div className="glass-panel rounded-xl p-8 text-center font-mono text-text3">
           NO REPORTS GENERATED YET
         </div>
       ) : (
       <>
       {/* Desktop: table. Phones: stacked cards. */}
-      <div className="glass-panel overflow-x-auto rounded-xl shadow-xl hidden md:block">
+      <div className="glass-panel overflow-x-auto rounded-xl hidden md:block">
         <table className="w-full text-left border-collapse min-w-[800px]">
           <thead>
             <tr className="bg-bg border-b border-soft font-mono text-[10px] uppercase text-text3 tracking-wider">
@@ -115,7 +115,7 @@ export default function ReportsMasterlist() {
                     {report.defects_included.length} Incidents
                   </td>
                   <td className="p-4 text-right">
-                    <Link href={`/dashboard/reports/${report.id}`} className="text-xs text-primary hover:text-blue-600 dark:hover:text-blue-400 font-bold underline flex items-center justify-end gap-1">
+                    <Link href={`/dashboard/reports/${report.id}`} className="text-xs text-primary hover:text-primary dark:hover:text-primary font-bold underline flex items-center justify-end gap-1">
                        <Download size={14}/> Download PDF
                     </Link>
                   </td>
@@ -127,7 +127,7 @@ export default function ReportsMasterlist() {
 
       <div className="space-y-4 md:hidden">
         {reports.map((report) => (
-          <article key={report.id} className="glass-panel rounded-xl p-4 shadow-xl">
+          <article key={report.id} className="glass-panel rounded-xl p-4">
             <div className="flex flex-wrap items-start justify-between gap-2">
               <h2 className="min-w-0 flex-1 text-base font-bold leading-snug text-textDefault">
                 {report.title}

@@ -214,7 +214,7 @@ export default function ReportGenerator() {
                     <PDFDownloadLink
                       document={<ReportDocument title={title} periodStart={periodStart} periodEnd={periodEnd} authorName={authorName} defects={defects} />}
                       fileName={`IMAT_Report_${periodEnd}.pdf`}
-                      className="w-full text-center px-4 py-3 bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20 font-bold text-sm rounded-lg border border-blue-500/30 transition-colors flex justify-center items-center gap-2"
+                      className="w-full text-center px-4 py-3 bg-primary/10 text-primary hover:bg-primary/20 font-bold text-sm rounded-lg border border-primary/30 transition-colors flex justify-center items-center gap-2"
                     >
                       {({ loading }) => (loading ? <span>Rendering Component...</span> : <><Download size={16}/> Download PDF File</>)}
                     </PDFDownloadLink>
@@ -222,7 +222,7 @@ export default function ReportGenerator() {
                     <button 
                       onClick={saveReportToDatabase}
                       disabled={saving}
-                      className="w-full px-4 py-3 bg-primary hover:bg-blue-500 text-white font-bold text-sm rounded-lg transition-colors flex justify-center items-center gap-2 shadow-lg shadow-primary/20"
+                      className="w-full px-4 py-3 bg-primary hover:brightness-110 text-white font-bold text-sm rounded-lg transition-colors flex justify-center items-center gap-2"
                     >
                       {saving ? <Loader2 size={16} className="animate-spin" /> : <FileText size={16} />}
                       Publish to Masterlist
@@ -233,7 +233,7 @@ export default function ReportGenerator() {
          </div>
 
          {/* PDF Live Preview Window */}
-         <div className="lg:col-span-3 bg-bg2 border border-soft rounded-xl overflow-hidden shadow-2xl min-h-[420px] md:h-[800px] flex flex-col">
+         <div className="lg:col-span-3 bg-bg2 border border-soft rounded-xl overflow-hidden min-h-[420px] md:h-[800px] flex flex-col">
             <div className="p-3 bg-bg border-b border-soft flex items-center justify-between">
               <div className="text-xs font-mono text-text3 flex items-center gap-2">
                  <div className="w-2 h-2 rounded-full bg-success animate-pulse"></div> Live Preview Engine
@@ -248,7 +248,7 @@ export default function ReportGenerator() {
                   <PDFDownloadLink
                     document={<ReportDocument title={title} periodStart={periodStart} periodEnd={periodEnd} authorName={authorName} defects={defects} />}
                     fileName={`IMAT_Report_${periodEnd}.pdf`}
-                    className="inline-flex w-full justify-center px-4 py-3 bg-primary hover:bg-blue-500 text-white font-bold text-sm rounded-lg transition-colors"
+                    className="inline-flex w-full justify-center px-4 py-3 bg-primary hover:brightness-110 text-white font-bold text-sm rounded-lg transition-colors"
                   >
                     {({ loading }) => (loading ? <span>Preparing PDF...</span> : <span>Download PDF File</span>)}
                   </PDFDownloadLink>

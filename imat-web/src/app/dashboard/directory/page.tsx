@@ -134,7 +134,7 @@ export default function MemberDirectoryPage() {
       return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-danger/10 text-danger text-[10px] font-bold uppercase tracking-wider border border-danger/20"><Shield size={10}/> {ROLE_LABELS[role] ?? role.replace('_', ' ')}</span>;
     }
     if (role === 'technical_officer' || role === 'documentation_officer') {
-      return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[10px] font-bold uppercase tracking-wider border border-blue-500/20"><User size={10}/> {ROLE_LABELS[role] ?? role.replace('_', ' ')}</span>;
+      return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-wider border border-primary/20"><User size={10}/> {ROLE_LABELS[role] ?? role.replace('_', ' ')}</span>;
     }
     return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-bg3 text-text2 text-[10px] font-bold uppercase tracking-wider border border-soft">{ROLE_LABELS[role] ?? role.replace('_', ' ')}</span>;
   };
@@ -185,7 +185,7 @@ export default function MemberDirectoryPage() {
                       {getRoleBadge(member.role)}
                     </div>
                   </div>
-                  <div className="w-10 h-10 shrink-0 rounded-full text-primary flex items-center justify-center font-bold text-lg font-mono uppercase border border-primary/20 overflow-hidden bg-gradient-to-br from-primary/20 to-accent/10">
+                  <div className="w-10 h-10 shrink-0 rounded-full text-primary flex items-center justify-center font-bold text-lg font-mono uppercase border border-primary/20 overflow-hidden bg-primary/10">
                      {member.avatar_url ? (
                        <Image
                          src={member.avatar_url && member.avatar_url.includes('res.cloudinary.com') ? optimizeCloudinaryUrl(member.avatar_url) : member.avatar_url}
@@ -236,7 +236,7 @@ export default function MemberDirectoryPage() {
                        type="button"
                        disabled={!roleChanged || isLastOwner || savingRoleId === member.id}
                        onClick={() => handleRoleSave(member)}
-                       className="w-full rounded-lg bg-primary px-3 py-2 text-sm font-bold text-white transition-colors hover:bg-blue-500 disabled:opacity-50 sm:w-auto sm:shrink-0"
+                       className="w-full rounded-lg bg-primary px-3 py-2 text-sm font-bold text-white transition-colors hover:brightness-110 disabled:opacity-50 sm:w-auto sm:shrink-0"
                      >
                        {savingRoleId === member.id ? "Saving..." : "Save"}
                      </button>

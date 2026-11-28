@@ -193,8 +193,8 @@ export default function NotificationsHistoryPanel() {
       )}
 
       {isOpen && (
-        <div className="animate-in fade-in slide-in-from-bottom-4 flex max-h-[min(70dvh,32rem)] min-h-0 flex-col overflow-hidden rounded-2xl border border-primary/30 bg-bg2 shadow-2xl">
-          <div className="flex items-center justify-between gap-3 border-b border-borderDark bg-gradient-to-r from-primary/10 to-transparent px-6 py-4">
+        <div className="animate-in fade-in slide-in-from-bottom-4 flex max-h-[min(70dvh,32rem)] min-h-0 flex-col overflow-hidden rounded-xl border border-primary/30 bg-bg2 shadow-2xl">
+          <div className="flex items-center justify-between gap-3 border-b border-borderDark bg-primary/5 px-6 py-4">
             <div className="flex items-center gap-2">
               <Bell size={18} className="text-primary" />
               <h3 className="font-bold text-textDefault">{panelTitle}</h3>

@@ -80,8 +80,8 @@ export default async function WikiPageDetail({ params }: { params: Promise<{ slu
     <div className="max-w-4xl mx-auto animate-in fade-in duration-500 pb-20">
       <Breadcrumbs className="mb-8" />
 
-      <div className="bg-bg2 border border-soft rounded-2xl p-8">
-        <div className="inline-flex items-center gap-2 text-primary font-mono text-xs uppercase tracking-wider bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/20 mb-5 w-fit">
+      <div className="bg-bg2 border border-soft rounded-xl p-8">
+        <div className="inline-flex items-center gap-2 text-primary font-mono text-xs uppercase tracking-wider bg-primary/10 px-3 py-1 rounded-full border border-primary/20 mb-5 w-fit">
           <BookOpen size={14} /> {page.category}
         </div>
         {page.status === "pending_approval" && (

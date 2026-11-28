@@ -309,7 +309,7 @@ export default async function NewsPostPage({ params }: { params: Promise<{ id: s
           )}
 
           {post.image_url && (
-            <div className="mt-6 overflow-hidden rounded-xl border border-borderDark bg-bg sm:mt-8 sm:rounded-2xl">
+            <div className="mt-6 overflow-hidden rounded-xl border border-borderDark bg-bg sm:mt-8 sm:rounded-xl">
               <Image
                 src={post.image_url && post.image_url.includes('res.cloudinary.com') ? optimizeCloudinaryUrl(post.image_url, { width: 1400 }) : post.image_url}
                 alt={post.title}
@@ -325,7 +325,7 @@ export default async function NewsPostPage({ params }: { params: Promise<{ id: s
           )}
 
           {video && (
-            <div className="mt-6 overflow-hidden rounded-xl border border-borderDark bg-black sm:mt-8 sm:rounded-2xl">
+            <div className="mt-6 overflow-hidden rounded-xl border border-borderDark bg-black sm:mt-8 sm:rounded-xl">
               <div className="relative aspect-video w-full">
                 <iframe
                   src={video.embedUrl}

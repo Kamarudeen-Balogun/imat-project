@@ -476,7 +476,7 @@ export default function CampaignForm({ userId, authorName, canPublish }: { userI
           </div>
 
           {/* Cover image */}
-          <div className="space-y-3 rounded-2xl border border-soft bg-bg p-4 sm:p-5">
+          <div className="space-y-3 rounded-xl border border-soft bg-bg p-4 sm:p-5">
             <div className="flex items-center justify-between gap-4">
               <span className="text-xs font-mono uppercase tracking-wider text-text3">Cover image</span>
               {(coverUrl || coverFileName) && (
@@ -541,7 +541,7 @@ export default function CampaignForm({ userId, authorName, canPublish }: { userI
           </div>
 
           {/* Video */}
-          <div className="space-y-3 rounded-2xl border border-soft bg-bg p-4 sm:p-5">
+          <div className="space-y-3 rounded-xl border border-soft bg-bg p-4 sm:p-5">
             <span className="flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-text3">
               <Video size={14} /> Video — YouTube or Vimeo link
             </span>
@@ -602,7 +602,7 @@ export default function CampaignForm({ userId, authorName, canPublish }: { userI
       )}
 
       {activeTab === "preview" && (
-        <div className="overflow-hidden rounded-2xl border border-soft bg-bg">
+        <div className="overflow-hidden rounded-xl border border-soft bg-bg">
           <div className="border-b border-soft bg-bg2 px-5 py-3">
             <p className="text-xs font-mono uppercase tracking-wider text-text3">Newsroom preview — exactly how the post will read</p>
           </div>

@@ -242,7 +242,7 @@ export default function NewAssessmentPage() {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-8 bg-bg2 border border-soft rounded-xl p-6 md:p-10 shadow-xl">
+      <form onSubmit={handleSubmit} className="space-y-8 bg-bg2 border border-soft rounded-xl p-6 md:p-10">
         
         {/* Core Details */}
         <section className="space-y-6 border-b border-soft pb-8">
@@ -278,7 +278,7 @@ export default function NewAssessmentPage() {
                 type="button"
                 onClick={getLocation}
                 disabled={locating}
-                className="w-full p-4 flex items-center justify-center gap-2 bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 rounded-lg font-bold transition-colors"
+                className="w-full p-4 flex items-center justify-center gap-2 bg-primary/10 text-primary hover:bg-primary/20 rounded-lg font-bold transition-colors"
                >
                  {locating ? "Acquiring SAT lock..." : location ? `LAT: ${location.lat.toFixed(5)} / LNG: ${location.lng.toFixed(5)}` : "Capture Current GPS Coordinates"}
                </button>
@@ -391,7 +391,7 @@ export default function NewAssessmentPage() {
           <button 
             type="submit" 
             disabled={loading || uploadingPhotos} 
-            className="w-full py-4 bg-primary hover:bg-blue-500 text-white font-bold rounded-lg transition-all flex items-center justify-center gap-2 transform active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed shadow-lg shadow-primary/20"
+            className="w-full py-4 bg-primary hover:brightness-110 text-white font-bold rounded-lg transition-all flex items-center justify-center gap-2 transform active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed"
           >
             {(loading || uploadingPhotos) ? (
                <span className="animate-pulse">{uploadingPhotos ? "Encrypting Visual Evidence..." : "Saving Assessment Sequence..."}</span>

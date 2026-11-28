@@ -331,12 +331,12 @@ export default function AnnouncementEditor({
       </div>
 
       {announcement.status === "pending_approval" && isApprover && (
-        <div className="mb-6 space-y-3 rounded-2xl border border-warning/40 bg-warning/5 p-5">
+        <div className="mb-6 space-y-3 rounded-xl border border-warning/40 bg-warning/5 p-5">
           <p className="text-sm font-semibold text-textDefault">Waiting for your approval — publishing notifies members and sends the announcement email.</p>
           <div className="flex flex-wrap gap-2">
             <form action={approveAnnouncement}>
               <input type="hidden" name="announcement_id" value={announcement.id} />
-              <button type="submit" className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500 transition-colors">
+              <button type="submit" className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:brightness-110 transition-colors">
                 <Check size={16} /> Approve & publish
               </button>
             </form>
@@ -362,7 +362,7 @@ export default function AnnouncementEditor({
         </div>
       )}
 
-      <form onSubmit={handleSave} className="space-y-6 rounded-2xl border border-soft bg-bg2 p-6 md:p-8">
+      <form onSubmit={handleSave} className="space-y-6 rounded-xl border border-soft bg-bg2 p-6 md:p-8">
         <div>
           <label className="block text-xs font-mono uppercase tracking-wider text-text3 mb-2">Headline</label>
           <input value={title} onChange={(e) => setTitle(e.target.value)} className="w-full rounded-lg border border-soft bg-bg px-4 py-3 text-textDefault focus:outline-none focus:border-primary" required />
@@ -468,7 +468,7 @@ export default function AnnouncementEditor({
                 </button>
               </form>
             )}
-            <button type="submit" disabled={saving || publishing || deleting} className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-5 py-3 font-semibold text-white hover:bg-blue-500 transition-colors disabled:opacity-70">
+            <button type="submit" disabled={saving || publishing || deleting} className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-5 py-3 font-semibold text-white hover:brightness-110 transition-colors disabled:opacity-70">
               {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />} Save Changes
             </button>
           </div>
@@ -484,8 +484,8 @@ export default function AnnouncementEditor({
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
           />
 
-          <div className="relative z-10 w-full max-w-md overflow-hidden rounded-2xl border border-danger/30 bg-bg2 shadow-2xl shadow-black/40">
-            <div className="border-b border-soft bg-gradient-to-r from-danger/15 via-danger/5 to-transparent p-5">
+          <div className="relative z-10 w-full max-w-md overflow-hidden rounded-xl border border-danger/30 bg-bg2 shadow-2xl shadow-black/40">
+            <div className="border-b border-soft bg-danger/5 p-5">
               <div className="flex items-start justify-between gap-3">
                 <div className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-danger/30 bg-danger/15 text-danger">
                   <AlertTriangle size={18} />

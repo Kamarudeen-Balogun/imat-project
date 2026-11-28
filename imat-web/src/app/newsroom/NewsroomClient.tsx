@@ -123,9 +123,9 @@ export default function NewsroomClient() {
 
       <div className="border-b border-borderDark py-16 sm:py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <div className="glass-panel space-y-6 rounded-2xl px-6 py-8 sm:px-8 sm:py-10">
+          <div className="glass-panel space-y-6 rounded-xl px-6 py-8 sm:px-8 sm:py-10">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="inline-flex w-fit items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1 font-mono text-sm uppercase tracking-wider text-primary">
+              <div className="inline-flex w-fit items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 font-mono text-sm uppercase tracking-wider text-primary">
                 <Megaphone size={16} /> Official Broadcasts
               </div>
               <div className="flex flex-wrap items-center gap-3">
@@ -151,17 +151,17 @@ export default function NewsroomClient() {
         {loading ? (
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 6 }).map((_, index) => (
-              <div key={index} className="h-[28rem] animate-pulse rounded-2xl border border-borderDark bg-bg2" />
+              <div key={index} className="h-[28rem] animate-pulse rounded-xl border border-borderDark bg-bg2" />
             ))}
           </div>
         ) : loadError ? (
-          <div className="glass-panel rounded-2xl border border-borderDark border-dashed py-12 text-center">
+          <div className="glass-panel rounded-xl border border-borderDark border-dashed py-12 text-center">
             <Megaphone size={40} className="mx-auto mb-4 text-borderLit" />
             <h3 className="mb-2 text-xl font-bold text-textDefault">Unable to load broadcasts</h3>
             <p className="mx-auto max-w-sm text-sm text-text3">{loadError}</p>
           </div>
         ) : newsItems.length === 0 ? (
-          <div className="glass-panel rounded-2xl border border-borderDark border-dashed py-12 text-center">
+          <div className="glass-panel rounded-xl border border-borderDark border-dashed py-12 text-center">
             <Megaphone size={40} className="mx-auto mb-4 text-borderLit" />
             <h3 className="mb-2 text-xl font-bold text-textDefault">No active broadcasts</h3>
             <p className="mx-auto max-w-sm text-sm text-text3">Check back later for official announcements and structural health campaign updates.</p>
@@ -174,7 +174,7 @@ export default function NewsroomClient() {
                 <Link
                   key={item.id}
                   href={`/newsroom/${item.slug ?? item.id}`}
-                  className="group glass-panel flex flex-col overflow-hidden rounded-2xl transition-all duration-300 hover:border-primary hover:shadow-primary/5"
+                  className="group glass-panel flex flex-col overflow-hidden rounded-xl transition-all duration-300 hover:border-primary hover:shadow-primary/5"
                 >
                   <div className="relative aspect-[16/9] overflow-hidden bg-bg3">
                     {item.image_url ? (
@@ -187,12 +187,12 @@ export default function NewsroomClient() {
                         className="object-cover transition-transform duration-500 group-hover:scale-105"
                       />
                     ) : (
-                      <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-bg2 to-bg3 text-text3">
+                      <div className="flex h-full w-full items-center justify-center bg-bg3 text-text3">
                         <Megaphone size={28} />
                       </div>
                     )}
                   </div>
-                  <div className="flex h-full flex-col bg-gradient-to-br from-bg2 to-bg p-8">
+                  <div className="flex h-full flex-col bg-bg2 p-8">
                     <div className="mb-4 flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-text3">
                       <Calendar size={14} />
                       {format(new Date(item.published_at), "MMM d, yyyy")}

@@ -99,7 +99,7 @@ export default function IssuesTrackerPage() {
         whileInView="visible"
         viewport={{ once: true }}
       >
-        <div className="mb-8 rounded-lg border border-borderDark bg-asphalt p-5 text-white shadow-2xl sm:p-7">
+        <div className="mb-8 rounded-lg border border-borderDark bg-asphalt p-5 text-white shadow-lg sm:p-7">
           <div className="mb-4 inline-flex items-center gap-2 rounded border border-accent/40 bg-accent/10 px-3 py-1 font-mono text-xs font-black uppercase tracking-[0.16em] text-accent">
             Live Defect Registry
           </div>

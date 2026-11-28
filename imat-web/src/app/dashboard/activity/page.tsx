@@ -101,7 +101,7 @@ export default async function ActivityPage() {
        <Breadcrumbs className="mb-8" />
 
       <div className="mb-8">
-        <div className="inline-flex items-center gap-2 text-primary font-mono text-sm uppercase tracking-wider bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/20 mb-4">
+        <div className="inline-flex items-center gap-2 text-primary font-mono text-sm uppercase tracking-wider bg-primary/10 px-3 py-1 rounded-full border border-primary/20 mb-4">
           <Activity size={16} /> Activity Timeline
         </div>
         <h1 className="text-2xl md:text-3xl font-bold text-textDefault mb-2">System changes and decision trail</h1>

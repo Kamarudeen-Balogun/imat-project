@@ -25,7 +25,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
       {!isDashboardRoute && <Navbar />}
       <motion.main
         key={pathname}
-        className="futuristic-grid relative flex-grow"
+        className="relative flex-grow"
         initial={mainInitial}
         animate={mainAnimate}
         transition={mainTransition}

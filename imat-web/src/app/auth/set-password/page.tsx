@@ -116,10 +116,10 @@ export default function SetPasswordPage() {
         </div>
 
         {tokenError ? (
-          <div className="glass-panel rounded-xl p-8 space-y-6 shadow-2xl text-center">
+          <div className="glass-panel rounded-xl p-8 space-y-6 text-center">
             <p className="text-sm text-textDefault">{tokenError}</p>
             <div className="space-y-3">
-              <Link href="/auth/resend-invite" className="block px-8 py-4 bg-primary text-white font-bold rounded-lg hover:bg-blue-500 transition-colors">
+              <Link href="/auth/resend-invite" className="block px-8 py-4 bg-primary text-white font-bold rounded-lg hover:brightness-110 transition-colors">
                 Request a new invite link
               </Link>
               <Link href="/login" className="block text-sm text-primary hover:underline">
@@ -128,11 +128,11 @@ export default function SetPasswordPage() {
             </div>
           </div>
         ) : !isReady ? (
-          <div className="glass-panel rounded-xl p-8 shadow-2xl text-center">
+          <div className="glass-panel rounded-xl p-8 text-center">
             <p className="text-sm text-text2 animate-pulse">Checking your invite link...</p>
           </div>
         ) : (
-          <form onSubmit={handleSetPassword} className="glass-panel rounded-xl p-8 space-y-6 shadow-2xl">
+          <form onSubmit={handleSetPassword} className="glass-panel rounded-xl p-8 space-y-6">
             <PasswordField
               id="password"
               label="New Password"
@@ -158,7 +158,7 @@ export default function SetPasswordPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-4 bg-primary hover:bg-blue-500 text-white font-bold rounded-lg transition-colors flex items-center justify-center gap-2"
+              className="w-full py-4 bg-primary hover:brightness-110 text-white font-bold rounded-lg transition-colors flex items-center justify-center gap-2"
             >
               {isLoading ? <span className="animate-pulse">Setting password...</span> : "Set Password"}
             </button>

@@ -61,15 +61,15 @@ export default function ForgotPasswordPage() {
         </div>
 
         {isSent ? (
-          <div className="glass-panel rounded-xl p-8 space-y-6 shadow-2xl text-center">
+          <div className="glass-panel rounded-xl p-8 space-y-6 text-center">
             <p className="text-sm text-textDefault">{GENERIC_SUCCESS}</p>
             <p className="text-sm text-text2">Check your inbox (and spam folder) for the reset link. The link expires after a short time.</p>
-            <Link href="/login" className="inline-block px-8 py-4 bg-primary text-white font-bold rounded-lg hover:bg-blue-500 transition-colors">
+            <Link href="/login" className="inline-block px-8 py-4 bg-primary text-white font-bold rounded-lg hover:brightness-110 transition-colors">
               Back to Login
             </Link>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="glass-panel rounded-xl p-8 space-y-6 shadow-2xl">
+          <form onSubmit={handleSubmit} className="glass-panel rounded-xl p-8 space-y-6">
             <div>
               <label className="block text-sm font-bold text-textDefault mb-2">School Email Address</label>
               <input
@@ -86,7 +86,7 @@ export default function ForgotPasswordPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-4 bg-primary hover:bg-blue-500 text-white font-bold rounded-lg transition-colors flex items-center justify-center gap-2"
+              className="w-full py-4 bg-primary hover:brightness-110 text-white font-bold rounded-lg transition-colors flex items-center justify-center gap-2"
             >
               {isLoading ? <span className="animate-pulse">Sending...</span> : "Send Reset Link"}
             </button>

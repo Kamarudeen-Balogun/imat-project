@@ -57,7 +57,7 @@ export default async function WikiIndexPage() {
        <Breadcrumbs className="mb-8" />
 
       <div className="mb-8 flex flex-col gap-3">
-        <div className="inline-flex items-center gap-2 text-primary font-mono text-sm uppercase tracking-wider bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/20 w-fit">
+        <div className="inline-flex items-center gap-2 text-primary font-mono text-sm uppercase tracking-wider bg-primary/10 px-3 py-1 rounded-full border border-primary/20 w-fit">
           <BookOpen size={16} /> Knowledge Base
         </div>
         <h1 className="text-2xl md:text-3xl font-bold text-textDefault">Operational wiki and internal guides</h1>
@@ -69,7 +69,7 @@ export default async function WikiIndexPage() {
         )}
         {canWrite && (
           <div>
-            <Link href="/dashboard/wiki/new" className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary hover:bg-blue-500 text-white font-semibold text-sm transition-colors">
+            <Link href="/dashboard/wiki/new" className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary hover:brightness-110 text-white font-semibold text-sm transition-colors">
               Create Page
             </Link>
           </div>
@@ -77,7 +77,7 @@ export default async function WikiIndexPage() {
       </div>
 
       {error || pages.length === 0 ? (
-        <div className="glass-panel rounded-2xl border border-soft border-dashed p-8 text-center">
+        <div className="glass-panel rounded-xl border border-soft border-dashed p-8 text-center">
           <BookOpen size={40} className="mx-auto text-text3 mb-4" />
           <h3 className="text-lg font-bold text-textDefault mb-2">No articles yet</h3>
           <p className="text-text3 text-sm">No articles yet. Ask a documentation officer or an admin to add the first guide.</p>
@@ -85,7 +85,7 @@ export default async function WikiIndexPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {pages.map((page) => (
-            <article key={page.id} className="group glass-panel rounded-2xl p-6 transition-colors hover:border-primary shadow-lg shadow-black/5">
+            <article key={page.id} className="group glass-panel rounded-xl p-6 transition-colors hover:border-primary shadow-lg shadow-black/5">
               <Link href={`/dashboard/wiki/${page.slug}`} className="block">
                 <div className="text-xs font-mono uppercase tracking-wider text-text3 mb-3 flex flex-wrap items-center gap-2">
                   <span>{page.category}</span>
@@ -112,7 +112,7 @@ export default async function WikiIndexPage() {
                 <div className="mt-4 space-y-3 border-t border-soft pt-4">
                   <form action={approveWikiPage}>
                     <input type="hidden" name="wiki_page_id" value={page.id} />
-                    <button type="submit" className="w-full rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500 transition-colors">
+                    <button type="submit" className="w-full rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:brightness-110 transition-colors">
                       Approve & publish
                     </button>
                   </form>

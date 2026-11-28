@@ -63,10 +63,10 @@ export default function EvidencePage() {
   }, [categoryFilter, items]);
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-4 py-16 sm:px-6">
+    <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-4 py-12 sm:px-6">
       <Breadcrumbs className="mb-8" />
 
-      <div className="mb-8 rounded-lg border border-borderDark bg-asphalt p-5 text-white shadow-2xl sm:p-7">
+      <div className="mb-8 rounded-lg border border-borderDark bg-asphalt p-5 text-white shadow-lg sm:p-7">
         <div className="mb-4 inline-flex items-center gap-2 rounded border border-accent/40 bg-accent/10 px-3 py-1 text-xs font-mono font-black uppercase tracking-wider text-accent">
           <FolderKanban size={14} /> Before / After Evidence Board
         </div>

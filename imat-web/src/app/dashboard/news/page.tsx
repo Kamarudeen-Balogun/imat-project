@@ -272,13 +272,13 @@ export default async function DashboardNewsPage() {
      <div className="mx-auto max-w-6xl animate-in fade-in duration-500 px-4 pb-16 pt-6 sm:px-6">
        <Breadcrumbs className="mb-8" />
        <div className="flex flex-wrap items-center justify-end gap-4 mb-8">
-        <Link href="/dashboard/campaigns/new" className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500 transition-colors">
+        <Link href="/dashboard/campaigns/new" className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:brightness-110 transition-colors">
           <Plus size={16} /> New Broadcast
         </Link>
       </div>
 
       <div className="mb-8">
-        <div className="inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1 text-xs font-mono uppercase tracking-wider text-primary mb-4">
+        <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-mono uppercase tracking-wider text-primary mb-4">
           <Megaphone size={14} /> Newsroom Manager
         </div>
         <h1 className="text-2xl md:text-3xl font-bold text-textDefault mb-2">Manage published broadcasts</h1>

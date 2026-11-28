@@ -123,7 +123,7 @@ export default function InternalDefectsLogPage() {
           </p>
         </div>
         
-        <Link href="/dashboard/defects/new" className="bg-warning hover:bg-orange-500 text-black font-bold px-4 py-2 rounded-lg transition-colors flex items-center gap-2 text-sm shadow-lg shadow-warning/20">
+        <Link href="/dashboard/defects/new" className="bg-warning hover:brightness-110 text-black font-bold px-4 py-2 rounded-lg transition-colors flex items-center gap-2 text-sm">
           + New Assessment
         </Link>
       </div>
@@ -167,7 +167,7 @@ export default function InternalDefectsLogPage() {
 
       {/* Desktop: table. Phones: stacked cards (same pattern as the
           applications page), with the full action as a wide button. */}
-      <div className="glass-panel hidden overflow-x-auto rounded-xl shadow-xl md:block">
+      <div className="glass-panel hidden overflow-x-auto rounded-xl md:block">
         <table className="w-full text-left border-collapse min-w-[900px]">
           <thead>
             <tr className="bg-bg border-b border-soft font-mono text-[10px] uppercase text-text3 tracking-wider">
@@ -215,7 +215,7 @@ export default function InternalDefectsLogPage() {
                        <a 
                          href={`https://www.google.com/maps/search/?api=1&query=${defect.location_lat},${defect.location_lng}`} 
                          target="_blank" rel="noreferrer"
-                         className="inline-flex items-center gap-1.5 text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 font-mono text-xs hover:underline"
+                         className="inline-flex items-center gap-1.5 text-primary hover:text-primary dark:hover:text-primary font-mono text-xs hover:underline"
                        >
                          <MapIcon size={12}/> View Map
                        </a>
@@ -269,7 +269,7 @@ export default function InternalDefectsLogPage() {
                     <a
                       href={`https://www.google.com/maps/search/?api=1&query=${defect.location_lat},${defect.location_lng}`}
                       target="_blank" rel="noreferrer"
-                      className="inline-flex items-center gap-1 font-mono text-blue-600 dark:text-blue-400 hover:underline"
+                      className="inline-flex items-center gap-1 font-mono text-primary hover:underline"
                     >
                       <MapIcon size={12} /> View Map
                     </a>

@@ -27,7 +27,7 @@ export default async function DashboardEmailLogsPage() {
     return (
       <div className="mx-auto max-w-2xl animate-in fade-in duration-500 pb-20">
         <Breadcrumbs className="mb-8" />
-        <div className="glass-panel rounded-2xl p-8 text-center">
+        <div className="glass-panel rounded-xl p-8 text-center">
           <h1 className="text-xl font-bold text-textDefault">Access denied</h1>
           <p className="mt-2 text-sm text-text2">
             Only the owner and admins can view the mail log.
@@ -54,7 +54,7 @@ export default async function DashboardEmailLogsPage() {
       <Breadcrumbs className="mb-8" />
 
       <div className="mb-6">
-        <div className="inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1 text-xs font-mono uppercase tracking-wider text-primary mb-4">
+        <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-mono uppercase tracking-wider text-primary mb-4">
           <Mail size={14} /> Mail Log
         </div>
         <h1 className="text-2xl md:text-3xl font-bold text-textDefault mb-2">Mail log</h1>
@@ -64,7 +64,7 @@ export default async function DashboardEmailLogsPage() {
       </div>
 
       {error ? (
-        <div className="glass-panel rounded-2xl border border-soft p-12 text-center text-text3">
+        <div className="glass-panel rounded-xl border border-soft p-12 text-center text-text3">
           Could not load the mail log. Please try again later.
         </div>
       ) : (

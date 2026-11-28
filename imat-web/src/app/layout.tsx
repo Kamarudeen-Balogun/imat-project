@@ -64,7 +64,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#29abff",
+  themeColor: "#0f766e",
 };
 
 import { ThemeProvider } from "@/components/ThemeProvider";
@@ -112,7 +112,7 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
         />
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+        <ThemeProvider defaultTheme="light">
           <SiteShell>{children}</SiteShell>
           <ClientToaster />
         </ThemeProvider>

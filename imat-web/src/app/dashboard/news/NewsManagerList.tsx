@@ -137,7 +137,7 @@ export default function NewsManagerList({
             const canEditItem =
               isApprover || canManage || (isAuthor && item.status !== "published");
             return (
-            <article key={item.id} className="glass-panel rounded-2xl p-6 shadow-lg shadow-black/5">
+            <article key={item.id} className="glass-panel rounded-xl p-6 shadow-lg shadow-black/5">
               <div className="flex items-start justify-between gap-4 mb-4">
                 <div>
                   <div className="mb-3 flex flex-wrap items-center gap-2">
@@ -216,7 +216,7 @@ export default function NewsManagerList({
                   <div className="flex flex-wrap gap-2">
                     <form action={approveAnnouncement}>
                       <input type="hidden" name="announcement_id" value={item.id} />
-                      <button type="submit" className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500 transition-colors">
+                      <button type="submit" className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:brightness-110 transition-colors">
                         <Check size={16} /> Approve & publish
                       </button>
                     </form>

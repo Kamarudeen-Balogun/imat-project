@@ -98,7 +98,7 @@ export default function SocialLinksAdminPage() {
 
   if (loading) {
     return (
-      <div className="glass-panel rounded-2xl p-8 text-center text-text3">
+      <div className="glass-panel rounded-xl p-8 text-center text-text3">
         <Loader2 size={18} className="mx-auto mb-3 animate-spin" />
         Loading social links manager...
       </div>
@@ -107,7 +107,7 @@ export default function SocialLinksAdminPage() {
 
   if (!isAdmin) {
     return (
-      <div className="glass-panel rounded-2xl p-8 text-center text-text3">
+      <div className="glass-panel rounded-xl p-8 text-center text-text3">
         You do not have access to this page.
       </div>
     );
@@ -117,7 +117,7 @@ export default function SocialLinksAdminPage() {
     <div className="mx-auto max-w-4xl space-y-8 px-4 py-6 sm:px-6">
       <Breadcrumbs className="mb-2" />
 
-      <div className="glass-panel rounded-2xl p-6 md:p-8">
+      <div className="glass-panel rounded-xl p-6 md:p-8">
         <h1 className="text-2xl font-bold text-textDefault">Social Links Manager</h1>
         <p className="mt-2 text-sm text-text2">
           Update social URLs and toggle visibility. Disabled links stay hidden and cannot be clicked in the public footer dock.
@@ -130,7 +130,7 @@ export default function SocialLinksAdminPage() {
         </div>
       )}
 
-      <div className="glass-panel rounded-2xl p-6 md:p-8">
+      <div className="glass-panel rounded-xl p-6 md:p-8">
         <div className="space-y-4">
           {links.map((item, index) => (
             <div key={item.platform} className="rounded-xl border border-soft bg-bg p-4">

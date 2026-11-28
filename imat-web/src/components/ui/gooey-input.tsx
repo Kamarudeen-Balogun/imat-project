@@ -1,7 +1,6 @@
 "use client";
 
 import { Search, X } from "lucide-react";
-import { motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 
 type GooeyInputProps = {
@@ -20,7 +19,6 @@ export function GooeyInput({
   onSearch,
 }: GooeyInputProps) {
   const [internalValue, setInternalValue] = useState("");
-  const [isFocused, setIsFocused] = useState(false);
 
   const resolvedValue = value ?? internalValue;
 
@@ -45,18 +43,7 @@ export function GooeyInput({
 
   return (
     <div className={`relative w-full ${className ?? ""}`}>
-      <motion.div
-        className="pointer-events-none absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-primary/45 via-accent/40 to-success/35 blur-md"
-        animate={{ opacity: isFocused ? 0.9 : 0.45, scale: isFocused ? 1.01 : 1 }}
-        transition={{ duration: 0.25, ease: "easeOut" }}
-      />
-      <div className="relative flex h-12 items-center gap-2 overflow-hidden rounded-2xl border border-borderDark bg-surfaceStrong px-3 backdrop-blur-sm">
-        <motion.div
-          className="absolute left-2 h-8 w-8 rounded-full bg-primary/20"
-          animate={{ x: isFocused ? 4 : 0, scale: isFocused ? 1.08 : 1 }}
-          transition={{ duration: 0.2, ease: "easeOut" }}
-        />
-
+      <div className="relative flex h-12 items-center gap-2 overflow-hidden rounded-xl border border-borderDark bg-surfaceStrong px-3">
         <button
           type="button"
           onClick={triggerSearch}
@@ -69,8 +56,6 @@ export function GooeyInput({
         <input
           value={resolvedValue}
           onChange={(event) => updateValue(event.target.value)}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
           onKeyDown={(event) => {
             if (event.key === "Enter") {
               triggerSearch();

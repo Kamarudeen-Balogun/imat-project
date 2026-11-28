@@ -476,7 +476,7 @@ export default function ReportPage() {
      <div className="mx-auto min-h-screen max-w-5xl px-4 py-10 sm:px-6 sm:py-14">
        <Breadcrumbs className="mb-8" />
 
-      <div className="mb-8 grid gap-6 rounded-lg border border-borderDark bg-asphalt p-5 text-white shadow-2xl sm:p-7 lg:grid-cols-[1fr_18rem]">
+      <div className="mb-8 grid gap-6 rounded-lg border border-borderDark bg-asphalt p-5 text-white shadow-lg sm:p-7 lg:grid-cols-[1fr_18rem]">
         <div>
           <div className="mb-4 inline-flex items-center gap-2 rounded border border-accent/40 bg-accent/10 px-3 py-1 font-mono text-[10px] font-black uppercase tracking-[0.18em] text-accent">
             <ClipboardList size={13} /> Field Intelligence Intake
@@ -726,7 +726,7 @@ export default function ReportPage() {
           >
             Clear Form
           </button>
-          <button type="submit" disabled={isSubmitting || isUploadingPhotos} className="flex w-full items-center justify-center gap-2 rounded-md bg-accent px-5 py-2.5 text-sm font-black uppercase tracking-[0.1em] text-white shadow-xl transition-colors hover:bg-accent2 disabled:cursor-not-allowed disabled:opacity-70 md:w-auto md:text-base">
+          <button type="submit" disabled={isSubmitting || isUploadingPhotos} className="flex w-full items-center justify-center gap-2 rounded-md bg-accent px-5 py-2.5 text-sm font-black uppercase tracking-[0.1em] text-white transition-colors hover:bg-accent2 disabled:cursor-not-allowed disabled:opacity-70 md:w-auto md:text-base">
             <CheckCircle size={16} />
             {isUploadingPhotos ? <span className="animate-pulse">Uploading images...</span> : isSubmitting ? <span className="animate-pulse">Submitting Report...</span> : "Submit Report"}
           </button>

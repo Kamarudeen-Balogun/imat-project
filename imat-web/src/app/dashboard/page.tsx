@@ -29,7 +29,7 @@ export default function DashboardPage() {
     <div className="space-y-8 animate-in fade-in duration-500">
       <Breadcrumbs className="mb-2" />
       
-      <div className="rounded-lg border border-borderDark bg-asphalt p-5 text-white shadow-2xl sm:p-6">
+      <div className="rounded-lg border border-borderDark bg-asphalt p-5 text-white shadow-lg sm:p-6">
         <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div>
             <div className="mb-3 inline-flex items-center gap-2 rounded border border-accent/40 bg-accent/10 px-3 py-1 font-mono text-[10px] font-black uppercase tracking-[0.18em] text-accent">

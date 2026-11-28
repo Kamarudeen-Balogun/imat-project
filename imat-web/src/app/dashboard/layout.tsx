@@ -4,14 +4,14 @@ import { useEffect, useMemo, useState } from "react";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
-import { LayoutDashboard, Users, Map, BookOpen, LogOut, Loader2, FileText, BarChart2, Megaphone, Activity, Menu, X, User, Share2, Moon, Sun, ClipboardList, Mail, Clock, UserPlus } from "lucide-react";
+import { LayoutDashboard, Users, Map, BookOpen, LogOut, Loader2, FileText, BarChart2, Megaphone, Activity, Menu, X, User, Share2, ClipboardList, Mail, Clock, UserPlus } from "lucide-react";
 import Image from "next/image";
 import optimizeCloudinaryUrl from "@/lib/cloudinary";
 import { toast } from "react-hot-toast";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { AnimatePresence, motion } from "framer-motion";
 import { canApproveContent, canManageSocialLinks, isMemberAuthor } from "@/lib/access";
-import { useTheme } from "@/components/ThemeProvider";
+import ThemeToggle from "@/components/ThemeToggle";
 import NotificationBell from "@/components/dashboard/NotificationBell";
 
 type UserProfile = {
@@ -45,13 +45,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [pendingCounts, setPendingCounts] = useState({ news: 0, evidence: 0, wiki: 0 });
   const router = useRouter();
   const supabase = useMemo(() => createSupabaseClient(), []);
-  const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -259,16 +253,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
             <div className="flex items-center gap-3">
               <NotificationBell />
-              {mounted && (
-                <button
-                  onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                  className="btn-ghost btn-sm !px-2.5"
-                  aria-label="Toggle theme"
-                >
-                  {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
-                </button>
-              )}
-              <Link href="/dashboard/profile" className="hidden sm:flex h-9 w-9 items-center justify-center rounded-full border border-soft overflow-hidden bg-gradient-to-br from-primary/20 to-accent/20 text-sm font-bold text-textDefault">
+              <ThemeToggle compact />
+              <Link href="/dashboard/profile" className="hidden sm:flex h-9 w-9 items-center justify-center rounded-full border border-soft overflow-hidden bg-primary/10 text-sm font-bold text-textDefault">
                 {profile?.avatar_url ? (
                   <Image
                     src={profile.avatar_url && profile.avatar_url.includes('res.cloudinary.com') ? optimizeCloudinaryUrl(profile.avatar_url) : profile.avatar_url}

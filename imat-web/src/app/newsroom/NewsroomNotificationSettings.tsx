@@ -133,8 +133,8 @@ export default function NewsroomNotificationSettings() {
       onClick={toggle}
       className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs sm:text-sm font-semibold transition-colors ${
         enabled
-          ? "border-cyan-400/40 bg-cyan-500/10 text-cyan-300 hover:bg-cyan-500/15"
-          : "border-borderDark bg-bg2 text-textDefault hover:border-cyan-400/40 hover:text-cyan-300"
+          ? "border-primary/40 bg-primary/10 text-primary hover:bg-primary/15"
+          : "border-borderDark bg-bg2 text-textDefault hover:border-primary/40 hover:text-primary"
       }`}
     >
       {enabled ? <Check size={16} /> : <BellRing size={16} />}

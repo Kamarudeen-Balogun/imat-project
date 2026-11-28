@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, FormEvent, useEffect, useRef } from "react";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, RotateCcw, Send } from "lucide-react";
 import Link from "next/link";
 import { toast } from "react-hot-toast";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
@@ -222,13 +222,13 @@ export default function ApplyPage() {
 
    if (submitSuccess) {
      return (
-       <div className="mx-auto max-w-xl px-4 py-24 text-center sm:px-6 sm:py-32">
+       <div className="mx-auto max-w-xl px-4 py-16 text-center sm:px-6 sm:py-20">
          <CheckCircle2 size={64} className="text-success mx-auto mb-6" />
          <h1 className="text-3xl font-black text-textDefault mb-4">Application Submitted!</h1>
          <p className="text-text2 mb-8">
            Thank you for applying to join IMAT-FUTA. Your responses have been recorded and sent successfully!
          </p>
-         <Link href="/" className="px-8 py-4 bg-primary text-white font-bold rounded-lg hover:bg-blue-500 transition-colors">
+         <Link href="/" className="px-8 py-4 bg-primary text-white font-bold rounded-lg hover:brightness-110 transition-colors">
            Return Home
          </Link>
        </div>
@@ -236,7 +236,7 @@ export default function ApplyPage() {
    }
 
    return (
-     <div className="mx-auto min-h-screen max-w-4xl px-4 py-14 sm:px-6 sm:py-20">
+     <div className="mx-auto min-h-screen max-w-4xl px-4 py-10 sm:px-6 sm:py-14">
        <Breadcrumbs className="mb-8" />
 
       <div className="text-center mb-12">
@@ -512,11 +512,11 @@ export default function ApplyPage() {
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center pt-8 border-t border-borderDark">
-          <button type="submit" disabled={isSubmitting} className="px-6 py-3 bg-primary hover:bg-blue-500 text-white font-bold rounded-lg text-base md:text-lg transition-transform hover:-translate-y-1 shadow-xl flex items-center justify-center">
-            {isSubmitting ? <span className="animate-pulse">Submitting...</span> : "📨 Submit Application"}
+          <button type="submit" disabled={isSubmitting} className="px-6 py-3 bg-primary hover:brightness-110 text-white font-bold rounded-lg text-base md:text-lg transition-transform hover:-translate-y-1 flex items-center justify-center gap-2">
+            {isSubmitting ? <span className="animate-pulse">Submitting...</span> : <><Send size={18} /> Submit Application</>}
           </button>
-          <button type="reset" className="px-6 py-3 bg-danger hover:bg-red-700 text-white font-bold rounded-lg text-base md:text-lg transition-transform hover:-translate-y-1">
-            🔄 Reset Form
+          <button type="reset" className="px-6 py-3 bg-danger hover:brightness-110 text-white font-bold rounded-lg text-base md:text-lg transition-transform hover:-translate-y-1 flex items-center justify-center gap-2">
+            <RotateCcw size={18} /> Reset Form
           </button>
         </div>
 

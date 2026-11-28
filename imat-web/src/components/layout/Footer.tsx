@@ -92,7 +92,7 @@ export function Footer() {
 
   return (
     <footer className="relative mt-20 border-t border-borderDark bg-asphalt py-14 text-white md:mt-24">
-      <div aria-hidden="true" className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-primary via-accent to-primary" />
+      <div aria-hidden="true" className="absolute inset-x-0 top-0 h-0.5 bg-primary" />
       <div className="mx-auto grid max-w-6xl grid-cols-1 gap-10 px-4 sm:px-6 md:grid-cols-4">
         <div className="col-span-1 md:col-span-2">
           <p className="mb-3 inline-flex rounded border border-accent/40 bg-accent/10 px-3 py-1 text-[10px] font-mono font-semibold uppercase tracking-[0.16em] text-accent">

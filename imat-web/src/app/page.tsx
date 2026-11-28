@@ -54,26 +54,32 @@ const sectionReveal: Variants = {
 
 function StatusStep({
   icon: Icon,
+  index,
   label,
   text,
   tone,
 }: {
   icon: LucideIcon;
+  index: number;
   label: string;
   text: string;
   tone: string;
 }) {
   return (
-    <div className="card status-rail p-5 pl-6 text-textDefault" style={{ color: tone }}>
-      <div className="flex items-start gap-3">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-current/35 bg-current/10">
+    <div className="card relative p-5">
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <span className="font-mono text-2xl font-black tabular-nums" style={{ color: tone }}>
+          {String(index).padStart(2, "0")}
+        </span>
+        <span
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
+          style={{ color: tone, background: `color-mix(in oklab, ${tone} 12%, transparent)` }}
+        >
           <Icon size={18} />
         </span>
-        <div>
-          <h3 className="text-sm font-black uppercase tracking-[0.14em] text-textDefault">{label}</h3>
-          <p className="mt-2 text-sm leading-relaxed text-text2">{text}</p>
-        </div>
       </div>
+      <h3 className="text-sm font-black uppercase tracking-[0.14em] text-textDefault">{label}</h3>
+      <p className="mt-2 text-sm leading-relaxed text-text2">{text}</p>
     </div>
   );
 }
@@ -223,7 +229,7 @@ export default function Home() {
     <div className="flex w-full flex-col">
       <section className="relative overflow-hidden bg-asphalt text-white">
         <div className="blueprint-grid absolute inset-0 opacity-20" />
-        <div className="relative mx-auto grid min-h-[calc(100vh-4.5rem)] max-w-7xl items-center gap-10 px-4 py-14 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:py-20">
+        <div className="relative mx-auto grid min-h-[560px] max-w-7xl items-center gap-10 px-4 py-14 sm:px-6 lg:min-h-[640px] lg:grid-cols-[1.05fr_0.95fr]">
           <motion.div
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
@@ -264,7 +270,7 @@ export default function Home() {
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.55, delay: 0.12 }}
-            className="rounded-lg border border-white/15 bg-white/[0.04] p-4 shadow-2xl shadow-black/30"
+            className="rounded-lg border border-white/15 bg-white/[0.04] p-4shadow-lg shadow-black/20"
           >
             <div className="mb-4 flex items-center justify-between border-b border-white/10 pb-4">
               <div>
@@ -310,7 +316,7 @@ export default function Home() {
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.18 }}
-        className="py-14 md:py-20"
+        className="py-12 lg:py-16"
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="mb-8 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
@@ -384,7 +390,7 @@ export default function Home() {
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.18 }}
-        className="border-y border-borderDark bg-bg2/70 py-14 md:py-20"
+        className="border-y border-borderDark bg-bg2/70 py-12 lg:py-16"
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="mb-8 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
@@ -439,18 +445,23 @@ export default function Home() {
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.18 }}
-        className="py-14 md:py-20"
+        className="py-12 lg:py-16"
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="mb-8 max-w-3xl">
             <p className="eyebrow">Complaint To Closure</p>
             <h2 className="page-title">Traceable Maintenance Workflow</h2>
           </div>
-          <div className="grid gap-4 md:grid-cols-4">
-            <StatusStep icon={Camera} label="Report" text="Students submit structured defect data, photos, GPS, category, and severity." tone="var(--danger)" />
-            <StatusStep icon={FileText} label="Verify" text="Field and technical officers assess the defect and validate the record." tone="var(--warning)" />
-            <StatusStep icon={Building2} label="Route" text="Works Department liaison receives clean, actionable infrastructure context." tone="var(--primary)" />
-            <StatusStep icon={CheckCircle} label="Resolve" text="Before / after evidence and status updates close the public accountability loop." tone="var(--success)" />
+          <div className="relative">
+            {/* Connector: a dashed line across the step numbers on desktop,
+                visible only in the gaps between cards. */}
+            <div aria-hidden="true" className="absolute left-[12.5%] right-[12.5%] top-9 hidden border-t-2 border-dashed border-borderDark md:block" />
+            <div className="relative grid gap-4 md:grid-cols-4">
+              <StatusStep index={1} icon={Camera} label="Report" text="Students submit structured defect data, photos, GPS, category, and severity." tone="var(--danger)" />
+              <StatusStep index={2} icon={FileText} label="Verify" text="Field and technical officers assess the defect and validate the record." tone="var(--warning)" />
+              <StatusStep index={3} icon={Building2} label="Route" text="Works Department liaison receives clean, actionable infrastructure context." tone="var(--primary)" />
+              <StatusStep index={4} icon={CheckCircle} label="Resolve" text="Before / after evidence and status updates close the public accountability loop." tone="var(--success)" />
+            </div>
           </div>
         </div>
       </motion.section>
