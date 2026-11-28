@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import { Map as MapIcon, Filter, AlertTriangle, FileText } from "lucide-react";
 import { ExpandableSearch } from "@/components/ExpandableSearch";
+import FilterChips from "@/components/list/FilterChips";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
@@ -26,6 +27,7 @@ export default function InternalDefectsLogPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filterSeverity, setFilterSeverity] = useState("all");
+  const [activeStatus, setActiveStatus] = useState("all");
 
   useEffect(() => {
     const fetchInternalDefects = async () => {
@@ -72,13 +74,38 @@ export default function InternalDefectsLogPage() {
     }
   };
 
-  const filteredDefects = defects.filter(d => {
-    const matchesSearch = d.id.toLowerCase().includes(search.toLowerCase()) || 
-                          d.title.toLowerCase().includes(search.toLowerCase()) ||
-                          d.campus_zones?.name.toLowerCase().includes(search.toLowerCase());
-    
-    if (filterSeverity === "all") return matchesSearch;
-    return matchesSearch && d.severity === parseInt(filterSeverity);
+  // Search first, then status — chip counts reflect the current search.
+  // The severity dropdown still applies on top of both.
+  const searchedDefects = useMemo(
+    () =>
+      defects.filter(
+        (d) =>
+          d.id.toLowerCase().includes(search.toLowerCase()) ||
+          d.title.toLowerCase().includes(search.toLowerCase()) ||
+          d.campus_zones?.name.toLowerCase().includes(search.toLowerCase()),
+      ),
+    [defects, search],
+  );
+
+  const statusCounts = useMemo(() => {
+    const counts: Record<string, number> = {
+      all: searchedDefects.length,
+      reported: 0,
+      assessed: 0,
+      escalated: 0,
+      acknowledged_by_works: 0,
+      resolved: 0,
+    };
+    for (const d of searchedDefects) {
+      if (counts[d.status] !== undefined) counts[d.status] += 1;
+    }
+    return counts;
+  }, [searchedDefects]);
+
+  const filteredDefects = searchedDefects.filter((d) => {
+    if (activeStatus !== "all" && d.status !== activeStatus) return false;
+    if (filterSeverity === "all") return true;
+    return d.severity === parseInt(filterSeverity);
   });
 
    return (
@@ -120,6 +147,22 @@ export default function InternalDefectsLogPage() {
                  <option value="1">Level 1 (Cosmetic)</option>
                </select>
             </div>
+         </div>
+
+         <div className="mb-6">
+           <FilterChips
+             chips={[
+               { id: "all", label: "All", count: statusCounts.all },
+               { id: "reported", label: "Reported", count: statusCounts.reported },
+               { id: "assessed", label: "Assessed", count: statusCounts.assessed },
+               { id: "escalated", label: "Escalated", count: statusCounts.escalated },
+               { id: "acknowledged_by_works", label: "Works Notified", count: statusCounts.acknowledged_by_works },
+               { id: "resolved", label: "Resolved", count: statusCounts.resolved },
+             ]}
+             activeId={activeStatus}
+             onChange={setActiveStatus}
+             ariaLabel="Filter defects by status"
+           />
          </div>
 
       {/* Desktop: table. Phones: stacked cards (same pattern as the

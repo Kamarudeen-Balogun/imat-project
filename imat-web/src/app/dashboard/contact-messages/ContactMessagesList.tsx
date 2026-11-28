@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { Calendar, ChevronDown, MailOpen, Trash2 } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Calendar, ChevronDown, MailOpen, Search, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { deleteMessage, markMessageAsRead } from "./actions";
+import FilterChips from "@/components/list/FilterChips";
 
 export type ContactMessageRow = {
   id: string;
@@ -38,6 +39,40 @@ export default function ContactMessagesList({
   // Cards start collapsed so a long inbox is easy to scan — same pattern
   // as the applications page.
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const [activeFilter, setActiveFilter] = useState("all");
+  const [query, setQuery] = useState("");
+
+  // Search first, then the chip — counts reflect the current search.
+  const searched = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return messages;
+    return messages.filter(
+      (message) =>
+        message.name.toLowerCase().includes(q) ||
+        message.email.toLowerCase().includes(q) ||
+        message.subject.toLowerCase().includes(q),
+    );
+  }, [messages, query]);
+
+  const purposes = useMemo(
+    () => [...new Set(searched.map((message) => message.purpose))],
+    [searched],
+  );
+
+  const counts = useMemo(() => {
+    const result: Record<string, number> = { all: searched.length, unread: 0 };
+    for (const message of searched) {
+      result[message.purpose] = (result[message.purpose] ?? 0) + 1;
+      if (!message.is_read) result.unread += 1;
+    }
+    return result;
+  }, [searched]);
+
+  const visibleMessages = useMemo(() => {
+    if (activeFilter === "all") return searched;
+    if (activeFilter === "unread") return searched.filter((message) => !message.is_read);
+    return searched.filter((message) => message.purpose === activeFilter);
+  }, [searched, activeFilter]);
 
   const toggleExpanded = (id: string) => {
     setExpandedIds((current) => {
@@ -52,7 +87,7 @@ export default function ContactMessagesList({
   };
 
   const expandAll = () => {
-    setExpandedIds(new Set(messages.map((message) => message.id)));
+    setExpandedIds(new Set(visibleMessages.map((message) => message.id)));
   };
 
   const collapseAll = () => {
@@ -65,6 +100,41 @@ export default function ContactMessagesList({
 
   return (
     <>
+      <div className="mb-4">
+        <FilterChips
+          chips={[
+            { id: "all", label: "All", count: counts.all },
+            ...purposes.map((purpose) => ({
+              id: purpose,
+              label: formatPurpose(purpose),
+              count: counts[purpose] ?? 0,
+            })),
+            { id: "unread", label: "Unread", count: counts.unread },
+          ]}
+          activeId={activeFilter}
+          onChange={setActiveFilter}
+          ariaLabel="Filter messages by purpose"
+        />
+      </div>
+      <div className="relative mb-4">
+        <Search
+          size={16}
+          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-text3"
+        />
+        <input
+          type="search"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="Search by sender or subject…"
+          aria-label="Search by sender or subject"
+          className="w-full rounded-lg border border-soft bg-bg p-3 pl-9 text-textDefault placeholder-text3 focus:border-primary focus:outline-none"
+        />
+      </div>
+
+      {visibleMessages.length === 0 ? (
+        <div className="empty-state">No messages match these filters.</div>
+      ) : (
+      <>
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <button type="button" onClick={expandAll} className="btn btn-outline btn-sm">
           Expand all
@@ -73,12 +143,12 @@ export default function ContactMessagesList({
           Collapse all
         </button>
         <span className="ml-auto text-xs font-mono text-text3">
-          {messages.length} message{messages.length === 1 ? "" : "s"}
+          {visibleMessages.length} message{visibleMessages.length === 1 ? "" : "s"}
         </span>
       </div>
 
       <div className="space-y-4">
-        {messages.map((message) => {
+        {visibleMessages.map((message) => {
           const isExpanded = expandedIds.has(message.id);
           return (
             <article key={message.id} className="glass-panel rounded-xl overflow-hidden">
@@ -158,6 +228,8 @@ export default function ContactMessagesList({
           );
         })}
       </div>
+      </>
+      )}
     </>
   );
 }

@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { createSupabaseClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { canApproveContent } from "@/lib/access";
@@ -81,6 +82,7 @@ export async function submitWikiPageForApproval(formData: FormData) {
     isRelevant: true,
   });
 
+  revalidatePath("/dashboard/wiki");
   redirect("/dashboard/wiki");
 }
 
@@ -121,6 +123,7 @@ export async function approveWikiPage(formData: FormData) {
     isRelevant: true,
   });
 
+  revalidatePath("/dashboard/wiki");
   redirect("/dashboard/wiki");
 }
 
@@ -163,5 +166,6 @@ export async function rejectWikiPage(formData: FormData) {
     isRelevant: true,
   });
 
+  revalidatePath("/dashboard/wiki");
   redirect("/dashboard/wiki");
 }

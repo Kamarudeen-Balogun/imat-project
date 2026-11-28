@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AlertCircle, Clock, CheckCircle, ImageOff } from "lucide-react";
 import Link from "next/link";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import { formatDistanceToNow } from "date-fns";
 import { ExpandableSearch } from "@/components/ExpandableSearch";
+import FilterChips from "@/components/list/FilterChips";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 import { motion } from "framer-motion";
 import { sectionReveal } from "@/lib/animations";
@@ -24,6 +25,7 @@ export default function IssuesTrackerPage() {
   const [defects, setDefects] = useState<Defect[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [activeStatus, setActiveStatus] = useState("all");
 
   useEffect(() => {
     const fetchDefects = async () => {
@@ -66,9 +68,44 @@ export default function IssuesTrackerPage() {
     }
   };
 
-  const filteredDefects = defects.filter(d => 
-    d.title.toLowerCase().includes(search.toLowerCase()) || 
-    d.id.toLowerCase().includes(search.toLowerCase())
+  // Public labels group the internal stages: assessed and escalated both
+  // read as "Under Assessment" on this page, so the chips match the badges.
+  const publicStatusGroup = (status: string) => {
+    if (status === "assessed" || status === "escalated") return "under_assessment";
+    return status;
+  };
+
+  const searchedDefects = useMemo(
+    () =>
+      defects.filter(
+        (d) =>
+          d.title.toLowerCase().includes(search.toLowerCase()) ||
+          d.id.toLowerCase().includes(search.toLowerCase()),
+      ),
+    [defects, search],
+  );
+
+  const statusCounts = useMemo(() => {
+    const counts: Record<string, number> = {
+      all: searchedDefects.length,
+      reported: 0,
+      under_assessment: 0,
+      acknowledged_by_works: 0,
+      resolved: 0,
+    };
+    for (const d of searchedDefects) {
+      const group = publicStatusGroup(d.status);
+      if (counts[group] !== undefined) counts[group] += 1;
+    }
+    return counts;
+  }, [searchedDefects]);
+
+  const filteredDefects = useMemo(
+    () =>
+      activeStatus === "all"
+        ? searchedDefects
+        : searchedDefects.filter((d) => publicStatusGroup(d.status) === activeStatus),
+    [searchedDefects, activeStatus],
   );
 
   return (
@@ -91,7 +128,21 @@ export default function IssuesTrackerPage() {
           </p>
         </div>
 
-        <div className="mb-8 flex justify-end">
+        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="sm:max-w-[34rem]">
+            <FilterChips
+              chips={[
+                { id: "all", label: "All", count: statusCounts.all },
+                { id: "reported", label: "Reported", count: statusCounts.reported },
+                { id: "under_assessment", label: "Under Assessment", count: statusCounts.under_assessment },
+                { id: "acknowledged_by_works", label: "Works Notified", count: statusCounts.acknowledged_by_works },
+                { id: "resolved", label: "Resolved", count: statusCounts.resolved },
+              ]}
+              activeId={activeStatus}
+              onChange={setActiveStatus}
+              ariaLabel="Filter issues by status"
+            />
+          </div>
           <ExpandableSearch
             placeholder="Search issues..."
             value={search}

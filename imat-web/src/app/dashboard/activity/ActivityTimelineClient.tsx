@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Clock3, Trash2, AlertTriangle, X } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import FilterChips from "@/components/list/FilterChips";
 
 type ActivityLog = {
   id: string;
@@ -85,13 +86,68 @@ function entityLabel(entityType: string) {
   return ENTITY_LABELS[entityType] ?? humanise(entityType);
 }
 
+/** Group event types into the families the owner asked to filter by. */
+function eventFamily(eventType: string) {
+  if (eventType === "defect_status_updated") return "status";
+  if (
+    eventType === "defect_created" ||
+    eventType === "new_defect_reported" ||
+    eventType.endsWith("_submitted")
+  )
+    return "submissions";
+  if (eventType.endsWith("_approved") || eventType.endsWith("_rejected"))
+    return "approvals";
+  return "other";
+}
+
 export default function ActivityTimelineClient({ logs, defectTitles, canModerate, deleteActivityLog }: Props) {
   const [deletingLog, setDeletingLog] = useState<ActivityLog | null>(null);
+  const [activeFamily, setActiveFamily] = useState("all");
+
+  const familyCounts = useMemo(() => {
+    const counts: Record<string, number> = {
+      all: logs.length,
+      status: 0,
+      submissions: 0,
+      approvals: 0,
+      other: 0,
+    };
+    for (const log of logs) {
+      counts[eventFamily(log.event_type)] += 1;
+    }
+    return counts;
+  }, [logs]);
+
+  const visibleLogs = useMemo(
+    () =>
+      activeFamily === "all"
+        ? logs
+        : logs.filter((log) => eventFamily(log.event_type) === activeFamily),
+    [logs, activeFamily],
+  );
 
   return (
     <>
+      <div className="mb-4">
+        <FilterChips
+          chips={[
+            { id: "all", label: "All", count: familyCounts.all },
+            { id: "status", label: "Status updates", count: familyCounts.status },
+            { id: "submissions", label: "Submissions", count: familyCounts.submissions },
+            { id: "approvals", label: "Approvals", count: familyCounts.approvals },
+            { id: "other", label: "Other", count: familyCounts.other },
+          ]}
+          activeId={activeFamily}
+          onChange={setActiveFamily}
+          ariaLabel="Filter activity by event type"
+        />
+      </div>
+
+      {visibleLogs.length === 0 ? (
+        <div className="empty-state">No activity matches this filter.</div>
+      ) : (
       <div className="space-y-4">
-        {logs.map((log) => {
+        {visibleLogs.map((log) => {
           const title = defectTitles[log.entity_id ?? ""];
           const entityRef =
             log.entity_type === "defect" && log.entity_id
@@ -129,6 +185,7 @@ export default function ActivityTimelineClient({ logs, defectTitles, canModerate
           );
         })}
       </div>
+      )}
 
       {deletingLog ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">

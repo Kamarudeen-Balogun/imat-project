@@ -4,8 +4,9 @@ import { useEffect, useMemo, useState } from "react";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import { toast } from "react-hot-toast";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
-import { CheckCircle2, ChevronDown, Download, Eye, GraduationCap, Mail, User, XCircle } from "lucide-react";
+import { CheckCircle2, ChevronDown, Download, Eye, GraduationCap, Mail, Search, User, XCircle } from "lucide-react";
 import { ROLE_LABELS } from "@/lib/roleHierarchy";
+import FilterChips from "@/components/list/FilterChips";
 
 // Only the owner and admins may accept/reject applications or download
 // the CSV. Every logged-in member may view the list and the details.
@@ -77,8 +78,45 @@ export default function ApplicationsPage() {
   const [toDate, setToDate] = useState("");
   // Cards start collapsed so a long list is easy to scan.
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const [activeStatus, setActiveStatus] = useState("all");
+  const [query, setQuery] = useState("");
 
   const supabase = useMemo(() => createSupabaseClient(), []);
+
+  // Search first, then status — chip counts reflect the current search.
+  const searched = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return applications;
+    return applications.filter(
+      (app) =>
+        app.applicant_name.toLowerCase().includes(q) ||
+        app.email.toLowerCase().includes(q) ||
+        (app.matric_no ?? "").toLowerCase().includes(q),
+    );
+  }, [applications, query]);
+
+  const statusCounts = useMemo(() => {
+    const counts: Record<string, number> = {
+      all: searched.length,
+      submitted: 0,
+      under_review: 0,
+      accepted: 0,
+      waitlisted: 0,
+      rejected: 0,
+    };
+    for (const app of searched) {
+      if (counts[app.status] !== undefined) counts[app.status] += 1;
+    }
+    return counts;
+  }, [searched]);
+
+  const visibleApplications = useMemo(
+    () =>
+      activeStatus === "all"
+        ? searched
+        : searched.filter((app) => app.status === activeStatus),
+    [searched, activeStatus],
+  );
 
   useEffect(() => {
     const fetchData = async () => {
@@ -135,7 +173,7 @@ export default function ApplicationsPage() {
   };
 
   const expandAll = () => {
-    setExpandedIds(new Set(applications.map((app) => app.id)));
+    setExpandedIds(new Set(visibleApplications.map((app) => app.id)));
   };
 
   const collapseAll = () => {
@@ -308,6 +346,42 @@ export default function ApplicationsPage() {
         </div>
       ) : (
         <>
+          <div className="mb-4">
+            <FilterChips
+              chips={[
+                { id: "all", label: "All", count: statusCounts.all },
+                { id: "submitted", label: "Submitted", count: statusCounts.submitted },
+                { id: "under_review", label: "Under Review", count: statusCounts.under_review },
+                { id: "accepted", label: "Accepted", count: statusCounts.accepted },
+                { id: "waitlisted", label: "Waitlisted", count: statusCounts.waitlisted },
+                { id: "rejected", label: "Rejected", count: statusCounts.rejected },
+              ]}
+              activeId={activeStatus}
+              onChange={setActiveStatus}
+              ariaLabel="Filter applications by status"
+            />
+          </div>
+          <div className="relative mb-4">
+            <Search
+              size={16}
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-text3"
+            />
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search by name, email or matric number…"
+              aria-label="Search by name, email or matric number"
+              className="w-full rounded-lg border border-soft bg-bg p-3 pl-9 text-textDefault placeholder-text3 focus:border-primary focus:outline-none"
+            />
+          </div>
+
+          {visibleApplications.length === 0 ? (
+            <div className="empty-state">
+              No applications match these filters.
+            </div>
+          ) : (
+          <>
           <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
             {canReview && (
               <>
@@ -357,12 +431,12 @@ export default function ApplicationsPage() {
               Collapse all
             </button>
             <span className="text-xs font-mono text-text3 sm:ml-auto">
-              {applications.length} application{applications.length === 1 ? "" : "s"}
+              {visibleApplications.length} application{visibleApplications.length === 1 ? "" : "s"}
             </span>
           </div>
 
           <div className="space-y-4">
-            {applications.map((app) => {
+            {visibleApplications.map((app) => {
               const isPending = app.status === "submitted" || app.status === "under_review";
               const isReviewing = reviewingId === app.id;
               const isExpanded = expandedIds.has(app.id);
@@ -602,6 +676,8 @@ export default function ApplicationsPage() {
               );
             })}
           </div>
+          </>
+          )}
         </>
       )}
     </div>

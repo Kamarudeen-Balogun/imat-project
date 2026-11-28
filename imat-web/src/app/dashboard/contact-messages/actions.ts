@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { createSupabaseClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
@@ -43,6 +44,7 @@ export async function markMessageAsRead(formData: FormData) {
     console.warn("Failed to mark contact message as read.", error);
   }
 
+  revalidatePath("/dashboard/contact-messages");
   redirect("/dashboard/contact-messages");
 }
 
@@ -85,5 +87,6 @@ export async function deleteMessage(formData: FormData) {
     console.warn("Failed to delete contact message.", error);
   }
 
+  revalidatePath("/dashboard/contact-messages");
   redirect("/dashboard/contact-messages");
 }

@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { createSupabaseClient } from "@/lib/supabase/server";
 import { Activity } from "lucide-react";
 import { canModerateActivity } from "@/lib/access";
@@ -44,6 +45,7 @@ async function deleteActivityLog(formData: FormData) {
   }
 
   await supabase.from("activity_logs").delete().eq("id", id);
+  revalidatePath("/dashboard/activity");
   redirect("/dashboard/activity");
 }
 

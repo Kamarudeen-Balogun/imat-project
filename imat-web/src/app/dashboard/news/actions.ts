@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { createSupabaseClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { canApproveContent } from "@/lib/access";
@@ -89,6 +90,8 @@ export async function submitAnnouncementForApproval(formData: FormData) {
     actorId: user.id,
   });
 
+  revalidatePath("/dashboard/news");
+
   await logActivityEvent(admin, {
     eventType: "announcement_submitted",
     entityType: "announcement",
@@ -139,6 +142,8 @@ export async function approveAnnouncement(formData: FormData) {
     });
   }
 
+  revalidatePath("/dashboard/news");
+
   await logActivityEvent(admin, {
     eventType: "announcement_published",
     entityType: "announcement",
@@ -185,6 +190,8 @@ export async function rejectAnnouncement(formData: FormData) {
       reviewNote,
     });
   }
+
+  revalidatePath("/dashboard/news");
 
   await logActivityEvent(admin, {
     eventType: "announcement_updated",

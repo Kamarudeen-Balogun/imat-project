@@ -1,11 +1,12 @@
 "use client";
 
-import { MouseEvent, useEffect, useState } from "react";
+import { MouseEvent, useEffect, useMemo, useState } from "react";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import { ChevronDown, History, Bell } from "lucide-react";
 import { format } from "date-fns";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import FilterChips from "@/components/list/FilterChips";
 
 const GUEST_SEEN_STORAGE_KEY = "imat_news_seen_public_ids";
 
@@ -16,6 +17,7 @@ type Notification = {
   created_at: string;
   href?: string;
   is_read?: boolean;
+  type?: string;
 };
 
 export default function NotificationsHistoryPanel() {
@@ -27,7 +29,30 @@ export default function NotificationsHistoryPanel() {
   const [recipientId, setRecipientId] = useState<string | null>(null);
   const [panelTitle, setPanelTitle] = useState("Notification History");
   const [panelLabel, setPanelLabel] = useState("Showing last 20 notifications");
+  const [activeType, setActiveType] = useState("all");
   const unreadCount = notifications.filter((notif) => notif.is_read === false).length;
+
+  // Signed-in members get a type filter (news vs system); guests see
+  // public posts, which have no type.
+  const typeCounts = useMemo(() => {
+    const counts: Record<string, number> = {
+      all: notifications.length,
+      news_update: 0,
+      system: 0,
+    };
+    for (const notif of notifications) {
+      if (notif.type && counts[notif.type] !== undefined) counts[notif.type] += 1;
+    }
+    return counts;
+  }, [notifications]);
+
+  const visibleNotifications = useMemo(
+    () =>
+      activeType === "all"
+        ? notifications
+        : notifications.filter((notif) => notif.type === activeType),
+    [notifications, activeType],
+  );
 
   const loadGuestSeenIds = () => {
     if (typeof window === "undefined") return new Set<string>();
@@ -88,7 +113,7 @@ export default function NotificationsHistoryPanel() {
 
       const { data: notifData, error } = await supabase
         .from("notifications")
-        .select("id, title, body, created_at, href, is_read")
+        .select("id, title, body, created_at, href, is_read, type")
         .eq("recipient_id", data.session.user.id)
         .order("created_at", { ascending: false })
         .limit(20);
@@ -187,13 +212,27 @@ export default function NotificationsHistoryPanel() {
           </div>
 
           <div className="min-h-0 flex-1 divide-y divide-borderDark overflow-y-auto">
-            {notifications.length === 0 ? (
+            {recipientId && (
+              <div className="px-6 pt-4">
+                <FilterChips
+                  chips={[
+                    { id: "all", label: "All", count: typeCounts.all },
+                    { id: "news_update", label: "News", count: typeCounts.news_update },
+                    { id: "system", label: "System", count: typeCounts.system },
+                  ]}
+                  activeId={activeType}
+                  onChange={setActiveType}
+                  ariaLabel="Filter notifications by type"
+                />
+              </div>
+            )}
+            {visibleNotifications.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-8 px-4 text-text3">
                 <Bell size={32} className="mb-2 opacity-50" />
                 <p className="text-sm">No history yet</p>
               </div>
             ) : (
-              notifications.map((notif) => (
+              visibleNotifications.map((notif) => (
                 <Link
                   key={notif.id}
                   href={notif.href ?? "#"}

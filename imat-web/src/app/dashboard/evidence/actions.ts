@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { createSupabaseClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { canApproveContent } from "@/lib/access";
@@ -80,6 +81,7 @@ export async function submitEvidenceForApproval(formData: FormData) {
     isRelevant: true,
   });
 
+  revalidatePath("/dashboard/evidence");
   redirect("/dashboard/evidence");
 }
 
@@ -120,6 +122,7 @@ export async function approveEvidence(formData: FormData) {
     isRelevant: true,
   });
 
+  revalidatePath("/dashboard/evidence");
   redirect("/dashboard/evidence");
 }
 
@@ -162,5 +165,6 @@ export async function rejectEvidence(formData: FormData) {
     isRelevant: true,
   });
 
+  revalidatePath("/dashboard/evidence");
   redirect("/dashboard/evidence");
 }
