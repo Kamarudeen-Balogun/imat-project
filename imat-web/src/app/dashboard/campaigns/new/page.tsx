@@ -1,6 +1,6 @@
 import { createSupabaseClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { isAdminOrOwner } from "@/lib/access";
+import { isAdminOrOwner, isMemberAuthor } from "@/lib/access";
 import CampaignForm from "./CampaignForm";
 
 export default async function NewCampaignPage() {
@@ -12,15 +12,16 @@ export default async function NewCampaignPage() {
     redirect("/login");
   }
 
-  // Broadcasts are owner/admin only. (The old gate let advocacy_officer and
-  // president in but locked the owner out of his own composer.)
+  // Any member (except applicants, who are not members yet) can write a
+  // broadcast. Only owner/admin publish directly; everyone else submits for
+  // approval. RLS enforces the same split on the insert itself.
   const { data: profile } = await supabase
     .from("users")
     .select("role, full_name")
     .eq("id", user.id)
     .single();
 
-  if (!profile || !isAdminOrOwner(profile.role)) {
+  if (!profile || !isMemberAuthor(profile.role)) {
     redirect("/dashboard");
   }
 
@@ -35,7 +36,7 @@ export default async function NewCampaignPage() {
         </p>
       </div>
 
-      <CampaignForm userId={user.id} authorName={profile.full_name ?? "IMAT Official"} />
+      <CampaignForm userId={user.id} authorName={profile.full_name ?? "IMAT Official"} canPublish={isAdminOrOwner(profile.role)} />
     </div>
   );
 }

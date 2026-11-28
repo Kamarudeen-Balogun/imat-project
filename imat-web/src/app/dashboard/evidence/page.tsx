@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createSupabaseClient } from "@/lib/supabase/client";
-import { canEditEvidenceGallery } from "@/lib/access";
+import { canApproveContent, canEditEvidenceGallery, isMemberAuthor } from "@/lib/access";
+import { logActivityEvent } from "@/lib/activity/logEvent";
 import { toast } from "react-hot-toast";
 import { Check, Edit3, Loader2, Plus, Trash2, Upload } from "lucide-react";
 import Link from "next/link";
@@ -11,8 +12,18 @@ import EvidenceGalleryGrid, { type EvidenceGalleryItem } from "@/components/evid
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import { sanitizePlainText, sanitizeUrl } from "@/lib/inputSanitizer";
+import { approveEvidence, rejectEvidence, submitEvidenceForApproval } from "./actions";
 
-const emptyItem: EvidenceGalleryItem = {
+// Manager rows carry the approval fields the public grid does not need.
+type ManagerEvidenceItem = EvidenceGalleryItem & {
+  status?: "draft" | "pending_approval" | "published" | null;
+  review_note?: string | null;
+  created_by?: string | null;
+};
+
+const MANAGER_SELECT = "id, title, description, category, before_image_url, after_image_url, sort_order, is_active, status, review_note, created_by";
+
+const emptyItem: ManagerEvidenceItem = {
   id: "new-item",
   title: "",
   description: "",
@@ -21,6 +32,7 @@ const emptyItem: EvidenceGalleryItem = {
   after_image_url: null,
   sort_order: undefined,
   is_active: true,
+  status: "published",
 };
 
 export default function DashboardEvidencePage() {
@@ -30,9 +42,21 @@ export default function DashboardEvidencePage() {
   const [saving, setSaving] = useState<string | null>(null);
   const [uploading, setUploading] = useState<string | null>(null);
   const [role, setRole] = useState<string | null>(null);
-  const [items, setItems] = useState<EvidenceGalleryItem[]>([]);
-  const [newItem, setNewItem] = useState<EvidenceGalleryItem>(emptyItem);
-  const [pendingDeleteItem, setPendingDeleteItem] = useState<EvidenceGalleryItem | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [items, setItems] = useState<ManagerEvidenceItem[]>([]);
+  const [newItem, setNewItem] = useState<ManagerEvidenceItem>(emptyItem);
+  const [pendingDeleteItem, setPendingDeleteItem] = useState<ManagerEvidenceItem | null>(null);
+
+  const isEditor = canEditEvidenceGallery(role);
+  const isApprover = canApproveContent(role);
+  const pendingCount = items.filter((item) => item.status === "pending_approval").length;
+
+  // Editors and approvers can edit any item; other members can only edit
+  // their own drafts and pending submissions — never a published item.
+  const canEditItem = (item: ManagerEvidenceItem) =>
+    isEditor || isApprover || (item.created_by === userId && item.status !== "published");
+  const canDeleteItem = (item: ManagerEvidenceItem) =>
+    isEditor || isApprover || (item.created_by === userId && item.status !== "published");
 
   useEffect(() => {
     const init = async () => {
@@ -46,19 +70,22 @@ export default function DashboardEvidencePage() {
       const { data: profile } = await supabase.from("users").select("role").eq("id", session.user.id).single();
       const currentRole = profile?.role ?? null;
       setRole(currentRole);
+      setUserId(session.user.id);
 
-      if (!canEditEvidenceGallery(currentRole)) {
+      // Any member (except applicants, who are not members yet) can submit
+      // evidence. Editors publish directly; everyone else goes through approval.
+      if (!isMemberAuthor(currentRole)) {
         router.push("/dashboard");
         return;
       }
 
       const { data } = await supabase
         .from("evidence_gallery")
-        .select("id, title, description, category, before_image_url, after_image_url, sort_order, is_active")
+        .select(MANAGER_SELECT)
         .order("sort_order", { ascending: true })
         .order("created_at", { ascending: false });
 
-      setItems((data ?? []) as EvidenceGalleryItem[]);
+      setItems((data ?? []) as ManagerEvidenceItem[]);
       setLoading(false);
     };
 
@@ -122,7 +149,7 @@ export default function DashboardEvidencePage() {
     }
   };
 
-  const saveItem = async (item: EvidenceGalleryItem, isNew = false) => {
+  const saveItem = async (item: ManagerEvidenceItem, isNew = false) => {
     const safeTitle = sanitizePlainText(item.title, 120);
     const safeDescription = sanitizePlainText(item.description, 4000);
     const safeBeforeImageUrl = sanitizeUrl(item.before_image_url.trim());
@@ -159,6 +186,9 @@ export default function DashboardEvidencePage() {
       sort_order?: number;
       is_active: boolean;
       updated_at: string;
+      created_by?: string | null;
+      status?: "draft" | "pending_approval" | "published";
+      submitted_by?: string | null;
     } = {
       title: safeTitle,
       description: safeDescription,
@@ -173,22 +203,59 @@ export default function DashboardEvidencePage() {
       payload.sort_order = resolvedSortOrder;
     }
 
+    // Editors publish directly; every other member submits for approval.
+    // created_by is what makes the author policies work — older rows were
+    // inserted without it, so set it on every new item.
+    const submittingForApproval = isNew && !isEditor && !isApprover;
+    if (isNew) {
+      payload.created_by = userId;
+      payload.status = submittingForApproval ? "pending_approval" : "published";
+      if (submittingForApproval) payload.submitted_by = userId;
+    }
+
     const request = isNew
-      ? supabase.from("evidence_gallery").insert({ ...payload, created_at: new Date().toISOString() })
+      ? supabase.from("evidence_gallery").insert({ ...payload, created_at: new Date().toISOString() }).select("id")
       : supabase.from("evidence_gallery").update(payload).eq("id", item.id);
 
-    const { error } = await request;
+    const { data: saved, error } = await request;
 
     if (error) {
       toast.error(isNew ? "Could not add evidence item." : "Could not save evidence item.");
     } else {
-      toast.success(isNew ? "Evidence item added." : "Evidence item saved.");
+      if (submittingForApproval) {
+        const newId = (saved as unknown as Array<{ id: string }> | null)?.[0]?.id;
+        if (newId) {
+          try {
+            await fetch("/api/approvals/notify", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ kind: "evidence", id: newId, mode: "submitted" }),
+            });
+          } catch (error) {
+            console.warn("Approval notification failed.", error);
+          }
+        }
+        if (newId && userId) {
+          await logActivityEvent(supabase, {
+            eventType: "evidence_submitted",
+            entityType: "evidence",
+            entityId: newId,
+            title: `Submitted evidence for approval: ${safeTitle}`,
+            actorId: userId,
+            details: {},
+            isRelevant: true,
+          });
+        }
+        toast.success("Submitted for approval. An owner or admin will review it before it appears on the public board.");
+      } else {
+        toast.success(isNew ? "Evidence item added." : "Evidence item saved.");
+      }
       const { data } = await supabase
         .from("evidence_gallery")
-        .select("id, title, description, category, before_image_url, after_image_url, sort_order, is_active")
+        .select(MANAGER_SELECT)
         .order("sort_order", { ascending: true })
         .order("created_at", { ascending: false });
-      setItems((data ?? []) as EvidenceGalleryItem[]);
+      setItems((data ?? []) as ManagerEvidenceItem[]);
       if (isNew) {
         setNewItem(emptyItem);
       }
@@ -217,7 +284,7 @@ export default function DashboardEvidencePage() {
     setSaving(null);
   };
 
-  const updateItem = (itemId: string, patch: Partial<EvidenceGalleryItem>) => {
+  const updateItem = (itemId: string, patch: Partial<ManagerEvidenceItem>) => {
     setItems((current) => current.map((item) => (item.id === itemId ? { ...item, ...patch } : item)));
   };
 
@@ -230,7 +297,7 @@ export default function DashboardEvidencePage() {
     );
   }
 
-  if (!role || !canEditEvidenceGallery(role)) {
+  if (!role || !isMemberAuthor(role)) {
     return null;
   }
 
@@ -251,8 +318,15 @@ export default function DashboardEvidencePage() {
         </div>
         <h1 className="text-2xl md:text-3xl font-bold text-textDefault">Edit the before-and-after gallery</h1>
         <p className="text-text2 max-w-3xl">
-          Admin and documentation officers can update titles, descriptions, categories, images, and ordering. The public gallery will reflect these changes immediately.
+          {isEditor || isApprover
+            ? "Admin and documentation officers can update titles, descriptions, categories, images, and ordering. The public gallery will reflect these changes immediately."
+            : "Submit before-and-after evidence for the public board. Your item only appears publicly once an owner or admin approves it."}
         </p>
+        {isApprover && pendingCount > 0 && (
+          <p className="w-fit rounded-full border border-warning/40 bg-warning/10 px-3 py-1 text-xs font-semibold text-warning">
+            {pendingCount} item{pendingCount === 1 ? "" : "s"} awaiting review
+          </p>
+        )}
       </div>
 
       <div className="glass-panel space-y-4 rounded-2xl p-6 shadow-lg shadow-black/5">
@@ -344,10 +418,13 @@ export default function DashboardEvidencePage() {
               disabled={saving === newItem.id}
               className="inline-flex items-center justify-center gap-2 rounded-lg border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary hover:bg-primary/20 transition-colors disabled:opacity-50"
             >
-              <Plus size={16} /> Add item
+              <Plus size={16} /> {isEditor || isApprover ? "Add item" : "Submit for approval"}
             </button>
           </label>
         </div>
+        {!isEditor && !isApprover && (
+          <p className="text-xs text-text3">Submitting sends your item to an owner or admin for approval — it only appears on the public board once they approve it.</p>
+        )}
       </div>
 
       {items.length === 0 ? (
@@ -356,11 +433,66 @@ export default function DashboardEvidencePage() {
         </div>
       ) : (
         <div className="space-y-6">
-          <EvidenceGalleryGrid items={items} mobileHorizontal compact className="md:overflow-visible" />
+          <EvidenceGalleryGrid items={items.filter((item) => item.status === "published")} mobileHorizontal compact className="md:overflow-visible" />
 
           <div className="grid gap-6">
             {items.map((item) => (
               <div key={item.id} className="rounded-2xl border border-soft bg-bg2 p-5 space-y-4 shadow-lg shadow-black/5">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs font-mono uppercase tracking-wider text-text3">{item.category}</span>
+                  {item.status === "pending_approval" && (
+                    <span className="rounded-full border border-warning/40 bg-warning/10 px-2 py-0.5 text-[10px] font-semibold text-warning">Pending approval</span>
+                  )}
+                  {item.status === "draft" && (
+                    <span className="rounded-full border border-soft bg-bg px-2 py-0.5 text-[10px] font-semibold text-text3">Draft</span>
+                  )}
+                  {item.status === "published" && (
+                    <span className="rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">Published</span>
+                  )}
+                </div>
+                {item.status === "draft" && item.review_note && item.created_by === userId && (
+                  <p className="rounded-lg border border-warning/40 bg-warning/10 px-3 py-2 text-xs text-textDefault">
+                    <span className="font-semibold">Returned for changes: </span>
+                    {item.review_note}
+                  </p>
+                )}
+                {item.status === "pending_approval" && isApprover && (
+                  <div className="space-y-3 rounded-xl border border-warning/40 bg-warning/5 p-4">
+                    <p className="text-sm font-semibold text-textDefault">Waiting for your approval — publishing shows this on the public board.</p>
+                    <form action={approveEvidence}>
+                      <input type="hidden" name="evidence_id" value={item.id} />
+                      <button type="submit" className="w-full rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500 transition-colors">
+                        Approve & publish
+                      </button>
+                    </form>
+                    <form action={rejectEvidence} className="space-y-2">
+                      <input type="hidden" name="evidence_id" value={item.id} />
+                      <textarea
+                        name="review_note"
+                        required
+                        maxLength={500}
+                        rows={2}
+                        placeholder="Short note for the author (required)"
+                        className="w-full rounded-lg border border-soft bg-bg px-3 py-2 text-sm text-textDefault focus:outline-none focus:border-primary"
+                      />
+                      <button type="submit" className="w-full rounded-lg border border-danger/40 bg-danger/10 px-4 py-2 text-sm font-semibold text-danger hover:bg-danger/20 transition-colors">
+                        Reject — back to draft
+                      </button>
+                    </form>
+                  </div>
+                )}
+                {item.status === "pending_approval" && !isApprover && item.created_by === userId && (
+                  <p className="text-xs text-text3">Waiting for an owner or admin to review this item.</p>
+                )}
+                {item.status === "draft" && item.created_by === userId && !isEditor && !isApprover && (
+                  <form action={submitEvidenceForApproval}>
+                    <input type="hidden" name="evidence_id" value={item.id} />
+                    <button type="submit" className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white hover:brightness-110 transition-colors">
+                      Submit for approval
+                    </button>
+                  </form>
+                )}
+                {canEditItem(item) ? (
                 <div className="grid gap-4 lg:grid-cols-[1.2fr_1fr]">
                   <div className="space-y-3">
                     <label className="space-y-2">
@@ -459,17 +591,40 @@ export default function DashboardEvidencePage() {
                       >
                         <Check size={16} /> Save changes
                       </button>
-                      <button
-                        type="button"
-                        onClick={() => void deleteItem(item.id)}
-                        disabled={saving === item.id}
-                        className="inline-flex items-center gap-2 rounded-lg border border-danger/40 bg-danger/10 px-4 py-2 text-sm font-semibold text-danger hover:bg-danger/20 transition-colors disabled:opacity-50"
-                      >
-                        <Trash2 size={16} /> Delete
-                      </button>
+                      {canDeleteItem(item) && (
+                        <button
+                          type="button"
+                          onClick={() => void deleteItem(item.id)}
+                          disabled={saving === item.id}
+                          className="inline-flex items-center gap-2 rounded-lg border border-danger/40 bg-danger/10 px-4 py-2 text-sm font-semibold text-danger hover:bg-danger/20 transition-colors disabled:opacity-50"
+                        >
+                          <Trash2 size={16} /> Delete
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
+                ) : (
+                <div className="space-y-3">
+                  <h3 className="text-lg font-bold text-textDefault">{item.title}</h3>
+                  <p className="text-sm leading-relaxed text-text2">{item.description}</p>
+                  <p className="text-xs text-text3">
+                    {item.status === "published"
+                      ? "Published — only documentation officers and approvers can change it."
+                      : "Submitted by another member — waiting for an owner or admin to review it."}
+                  </p>
+                  {canDeleteItem(item) && (
+                    <button
+                      type="button"
+                      onClick={() => void deleteItem(item.id)}
+                      disabled={saving === item.id}
+                      className="inline-flex items-center gap-2 rounded-lg border border-danger/40 bg-danger/10 px-4 py-2 text-sm font-semibold text-danger hover:bg-danger/20 transition-colors disabled:opacity-50"
+                    >
+                      <Trash2 size={16} /> Delete
+                    </button>
+                  )}
+                </div>
+                )}
               </div>
             ))}
           </div>

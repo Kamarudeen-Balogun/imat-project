@@ -160,7 +160,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const supabase = adminSupabase ?? (await createSupabaseClient());
   const data = await loadAnnouncement(supabase, id);
 
-  if (!data || data.status === "draft") return { title: "Not Found | IMAT FUTA" };
+  if (!data || data.status !== "published") return { title: "Not Found | IMAT FUTA" };
 
   const canonicalHref = getAnnouncementHref(data.slug ?? data.id);
   const description = data.excerpt?.trim() || `${markdownToPlainText(data.body).substring(0, 160)}...`;
@@ -197,8 +197,9 @@ export default async function NewsPostPage({ params }: { params: Promise<{ id: s
 
   const data = await loadAnnouncement(contentSupabase, id);
 
-  // Drafts are never served on the public post page.
-  if (!data || data.status === "draft") notFound();
+  // Only published posts are served on the public post page — drafts and
+  // items awaiting approval 404 here.
+  if (!data || data.status !== "published") notFound();
 
   const post = data as unknown as Announcement;
   const canonicalHref = getAnnouncementHref(post.slug ?? post.id);

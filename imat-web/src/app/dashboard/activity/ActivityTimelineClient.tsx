@@ -29,10 +29,20 @@ const EVENT_LABELS: Record<string, string> = {
   announcement_published: "Broadcast published",
   announcement_updated: "Broadcast updated",
   announcement_deleted: "Broadcast deleted",
+  announcement_drafted: "Broadcast draft saved",
+  announcement_submitted: "Broadcast submitted for approval",
+  announcement_approved: "Broadcast approved",
+  announcement_rejected: "Broadcast returned for changes",
   report_published: "Report published",
   wiki_created: "Wiki page created",
   wiki_updated: "Wiki page updated",
   wiki_deleted: "Wiki page deleted",
+  wiki_submitted: "Wiki page submitted for approval",
+  wiki_approved: "Wiki page approved",
+  wiki_rejected: "Wiki page returned for changes",
+  evidence_submitted: "Evidence submitted for approval",
+  evidence_approved: "Evidence approved",
+  evidence_rejected: "Evidence returned for changes",
 };
 
 const ENTITY_LABELS: Record<string, string> = {
@@ -40,6 +50,7 @@ const ENTITY_LABELS: Record<string, string> = {
   report: "Report",
   announcement: "Broadcast",
   wiki_page: "Wiki page",
+  evidence: "Evidence",
   application: "Application",
   user: "Member",
   campaign: "Campaign",

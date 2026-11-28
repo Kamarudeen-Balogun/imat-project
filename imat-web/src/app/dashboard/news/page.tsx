@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowRight, Calendar, Edit3, Megaphone, Play, Plus, Star } from "lucide-react";
+import { ArrowRight, Calendar, Check, Edit3, Megaphone, Play, Plus, Star, X } from "lucide-react";
 import { format } from "date-fns";
 import { createSupabaseClient } from "@/lib/supabase/server";
-import { canEditContent } from "@/lib/access";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { canApproveContent, canEditContent, isMemberAuthor } from "@/lib/access";
 import { getAnnouncementHref } from "@/lib/news";
-import { markdownToPlainText } from "@/lib/markdown";
-import { sendAnnouncementPushNotifications } from "@/lib/push/server";
-import { sendAnnouncementEmails } from "@/lib/announcementEmail";
+import { runPublishSideEffects } from "@/lib/announcements/notify";
+import { approveAnnouncement, rejectAnnouncement } from "./actions";
 import Image from "next/image";
 import optimizeCloudinaryUrl from "@/lib/cloudinary";
 import DeleteAnnouncementButton from "./DeleteAnnouncementButton";
@@ -31,8 +31,12 @@ type AnnouncementRow = {
   is_pinned?: boolean | null;
   topic: string | null;
   excerpt: string | null;
-  status: "draft" | "published" | null;
+  status: "draft" | "pending_approval" | "published" | null;
   video_url: string | null;
+  author_id: string | null;
+  submitted_by: string | null;
+  reviewed_by: string | null;
+  review_note: string | null;
   author: { full_name: string | null } | null;
 };
 
@@ -77,16 +81,25 @@ async function toggleAnnouncementVisibility(formData: FormData) {
 
   const previousVisibility = existingAnnouncement.visibility;
   const isDraft = existingAnnouncement.status === "draft";
+  const isPending = existingAnnouncement.status === "pending_approval";
 
-  // Flipping a draft to public IS publishing it: it must leave draft
-  // status and get a real publish date, or the newsroom would still hide it.
-  const updates: { visibility: string; updated_at: string; status?: string; published_at?: string } = {
+  // A pending item is in the approval queue: only an approver may move it.
+  // Anyone else flipping its visibility must not publish it.
+  if (isPending && !canApproveContent(profile?.role)) {
+    redirect("/dashboard/news");
+  }
+
+  // Flipping a draft (or a pending item, by an approver) to public IS
+  // publishing it: it must leave draft/pending status and get a real publish
+  // date, or the newsroom would still hide it.
+  const updates: { visibility: string; updated_at: string; status?: string; published_at?: string; reviewed_by?: string } = {
     visibility,
     updated_at: new Date().toISOString(),
   };
-  if (visibility === "public" && isDraft) {
+  if (visibility === "public" && (isDraft || isPending)) {
     updates.status = "published";
     updates.published_at = new Date().toISOString();
+    updates.reviewed_by = user.id;
   }
 
   await supabase
@@ -94,50 +107,10 @@ async function toggleAnnouncementVisibility(formData: FormData) {
     .update(updates)
     .eq("id", announcementId);
 
-  if (visibility === "public" && (previousVisibility === "members_only" || isDraft)) {
-    const { data: recipients } = await supabase
-      .from("users")
-      .select("id")
-      .eq("status", "active")
-      .eq("notifications_enabled", true);
-
-    if (recipients && recipients.length > 0) {
-      const { data: existingNotifications } = await supabase
-        .from("notifications")
-        .select("recipient_id")
-        .eq("announcement_id", announcementId)
-        .eq("type", "news_update");
-
-      const alreadyNotified = new Set((existingNotifications ?? []).map((row) => row.recipient_id));
-
-      const notificationRows = recipients
-        .filter((recipient) => !alreadyNotified.has(recipient.id))
-        .map((recipient) => ({
-          recipient_id: recipient.id,
-          created_by: user.id,
-          announcement_id: announcementId,
-          type: "news_update",
-          title: existingAnnouncement.title,
-          body: markdownToPlainText(existingAnnouncement.body).slice(0, 180) || existingAnnouncement.title,
-          href: getAnnouncementHref(existingAnnouncement.slug ?? announcementId),
-        }));
-
-      if (notificationRows.length > 0) {
-        await supabase.from("notifications").insert(notificationRows);
-      }
-    }
-
-    try {
-      await sendAnnouncementPushNotifications(announcementId);
-    } catch (error) {
-      console.warn("Push notification delivery failed.", error);
-    }
-
-    try {
-      await sendAnnouncementEmails(announcementId);
-    } catch (error) {
-      console.warn("Announcement email delivery failed.", error);
-    }
+  if (visibility === "public" && (previousVisibility === "members_only" || isDraft || isPending)) {
+    // Publish side-effects run server-side (admin client). The old user-client
+    // notification insert silently failed under RLS — see lib/announcements/notify.ts.
+    await runPublishSideEffects(announcementId, user.id);
   }
 
   if (previousVisibility === "public" && visibility === "members_only") {
@@ -149,7 +122,9 @@ async function toggleAnnouncementVisibility(formData: FormData) {
 
     const applicantIds = (applicantUsers ?? []).map((row) => row.id);
     if (applicantIds.length > 0) {
-      await supabase
+      // No delete policy exists for the user client, so this runs as admin.
+      const admin = createSupabaseAdminClient();
+      await admin
         .from("notifications")
         .delete()
         .eq("announcement_id", announcementId)
@@ -250,9 +225,13 @@ export default async function DashboardNewsPage() {
     .eq("id", user.id)
     .single();
 
-  if (!canEditContent(profile?.role)) {
+  // The manager is the approval queue: every member (except applicants) can
+  // reach it to see their own drafts and submissions. Approvers see everything.
+  if (!isMemberAuthor(profile?.role)) {
     redirect("/dashboard");
   }
+
+  const isApprover = canApproveContent(profile?.role);
 
   let pinningAvailable = true;
   const pinnedResult = await supabase
@@ -278,7 +257,13 @@ export default async function DashboardNewsPage() {
     console.warn("Failed to load newsroom manager announcements.", error);
   }
 
-   const announcements = (data ?? []) as unknown as AnnouncementRow[];
+  const allAnnouncements = (data ?? []) as unknown as AnnouncementRow[];
+  // Approvers see the whole queue; other members see their own items plus
+  // anything already published.
+  const announcements = isApprover
+    ? allAnnouncements
+    : allAnnouncements.filter((item) => item.author_id === user.id || item.status === "published");
+  const pendingCount = allAnnouncements.filter((item) => item.status === "pending_approval").length;
 
    return (
      <div className="mx-auto max-w-6xl animate-in fade-in duration-500 px-4 pb-16 pt-6 sm:px-6">
@@ -295,6 +280,14 @@ export default async function DashboardNewsPage() {
         </div>
         <h1 className="text-2xl md:text-3xl font-bold text-textDefault mb-2">Manage published broadcasts</h1>
         <p className="text-text2 max-w-2xl">Edit, update, or delete announcements. Updates preserve the original public link while refreshing timestamps and notifications.</p>
+        {isApprover && pendingCount > 0 && (
+          <p className="mt-3 inline-flex items-center gap-2 rounded-full border border-warning/40 bg-warning/10 px-3 py-1 text-xs font-semibold text-warning">
+            {pendingCount} awaiting review
+          </p>
+        )}
+        {!isApprover && (
+          <p className="mt-3 text-sm text-text2">Your posts go to an owner or admin for approval before they publish. Drafts and submissions only you wrote are listed here.</p>
+        )}
       </div>
 
       {announcements.length === 0 ? (
@@ -308,12 +301,26 @@ export default async function DashboardNewsPage() {
               <div className="flex items-start justify-between gap-4 mb-4">
                 <div>
                   <div className="mb-3 flex flex-wrap items-center gap-2">
-                    <div className="inline-flex items-center gap-2 rounded-full border border-soft bg-bg px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-text3">
-                      {item.visibility === "public" ? "Public" : "Members Only"}
-                    </div>
+                    {/* Visibility and status are different things: a draft is not
+                        public yet, even when it will be public once published. */}
+                    {item.status !== "draft" && (
+                      <div className="inline-flex items-center gap-2 rounded-full border border-soft bg-bg px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-text3">
+                        {item.visibility === "public" ? "Public" : "Members Only"}
+                      </div>
+                    )}
+                    {item.status === "draft" && (
+                      <div className="inline-flex items-center gap-2 rounded-full border border-soft bg-bg px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-text3">
+                        {item.visibility === "public" ? "Public on publish" : "Members only on publish"}
+                      </div>
+                    )}
                     {item.status === "draft" && (
                       <div className="inline-flex items-center gap-2 rounded-full border border-warning/40 bg-warning/10 px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-warning">
                         Draft
+                      </div>
+                    )}
+                    {item.status === "pending_approval" && (
+                      <div className="inline-flex items-center gap-2 rounded-full border border-warning/40 bg-warning/10 px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-warning">
+                        Pending approval
                       </div>
                     )}
                     {item.topic && (
@@ -330,6 +337,12 @@ export default async function DashboardNewsPage() {
                   <h2 className="text-xl font-bold text-textDefault">{item.title}</h2>
                   {item.excerpt && (
                     <p className="mt-2 line-clamp-2 text-sm text-text2">{item.excerpt}</p>
+                  )}
+                  {item.status === "draft" && item.review_note && (
+                    <p className="mt-3 rounded-lg border border-warning/40 bg-warning/10 px-3 py-2 text-sm text-textDefault">
+                      <span className="font-semibold">Returned for changes: </span>
+                      {item.review_note}
+                    </p>
                   )}
                 </div>
                 <div className="w-16 h-16 rounded-xl border border-soft overflow-hidden bg-bg shrink-0">
@@ -357,6 +370,43 @@ export default async function DashboardNewsPage() {
                 By {item.author?.full_name ?? "IMAT Official"}
               </div>
 
+              {item.status === "pending_approval" && isApprover && (
+                <div className="mt-4 space-y-3 rounded-xl border border-warning/40 bg-warning/5 p-4">
+                  <p className="text-sm font-semibold text-textDefault">Waiting for your approval — publishing notifies members and sends the announcement email.</p>
+                  <div className="flex flex-wrap gap-2">
+                    <form action={approveAnnouncement}>
+                      <input type="hidden" name="announcement_id" value={item.id} />
+                      <button type="submit" className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500 transition-colors">
+                        <Check size={16} /> Approve & publish
+                      </button>
+                    </form>
+                  </div>
+                  <form action={rejectAnnouncement} className="space-y-2">
+                    <input type="hidden" name="announcement_id" value={item.id} />
+                    <label htmlFor={`reject-note-${item.id}`} className="block text-xs font-mono uppercase tracking-wider text-text3">
+                      Return for changes — short note for the author (required)
+                    </label>
+                    <textarea
+                      id={`reject-note-${item.id}`}
+                      name="review_note"
+                      required
+                      maxLength={500}
+                      rows={2}
+                      placeholder="e.g. Check the graduand total — the VC briefing says 4,212."
+                      className="field min-h-[56px] resize-y"
+                    />
+                    <button type="submit" className="inline-flex items-center gap-2 rounded-lg border border-danger/40 bg-danger/10 px-4 py-2 text-sm font-semibold text-danger hover:bg-danger/20 transition-colors">
+                      <X size={16} /> Reject — back to draft
+                    </button>
+                  </form>
+                </div>
+              )}
+              {item.status === "pending_approval" && !isApprover && (
+                <p className="mt-4 rounded-xl border border-soft bg-bg px-4 py-3 text-sm text-text2">
+                  Waiting for an owner or admin to review this. You can still edit it — it stays in the queue.
+                </p>
+              )}
+
               <div className="mt-4 flex flex-wrap gap-2">
                 {pinningAvailable && (
                   <form action={togglePinnedAnnouncement}>
@@ -375,44 +425,48 @@ export default async function DashboardNewsPage() {
                     </button>
                   </form>
                 )}
-                <form action={toggleAnnouncementVisibility}>
-                  <input type="hidden" name="announcement_id" value={item.id} />
-                  <input type="hidden" name="visibility" value="public" />
-                  <button
-                    type="submit"
-                    className={`inline-flex items-center rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors ${
-                      item.visibility === "public"
-                        ? "border-primary bg-primary/10 text-primary"
-                        : "border-soft text-text3 hover:border-primary/40 hover:text-primary"
-                    }`}
-                    disabled={item.visibility === "public" && item.status !== "draft"}
-                  >
-                    Set Public
-                  </button>
-                </form>
-                <form action={toggleAnnouncementVisibility}>
-                  <input type="hidden" name="announcement_id" value={item.id} />
-                  <input type="hidden" name="visibility" value="members_only" />
-                  <button
-                    type="submit"
-                    className={`inline-flex items-center rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors ${
-                      item.visibility === "members_only"
-                        ? "border-warning bg-warning/10 text-warning"
-                        : "border-soft text-text3 hover:border-warning/40 hover:text-warning"
-                    }`}
-                    disabled={item.visibility === "members_only"}
-                  >
-                    Set Internal
-                  </button>
-                </form>
+                {(isApprover || item.status === "published") && (
+                  <>
+                    <form action={toggleAnnouncementVisibility}>
+                      <input type="hidden" name="announcement_id" value={item.id} />
+                      <input type="hidden" name="visibility" value="public" />
+                      <button
+                        type="submit"
+                        className={`inline-flex items-center rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                          item.visibility === "public"
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-soft text-text3 hover:border-primary/40 hover:text-primary"
+                        }`}
+                        disabled={item.visibility === "public" && item.status !== "draft"}
+                      >
+                        Set Public
+                      </button>
+                    </form>
+                    <form action={toggleAnnouncementVisibility}>
+                      <input type="hidden" name="announcement_id" value={item.id} />
+                      <input type="hidden" name="visibility" value="members_only" />
+                      <button
+                        type="submit"
+                        className={`inline-flex items-center rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                          item.visibility === "members_only"
+                            ? "border-warning bg-warning/10 text-warning"
+                            : "border-soft text-text3 hover:border-warning/40 hover:text-warning"
+                        }`}
+                        disabled={item.visibility === "members_only"}
+                      >
+                        Set Internal
+                      </button>
+                    </form>
+                  </>
+                )}
               </div>
 
               <div className="mt-6 flex flex-wrap gap-3">
                 <Link href={`/dashboard/news/${item.slug ?? item.id}`} className="inline-flex items-center gap-2 rounded-lg border border-soft px-4 py-2 text-sm font-semibold text-textDefault hover:border-primary hover:text-primary transition-colors">
                   <Edit3 size={16} /> Edit
                 </Link>
-                {item.status !== "draft" && (
-                  <Link href={`/newsroom/${item.slug ?? item.id}`} className="inline-flex items-center gap-2 rounded-lg border border-soft px-4 py-2 text-sm font-semibold text-text3 hover:border-text3 hover:text-textDefault transition-colors">
+                {item.status === "published" && (
+                  <Link href={getAnnouncementHref(item.slug ?? item.id)} className="inline-flex items-center gap-2 rounded-lg border border-soft px-4 py-2 text-sm font-semibold text-text3 hover:border-text3 hover:text-textDefault transition-colors">
                     View public page <ArrowRight size={16} />
                   </Link>
                 )}

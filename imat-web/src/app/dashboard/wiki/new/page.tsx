@@ -8,9 +8,9 @@ import { createSupabaseClient } from "@/lib/supabase/client";
 import { logActivityEvent } from "@/lib/activity/logEvent";
 import { toast } from "react-hot-toast";
 import { sanitizePlainText } from "@/lib/inputSanitizer";
+import { canEditWiki, isMemberAuthor } from "@/lib/access";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 
-const ALLOWED_ROLES = ["documentation_officer", "president", "admin", "owner"];
 const CATEGORIES = ["SOPs", "Assessment Guides", "Past Reports", "Decisions", "Operations"];
 
 function toSlug(value: string) {
@@ -42,6 +42,7 @@ export default function NewWikiPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [canPublish, setCanPublish] = useState(false);
 
   const [title, setTitle] = useState("");
   const [slug, setSlug] = useState("");
@@ -67,12 +68,15 @@ export default function NewWikiPage() {
         .eq("id", session.user.id)
         .single();
 
-      if (!profile || !ALLOWED_ROLES.includes(profile.role)) {
+      // Any member (except applicants, who are not members yet) can write.
+      // Wiki editors publish directly; everyone else submits for approval.
+      if (!profile || !isMemberAuthor(profile.role)) {
         toast.error("You are not allowed to create knowledge base entries.");
         router.replace("/dashboard/wiki");
         return;
       }
 
+      setCanPublish(canEditWiki(profile.role));
       setLoading(false);
     };
 
@@ -81,7 +85,7 @@ export default function NewWikiPage() {
 
   const slugPreview = useMemo(() => toSlug(slug || title), [slug, title]);
 
-  const handleSave = async (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent, mode: "publish" | "submit" | "draft" = canPublish ? "publish" : "submit") => {
     e.preventDefault();
     if (!userId) return;
 
@@ -97,6 +101,8 @@ export default function NewWikiPage() {
 
     setSaving(true);
 
+    // RLS enforces the split server-side: only wiki editors (and approvers)
+    // may insert a published row; everyone else may only insert draft/pending.
     const { data, error } = await supabase
       .from("wiki_pages")
       .insert({
@@ -106,6 +112,8 @@ export default function NewWikiPage() {
         author_id: userId,
         last_edited_by: userId,
         content_tiptap_json: textToTiptap(safeContent),
+        status: mode === "publish" ? "published" : mode === "submit" ? "pending_approval" : "draft",
+        submitted_by: mode === "submit" ? userId : null,
       })
       .select("id, slug")
       .single();
@@ -116,18 +124,36 @@ export default function NewWikiPage() {
       return;
     }
 
+    if (mode === "submit") {
+      try {
+        await fetch("/api/approvals/notify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ kind: "wiki", id: data?.id, mode: "submitted" }),
+        });
+      } catch (error) {
+        console.warn("Approval notification failed.", error);
+      }
+    }
+
     await logActivityEvent(supabase, {
-      eventType: "wiki_created",
+      eventType: mode === "submit" ? "wiki_submitted" : "wiki_created",
       entityType: "wiki_page",
       entityId: data?.id,
-      title: `Created wiki page: ${safeTitle}`,
+      title: mode === "submit" ? `Submitted wiki page for approval: ${safeTitle}` : `Created wiki page: ${safeTitle}`,
       actorId: userId,
       details: { slug: data?.slug, category: safeCategory },
       isRelevant: true,
     });
 
-    toast.success("Knowledge page created.");
-    router.push(`/dashboard/wiki/${data.slug}`);
+    toast.success(
+      mode === "submit"
+        ? "Submitted for approval. An owner or admin will review it before it goes live."
+        : mode === "draft"
+          ? "Draft saved."
+          : "Knowledge page created."
+    );
+    router.push(mode === "publish" ? `/dashboard/wiki/${data.slug}` : "/dashboard/wiki");
   };
 
   if (loading) {
@@ -188,10 +214,16 @@ export default function NewWikiPage() {
 
         <div className="pt-2 flex flex-col sm:flex-row gap-3 sm:justify-end">
           <Link href="/dashboard/wiki" className="px-5 py-3 rounded-lg border border-soft text-text3 hover:text-textDefault hover:border-text3 text-center">Cancel</Link>
+          <button type="button" onClick={(e) => void handleSave(e, "draft")} disabled={saving} className="px-5 py-3 rounded-lg border border-soft text-textDefault font-semibold hover:border-text3 transition-colors disabled:opacity-70">
+            Save as draft
+          </button>
           <button type="submit" disabled={saving} className="px-5 py-3 rounded-lg bg-primary hover:bg-blue-500 text-white font-semibold inline-flex items-center justify-center gap-2 disabled:opacity-70">
-            {saving ? <Loader2 size={16} className="animate-spin" /> : <PlusCircle size={16} />} Save Page
+            {saving ? <Loader2 size={16} className="animate-spin" /> : <PlusCircle size={16} />} {canPublish ? "Save Page" : "Submit for approval"}
           </button>
         </div>
+        {!canPublish && (
+          <p className="text-xs text-text3">Submitting sends your page to an owner or admin for approval — it only goes live once they approve it. A draft stays private until then.</p>
+        )}
       </form>
     </div>
   );

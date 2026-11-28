@@ -27,6 +27,7 @@ import {
   normalizeAnnouncementAuthor,
 } from "@/lib/announcements";
 import EvidenceGalleryGrid, { type EvidenceGalleryItem } from "@/components/evidence/EvidenceGalleryGrid";
+import { getAnnouncementHref } from "@/lib/news";
 
 type HomeAnnouncement = {
   id: string;
@@ -34,7 +35,7 @@ type HomeAnnouncement = {
   title: string;
   body: string;
   visibility: "public" | "members_only";
-  published_at: string;
+  published_at: string | null;
   image_url: string | null;
   is_pinned?: boolean | null;
   author: { full_name: string | null } | null;
@@ -90,6 +91,7 @@ export default function Home() {
         .from("evidence_gallery")
         .select("id, title, description, category, before_image_url, after_image_url, sort_order, is_active")
         .eq("is_active", true)
+        .eq("status", "published")
         .order("sort_order", { ascending: true })
         .order("created_at", { ascending: false })
         .limit(6);
@@ -104,6 +106,7 @@ export default function Home() {
         .from("announcements")
         .select(ANNOUNCEMENT_CARD_SELECT_WITH_PIN)
         .eq("visibility", "public")
+        .eq("status", "published")
         .order("is_pinned", { ascending: false })
         .order("published_at", { ascending: false })
         .limit(2);
@@ -115,6 +118,7 @@ export default function Home() {
           .from("announcements")
           .select(ANNOUNCEMENT_CARD_SELECT)
           .eq("visibility", "public")
+          .eq("status", "published")
           .order("published_at", { ascending: false })
           .limit(2);
 
@@ -341,7 +345,7 @@ export default function Home() {
               {announcements.map((item) => (
                 <Link
                   key={item.id}
-                  href={`/newsroom/${item.slug ?? item.id}`}
+                  href={getAnnouncementHref(item.slug ?? item.id)}
                   className="card card-hover group p-5"
                 >
                   <div className="mb-3 flex items-center justify-between gap-3">
@@ -349,7 +353,7 @@ export default function Home() {
                       {item.is_pinned ? "Pinned Broadcast" : item.visibility === "public" ? "Public Broadcast" : "Internal Broadcast"}
                     </span>
                     <span className="text-[10px] text-text3">
-                      {new Date(item.published_at).toLocaleDateString()}
+                      {item.published_at ? new Date(item.published_at).toLocaleDateString() : ""}
                     </span>
                   </div>
                   <h3 className="line-clamp-2 text-lg font-black text-textDefault group-hover:text-accent">{item.title}</h3>

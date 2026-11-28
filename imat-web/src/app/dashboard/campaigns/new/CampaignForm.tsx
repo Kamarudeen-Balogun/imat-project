@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import { logActivityEvent } from "@/lib/activity/logEvent";
-import { createAnnouncementSlug, getAnnouncementHref } from "@/lib/news";
+import { createAnnouncementSlug } from "@/lib/news";
 import { sanitizeMarkdown, sanitizePlainText, sanitizeUrl } from "@/lib/inputSanitizer";
 import { markdownToPlainText } from "@/lib/markdown";
 import { parseVideoUrl } from "@/lib/video";
@@ -83,7 +83,7 @@ function uploadToCloudinary(file: File, onProgress: (pct: number) => void): Prom
   });
 }
 
-export default function CampaignForm({ userId, authorName }: { userId: string; authorName: string }) {
+export default function CampaignForm({ userId, authorName, canPublish }: { userId: string; authorName: string; canPublish: boolean }) {
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [topic, setTopic] = useState<string>("General");
@@ -169,7 +169,7 @@ export default function CampaignForm({ userId, authorName }: { userId: string; a
     }
   };
 
-  const save = async (asDraft: boolean) => {
+  const save = async (mode: "draft" | "submit" | "publish") => {
     const safeTitle = sanitizePlainText(title, 120);
     const safeTopic = ANNOUNCEMENT_TOPICS.includes(topic as (typeof ANNOUNCEMENT_TOPICS)[number]) ? topic : "General";
     const safeExcerpt = sanitizePlainText(excerpt, 200);
@@ -191,6 +191,8 @@ export default function CampaignForm({ userId, authorName }: { userId: string; a
     const slug = createAnnouncementSlug(safeTitle);
     const now = new Date().toISOString();
 
+    // RLS enforces the split server-side: only owner/admin may insert a
+    // published row; every other member may only insert draft/pending_approval.
     const { data: announcement, error } = await supabase
       .from("announcements")
       .insert({
@@ -201,8 +203,9 @@ export default function CampaignForm({ userId, authorName }: { userId: string; a
         author_id: userId,
         topic: safeTopic,
         excerpt: safeExcerpt || null,
-        status: asDraft ? "draft" : "published",
-        published_at: asDraft ? null : now,
+        status: mode === "publish" ? "published" : mode === "submit" ? "pending_approval" : "draft",
+        published_at: mode === "publish" ? now : null,
+        submitted_by: mode === "submit" ? userId : null,
         image_url: safeCoverUrl || null,
         video_url: safeVideoUrl || null,
       })
@@ -211,12 +214,12 @@ export default function CampaignForm({ userId, authorName }: { userId: string; a
 
     if (error || !announcement) {
       console.error("Broadcast save failed.", error);
-      toast.error(asDraft ? "Failed to save draft." : "Failed to publish broadcast.");
+      toast.error(mode === "draft" ? "Failed to save draft." : mode === "submit" ? "Failed to submit for approval." : "Failed to publish broadcast.");
       setIsSubmitting(false);
       return;
     }
 
-    if (asDraft) {
+    if (mode === "draft") {
       await logActivityEvent(supabase, {
         eventType: "announcement_drafted",
         entityType: "announcement",
@@ -232,30 +235,44 @@ export default function CampaignForm({ userId, authorName }: { userId: string; a
       return;
     }
 
-    const recipientsQuery = supabase
-      .from("users")
-      .select("id")
-      .eq("status", "active")
-      .eq("notifications_enabled", true);
+    if (mode === "submit") {
+      // Tell the approvers (server-side delivery — client inserts are RLS-blocked).
+      try {
+        await fetch("/api/approvals/notify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ kind: "announcement", id: announcement.id, mode: "submitted" }),
+        });
+      } catch (error) {
+        console.warn("Approval notification failed.", error);
+      }
 
-    const { data: recipients } =
-      visibility === "members_only"
-        ? await recipientsQuery.neq("role", "applicant")
-        : await recipientsQuery;
+      await logActivityEvent(supabase, {
+        eventType: "announcement_submitted",
+        entityType: "announcement",
+        entityId: announcement.id,
+        title: `Submitted broadcast for approval: ${safeTitle}`,
+        actorId: userId,
+        details: { visibility, topic: safeTopic },
+        isRelevant: true,
+      });
+      toast.success("Submitted for approval. An owner or admin will review it before it publishes.");
+      router.push("/dashboard/news");
+      router.refresh();
+      return;
+    }
 
-    if (recipients && recipients.length > 0) {
-      const notificationRows = recipients.map((recipient) => ({
-        recipient_id: recipient.id,
-        created_by: userId,
-        announcement_id: announcement.id,
-        type: "news_update",
-        title: safeTitle,
-        body: markdownToPlainText(safeBody).slice(0, 180) || safeTitle,
-        href: getAnnouncementHref(announcement.slug ?? slug),
-      }));
-
-      const { error: notificationError } = await supabase.from("notifications").insert(notificationRows);
-      if (notificationError) console.warn("Notification fan-out failed.");
+    // Publish (approvers only): fan-out runs server-side so the in-app rows
+    // cannot silently fail under RLS — see lib/announcements/notify.ts.
+    try {
+      const notifyResponse = await fetch("/api/approvals/notify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kind: "announcement", id: announcement.id, mode: "fanout" }),
+      });
+      if (!notifyResponse.ok) console.warn("Notification fan-out failed.", await notifyResponse.text().catch(() => ""));
+    } catch (error) {
+      console.warn("Notification fan-out failed.", error);
     }
 
     try {
@@ -707,7 +724,7 @@ export default function CampaignForm({ userId, authorName }: { userId: string; a
       <div className="flex flex-col gap-3 border-t border-soft pt-6 sm:flex-row sm:items-center sm:justify-end">
         <button
           type="button"
-          onClick={() => void save(true)}
+          onClick={() => void save("draft")}
           disabled={busy}
           className="btn btn-outline inline-flex items-center justify-center gap-2 px-6 py-3"
         >
@@ -721,19 +738,33 @@ export default function CampaignForm({ userId, authorName }: { userId: string; a
         >
           Cancel
         </button>
-        <button
-          type="button"
-          onClick={() => void save(false)}
-          disabled={busy}
-          className="btn btn-primary inline-flex items-center justify-center gap-2 px-8 py-3"
-        >
-          {busy ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
-          {isUploadingCover ? "Uploading image…" : isSubmitting ? "Publishing…" : "Publish Broadcast"}
-        </button>
+        {canPublish ? (
+          <button
+            type="button"
+            onClick={() => void save("publish")}
+            disabled={busy}
+            className="btn btn-primary inline-flex items-center justify-center gap-2 px-8 py-3"
+          >
+            {busy ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
+            {isUploadingCover ? "Uploading image…" : isSubmitting ? "Publishing…" : "Publish Broadcast"}
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => void save("submit")}
+            disabled={busy}
+            className="btn btn-primary inline-flex items-center justify-center gap-2 px-8 py-3"
+          >
+            {busy ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
+            {isUploadingCover ? "Uploading image…" : isSubmitting ? "Submitting…" : "Submit for approval"}
+          </button>
+        )}
       </div>
       <p className="flex items-start gap-2 text-xs text-text3">
         <FileText size={14} className="mt-0.5 shrink-0" />
-        Publishing notifies members in-app, sends the announcement email and posts to the newsroom. A draft stays private until you publish it from the news manager.
+        {canPublish
+          ? "Publishing notifies members in-app, sends the announcement email and posts to the newsroom. A draft stays private until you publish it from the news manager."
+          : "Submitting sends your post to an owner or admin for approval — it only publishes once they approve it. A draft stays private until then."}
       </p>
     </div>
   );

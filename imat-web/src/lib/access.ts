@@ -47,6 +47,21 @@ export function canReviewApplications(role: string | null | undefined) {
   return hasRole(role, applicationReviewerRoles);
 }
 
+// Approval workflow: every member role can initiate a publish (news, wiki,
+// evidence), but it only goes live after an owner/admin approves it.
+// Approvers are owner/admin everywhere. Applicants are not members yet and
+// cannot author or submit anything.
+export const contentApproverRoles = ["owner", "admin"] as const;
+
+export function canApproveContent(role: string | null | undefined) {
+  return hasRole(role, contentApproverRoles);
+}
+
+// Any member role except applicant (see ROLE_PRIORITY in roleHierarchy.ts).
+export function isMemberAuthor(role: string | null | undefined) {
+  return Boolean(role && role !== "applicant");
+}
+
 export function isOwner(role: string | null | undefined) {
   return role === "owner";
 }

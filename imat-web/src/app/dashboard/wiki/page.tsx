@@ -3,6 +3,8 @@ import { BookOpen, Clock3 } from "lucide-react";
 import { createSupabaseClient } from "@/lib/supabase/server";
 import { formatDistanceToNow } from "date-fns";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
+import { canApproveContent, isMemberAuthor } from "@/lib/access";
+import { approveWikiPage, rejectWikiPage } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -12,6 +14,9 @@ type WikiPage = {
   slug: string;
   category: string;
   updated_at: string;
+  status: "draft" | "pending_approval" | "published" | null;
+  review_note: string | null;
+  author_id: string | null;
   author: { full_name: string } | null;
 };
 
@@ -22,7 +27,10 @@ export default async function WikiIndexPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
+  // Any member (except applicants, who are not members yet) can write.
+  // Wiki editors publish directly; everyone else submits for approval.
   let canWrite = false;
+  let isApprover = false;
   if (user?.id) {
     const { data: profile } = await supabase
       .from("users")
@@ -30,15 +38,19 @@ export default async function WikiIndexPage() {
       .eq("id", user.id)
       .single();
 
-    canWrite = ["documentation_officer", "president", "admin", "owner"].includes(profile?.role ?? "");
+    canWrite = isMemberAuthor(profile?.role);
+    isApprover = canApproveContent(profile?.role);
   }
 
+  // RLS already limits the rows: published pages for everyone, plus own
+  // drafts/pending for authors and everything for approvers.
   const { data, error } = await supabase
     .from("wiki_pages")
-    .select("id, title, slug, category, updated_at, author:users!wiki_pages_author_id_fkey(full_name)")
+    .select("id, title, slug, category, updated_at, status, review_note, author_id, author:users!wiki_pages_author_id_fkey(full_name)")
     .order("updated_at", { ascending: false });
 
   const pages = (data ?? []) as unknown as WikiPage[];
+  const pendingCount = pages.filter((page) => page.status === "pending_approval").length;
 
    return (
      <div className="mx-auto max-w-6xl animate-in fade-in duration-500 px-4 py-6 sm:px-6">
@@ -50,6 +62,11 @@ export default async function WikiIndexPage() {
         </div>
         <h1 className="text-2xl md:text-3xl font-bold text-textDefault">Operational wiki and internal guides</h1>
         <p className="text-text2 max-w-2xl">Reference notes, procedures, and internal knowledge pages for IMAT members.</p>
+        {isApprover && pendingCount > 0 && (
+          <p className="w-fit rounded-full border border-warning/40 bg-warning/10 px-3 py-1 text-xs font-semibold text-warning">
+            {pendingCount} page{pendingCount === 1 ? "" : "s"} awaiting review
+          </p>
+        )}
         {canWrite && (
           <div>
             <Link href="/dashboard/wiki/new" className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary hover:bg-blue-500 text-white font-semibold text-sm transition-colors">
@@ -68,14 +85,57 @@ export default async function WikiIndexPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {pages.map((page) => (
-            <Link key={page.id} href={`/dashboard/wiki/${page.slug}`} className="group glass-panel rounded-2xl p-6 transition-colors hover:border-primary shadow-lg shadow-black/5">
-              <div className="text-xs font-mono uppercase tracking-wider text-text3 mb-3">{page.category}</div>
-              <h2 className="text-xl font-bold text-textDefault group-hover:text-primary transition-colors mb-3 line-clamp-2">{page.title}</h2>
-              <div className="flex items-center justify-between gap-4 text-xs text-text3 font-mono mt-6 pt-4 border-t border-soft">
-                <span className="flex items-center gap-2"><Clock3 size={14} /> {formatDistanceToNow(new Date(page.updated_at), { addSuffix: true })}</span>
-                <span>{page.author?.full_name ?? "IMAT"}</span>
-              </div>
-            </Link>
+            <article key={page.id} className="group glass-panel rounded-2xl p-6 transition-colors hover:border-primary shadow-lg shadow-black/5">
+              <Link href={`/dashboard/wiki/${page.slug}`} className="block">
+                <div className="text-xs font-mono uppercase tracking-wider text-text3 mb-3 flex flex-wrap items-center gap-2">
+                  <span>{page.category}</span>
+                  {page.status === "pending_approval" && (
+                    <span className="rounded-full border border-warning/40 bg-warning/10 px-2 py-0.5 text-[10px] font-semibold text-warning">Pending approval</span>
+                  )}
+                  {page.status === "draft" && (
+                    <span className="rounded-full border border-soft bg-bg px-2 py-0.5 text-[10px] font-semibold text-text3">Draft</span>
+                  )}
+                </div>
+                <h2 className="text-xl font-bold text-textDefault group-hover:text-primary transition-colors mb-3 line-clamp-2">{page.title}</h2>
+                <div className="flex items-center justify-between gap-4 text-xs text-text3 font-mono mt-6 pt-4 border-t border-soft">
+                  <span className="flex items-center gap-2"><Clock3 size={14} /> {formatDistanceToNow(new Date(page.updated_at), { addSuffix: true })}</span>
+                  <span>{page.author?.full_name ?? "IMAT"}</span>
+                </div>
+              </Link>
+              {page.status === "draft" && page.review_note && page.author_id === user?.id && (
+                <p className="mt-4 rounded-lg border border-warning/40 bg-warning/10 px-3 py-2 text-xs text-textDefault">
+                  <span className="font-semibold">Returned for changes: </span>
+                  {page.review_note}
+                </p>
+              )}
+              {page.status === "pending_approval" && isApprover && (
+                <div className="mt-4 space-y-3 border-t border-soft pt-4">
+                  <form action={approveWikiPage}>
+                    <input type="hidden" name="wiki_page_id" value={page.id} />
+                    <button type="submit" className="w-full rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500 transition-colors">
+                      Approve & publish
+                    </button>
+                  </form>
+                  <form action={rejectWikiPage} className="space-y-2">
+                    <input type="hidden" name="wiki_page_id" value={page.id} />
+                    <textarea
+                      name="review_note"
+                      required
+                      maxLength={500}
+                      rows={2}
+                      placeholder="Short note for the author (required)"
+                      className="w-full rounded-lg border border-soft bg-bg px-3 py-2 text-sm text-textDefault focus:outline-none focus:border-primary"
+                    />
+                    <button type="submit" className="w-full rounded-lg border border-danger/40 bg-danger/10 px-4 py-2 text-sm font-semibold text-danger hover:bg-danger/20 transition-colors">
+                      Reject — back to draft
+                    </button>
+                  </form>
+                </div>
+              )}
+              {page.status === "pending_approval" && !isApprover && page.author_id === user?.id && (
+                <p className="mt-4 text-xs text-text3">Waiting for an owner or admin to review this page.</p>
+              )}
+            </article>
           ))}
         </div>
       )}

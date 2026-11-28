@@ -5,14 +5,14 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import { logActivityEvent } from "@/lib/activity/logEvent";
-import { getAnnouncementHref } from "@/lib/news";
 import { sanitizeMarkdown, sanitizePlainText, sanitizeUrl } from "@/lib/inputSanitizer";
 import { markdownToPlainText } from "@/lib/markdown";
 import { parseVideoUrl } from "@/lib/video";
 import { ANNOUNCEMENT_TOPICS } from "@/lib/announcements";
 import { toast } from "react-hot-toast";
-import { Loader2, Save, Send, Trash2, FileText, Globe, Lock, AlertTriangle, Video, X } from "lucide-react";
+import { Check, Loader2, Save, Send, Trash2, FileText, Globe, Lock, AlertTriangle, Video, X } from "lucide-react";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
+import { approveAnnouncement, rejectAnnouncement, submitAnnouncementForApproval } from "../actions";
 
 type Announcement = {
   id: string;
@@ -25,8 +25,10 @@ type Announcement = {
   updated_at: string;
   topic: string | null;
   excerpt: string | null;
-  status: "draft" | "published" | null;
+  status: "draft" | "pending_approval" | "published" | null;
   video_url: string | null;
+  author_id: string | null;
+  review_note: string | null;
   author: { full_name: string | null } | null;
 };
 
@@ -34,10 +36,14 @@ export default function AnnouncementEditor({
   announcement,
   currentUserId,
   canDelete,
+  isApprover,
+  isAuthor,
 }: {
   announcement: Announcement;
   currentUserId: string;
   canDelete: boolean;
+  isApprover: boolean;
+  isAuthor: boolean;
 }) {
   const router = useRouter();
   const supabase = createSupabaseClient();
@@ -98,46 +104,37 @@ export default function AnnouncementEditor({
       return;
     }
 
-    await supabase
-      .from("notifications")
-      .update({
-        title: safeTitle,
-        body: safeNotificationBody,
-        href: getAnnouncementHref(announcement.slug ?? announcement.id),
-      })
-      .eq("announcement_id", announcement.id);
-
-    if (announcement.visibility !== visibility && visibility === "public") {
-      const { data: recipients } = await supabase
-        .from("users")
-        .select("id")
-        .eq("status", "active")
-        .eq("notifications_enabled", true);
-
-      if (recipients && recipients.length > 0) {
-        const { data: existingNotifications } = await supabase
-          .from("notifications")
-          .select("recipient_id")
-          .eq("announcement_id", announcement.id)
-          .eq("type", "news_update");
-
-        const alreadyNotified = new Set((existingNotifications ?? []).map((row) => row.recipient_id));
-
-        const notificationRows = recipients
-          .filter((recipient) => !alreadyNotified.has(recipient.id))
-          .map((recipient) => ({
-            recipient_id: recipient.id,
-            created_by: currentUserId,
-            announcement_id: announcement.id,
-            type: "news_update",
+    // Keep existing in-app rows in sync and fan out to newly eligible members.
+    // Both run server-side: the old user-client notification writes silently
+    // failed under RLS (see lib/announcements/notify.ts).
+    if (announcement.status === "published") {
+      try {
+        await fetch("/api/approvals/notify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            kind: "announcement",
+            id: announcement.id,
+            mode: "sync",
             title: safeTitle,
             body: safeNotificationBody,
-            href: getAnnouncementHref(announcement.slug ?? announcement.id),
-          }));
+          }),
+        });
+      } catch (error) {
+        console.warn("Notification sync failed.", error);
+      }
+    }
 
-        if (notificationRows.length > 0) {
-          await supabase.from("notifications").insert(notificationRows);
-        }
+    if (announcement.visibility !== visibility && visibility === "public" && announcement.status === "published") {
+      try {
+        const fanOutResponse = await fetch("/api/approvals/notify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ kind: "announcement", id: announcement.id, mode: "fanout" }),
+        });
+        if (!fanOutResponse.ok) console.warn("Notification fan-out failed.", await fanOutResponse.text().catch(() => ""));
+      } catch (error) {
+        console.warn("Notification fan-out failed.", error);
       }
 
       try {
@@ -175,25 +172,6 @@ export default function AnnouncementEditor({
       }
     }
 
-    if (announcement.visibility !== visibility && visibility === "members_only") {
-      const { data: applicantUsers } = await supabase
-        .from("users")
-        .select("id")
-        .eq("status", "active")
-        .eq("role", "applicant");
-
-      const applicantIds = (applicantUsers ?? []).map((row) => row.id);
-
-      if (applicantIds.length > 0) {
-        await supabase
-          .from("notifications")
-          .delete()
-          .eq("announcement_id", announcement.id)
-          .eq("type", "news_update")
-          .in("recipient_id", applicantIds);
-      }
-    }
-
     await logActivityEvent(supabase, {
       eventType: "announcement_updated",
       entityType: "announcement",
@@ -213,8 +191,9 @@ export default function AnnouncementEditor({
   };
 
   // Publishing a saved draft: same fan-out + push + email as a fresh publish.
+  // Approvers only — enforced again by RLS and the notify route.
   const handlePublishDraft = async () => {
-    if (announcement.status !== "draft") return;
+    if (announcement.status !== "draft" || !isApprover) return;
     if (videoInvalid) {
       toast.error("That video link is not a YouTube or Vimeo URL.");
       return;
@@ -222,7 +201,6 @@ export default function AnnouncementEditor({
 
     setPublishing(true);
     const now = new Date().toISOString();
-    const safeNotificationBody = markdownToPlainText(body).slice(0, 180) || title;
 
     const { error } = await supabase
       .from("announcements")
@@ -235,24 +213,16 @@ export default function AnnouncementEditor({
       return;
     }
 
-    const { data: recipients } = await supabase
-      .from("users")
-      .select("id")
-      .eq("status", "active")
-      .eq("notifications_enabled", true);
-
-    if (recipients && recipients.length > 0) {
-      const notificationRows = recipients.map((recipient) => ({
-        recipient_id: recipient.id,
-        created_by: currentUserId,
-        announcement_id: announcement.id,
-        type: "news_update",
-        title,
-        body: safeNotificationBody,
-        href: getAnnouncementHref(announcement.slug ?? announcement.id),
-      }));
-      const { error: notificationError } = await supabase.from("notifications").insert(notificationRows);
-      if (notificationError) console.warn("Notification fan-out failed.");
+    // Fan-out runs server-side so the in-app rows cannot silently fail under RLS.
+    try {
+      const notifyResponse = await fetch("/api/approvals/notify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kind: "announcement", id: announcement.id, mode: "fanout" }),
+      });
+      if (!notifyResponse.ok) console.warn("Notification fan-out failed.", await notifyResponse.text().catch(() => ""));
+    } catch (error) {
+      console.warn("Notification fan-out failed.", error);
     }
 
     try {
@@ -339,10 +309,58 @@ export default function AnnouncementEditor({
               Draft — not published
             </div>
           )}
+          {announcement.status === "pending_approval" && (
+            <div className="inline-flex items-center gap-2 rounded-full border border-warning/40 bg-warning/10 px-3 py-1 text-xs font-mono uppercase tracking-wider text-warning">
+              Pending approval
+            </div>
+          )}
         </div>
         <h1 className="text-3xl font-bold text-textDefault mb-2">{announcement.title}</h1>
         <p className="text-text2">Update the text, image, or visibility. The public link stays stable while timestamps and notifications are refreshed.</p>
+        {announcement.status === "draft" && announcement.review_note && (
+          <p className="mt-4 rounded-xl border border-warning/40 bg-warning/10 px-4 py-3 text-sm text-textDefault">
+            <span className="font-semibold">Returned for changes: </span>
+            {announcement.review_note}
+          </p>
+        )}
+        {announcement.status === "pending_approval" && !isApprover && (
+          <p className="mt-4 rounded-xl border border-soft bg-bg px-4 py-3 text-sm text-text2">
+            Waiting for an owner or admin to review this. Your edits here stay in the queue — they will not publish on save.
+          </p>
+        )}
       </div>
+
+      {announcement.status === "pending_approval" && isApprover && (
+        <div className="mb-6 space-y-3 rounded-2xl border border-warning/40 bg-warning/5 p-5">
+          <p className="text-sm font-semibold text-textDefault">Waiting for your approval — publishing notifies members and sends the announcement email.</p>
+          <div className="flex flex-wrap gap-2">
+            <form action={approveAnnouncement}>
+              <input type="hidden" name="announcement_id" value={announcement.id} />
+              <button type="submit" className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500 transition-colors">
+                <Check size={16} /> Approve & publish
+              </button>
+            </form>
+          </div>
+          <form action={rejectAnnouncement} className="space-y-2">
+            <input type="hidden" name="announcement_id" value={announcement.id} />
+            <label htmlFor="reject-note" className="block text-xs font-mono uppercase tracking-wider text-text3">
+              Return for changes — short note for the author (required)
+            </label>
+            <textarea
+              id="reject-note"
+              name="review_note"
+              required
+              maxLength={500}
+              rows={2}
+              placeholder="e.g. Check the graduand total — the VC briefing says 4,212."
+              className="field min-h-[56px] resize-y"
+            />
+            <button type="submit" className="inline-flex items-center gap-2 rounded-lg border border-danger/40 bg-danger/10 px-4 py-2 text-sm font-semibold text-danger hover:bg-danger/20 transition-colors">
+              <X size={16} /> Reject — back to draft
+            </button>
+          </form>
+        </div>
+      )}
 
       <form onSubmit={handleSave} className="space-y-6 rounded-2xl border border-soft bg-bg2 p-6 md:p-8">
         <div>
@@ -423,12 +441,12 @@ export default function AnnouncementEditor({
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3 sm:ml-auto">
-            {announcement.status !== "draft" && (
+            {announcement.status === "published" && (
               <Link href={`/newsroom/${announcement.slug ?? announcement.id}`} className="rounded-lg border border-soft px-4 py-3 text-center text-text3 hover:text-textDefault hover:border-text3 transition-colors">
                 View public page
               </Link>
             )}
-            {announcement.status === "draft" && (
+            {announcement.status === "draft" && isApprover && (
               <button
                 type="button"
                 onClick={() => void handlePublishDraft()}
@@ -437,6 +455,18 @@ export default function AnnouncementEditor({
               >
                 {publishing ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />} Publish Draft
               </button>
+            )}
+            {announcement.status === "draft" && !isApprover && isAuthor && (
+              <form action={submitAnnouncementForApproval}>
+                <input type="hidden" name="announcement_id" value={announcement.id} />
+                <button
+                  type="submit"
+                  disabled={saving || publishing || deleting}
+                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-accent px-5 py-3 font-semibold text-white hover:brightness-110 transition-colors disabled:opacity-70"
+                >
+                  <Send size={16} /> Submit for approval
+                </button>
+              </form>
             )}
             <button type="submit" disabled={saving || publishing || deleting} className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-5 py-3 font-semibold text-white hover:bg-blue-500 transition-colors disabled:opacity-70">
               {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />} Save Changes

@@ -321,12 +321,16 @@ CREATE TABLE IF NOT EXISTS announcements (
   updated_by UUID REFERENCES users(id) ON DELETE SET NULL,
   topic TEXT,
   excerpt TEXT,
-  status TEXT NOT NULL DEFAULT 'published' CHECK (status IN ('draft', 'published')),
-  video_url TEXT
+  status TEXT NOT NULL DEFAULT 'published' CHECK (status IN ('draft', 'pending_approval', 'published')),
+  video_url TEXT,
+  review_note TEXT,
+  submitted_by UUID REFERENCES users(id) ON DELETE SET NULL,
+  reviewed_by UUID REFERENCES users(id) ON DELETE SET NULL
 );
 
 CREATE INDEX IF NOT EXISTS announcements_published_at_idx ON announcements(published_at DESC);
 CREATE INDEX IF NOT EXISTS announcements_visibility_published_at_idx ON announcements(visibility, published_at DESC);
+CREATE INDEX IF NOT EXISTS announcements_status_idx ON announcements(status);
 
 CREATE UNIQUE INDEX IF NOT EXISTS announcements_slug_key ON announcements(slug) WHERE slug IS NOT NULL;
 
@@ -379,12 +383,17 @@ CREATE TABLE IF NOT EXISTS evidence_gallery (
   is_active BOOLEAN NOT NULL DEFAULT true,
   created_by UUID REFERENCES users(id) ON DELETE SET NULL,
   updated_by UUID REFERENCES users(id) ON DELETE SET NULL,
+  status TEXT NOT NULL DEFAULT 'published' CHECK (status IN ('draft', 'pending_approval', 'published')),
+  review_note TEXT,
+  submitted_by UUID REFERENCES users(id) ON DELETE SET NULL,
+  reviewed_by UUID REFERENCES users(id) ON DELETE SET NULL,
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now()
 );
 
 CREATE INDEX IF NOT EXISTS evidence_gallery_sort_order_idx ON evidence_gallery(sort_order ASC, created_at DESC);
 CREATE INDEX IF NOT EXISTS evidence_gallery_category_idx ON evidence_gallery(category);
+CREATE INDEX IF NOT EXISTS evidence_gallery_status_idx ON evidence_gallery(status);
 
 ALTER TABLE evidence_gallery
 ALTER COLUMN sort_order DROP NOT NULL;
@@ -438,9 +447,15 @@ CREATE TABLE IF NOT EXISTS wiki_pages (
   author_id UUID REFERENCES users(id),
   category TEXT NOT NULL,
   last_edited_by UUID REFERENCES users(id),
+  status TEXT NOT NULL DEFAULT 'published' CHECK (status IN ('draft', 'pending_approval', 'published')),
+  review_note TEXT,
+  submitted_by UUID REFERENCES users(id) ON DELETE SET NULL,
+  reviewed_by UUID REFERENCES users(id) ON DELETE SET NULL,
   updated_at TIMESTAMPTZ DEFAULT now(),
   created_at TIMESTAMPTZ DEFAULT now()
 );
+
+CREATE INDEX IF NOT EXISTS wiki_pages_status_idx ON wiki_pages(status);
 
 -- 14. ACTIVITY LOGS (automatic operational timeline)
 CREATE TABLE IF NOT EXISTS activity_logs (
@@ -718,20 +733,41 @@ CREATE POLICY "Members can update defects" ON defects FOR UPDATE USING (auth.uid
 
 DROP POLICY IF EXISTS "Public can view evidence gallery" ON evidence_gallery;
 DROP POLICY IF EXISTS "Evidence gallery editors can manage evidence" ON evidence_gallery;
-CREATE POLICY "Public can view evidence gallery" ON evidence_gallery FOR SELECT USING (is_active = true);
-CREATE POLICY "Evidence gallery editors can manage evidence" ON evidence_gallery FOR ALL USING (
-  EXISTS (
-    SELECT 1 FROM users
-    WHERE users.id = auth.uid()
-      AND users.role IN ('documentation_officer', 'admin', 'owner')
-  )
-) WITH CHECK (
-  EXISTS (
-    SELECT 1 FROM users
-    WHERE users.id = auth.uid()
-      AND users.role IN ('documentation_officer', 'admin', 'owner')
-  )
+DROP POLICY IF EXISTS "Authors can view own evidence submissions" ON evidence_gallery;
+DROP POLICY IF EXISTS "Evidence editors can view evidence" ON evidence_gallery;
+DROP POLICY IF EXISTS "Evidence editors can insert evidence" ON evidence_gallery;
+DROP POLICY IF EXISTS "Members can submit evidence" ON evidence_gallery;
+DROP POLICY IF EXISTS "Approvers can update evidence" ON evidence_gallery;
+DROP POLICY IF EXISTS "Evidence editors can update published evidence" ON evidence_gallery;
+DROP POLICY IF EXISTS "Authors can update own evidence" ON evidence_gallery;
+DROP POLICY IF EXISTS "Evidence editors can delete evidence" ON evidence_gallery;
+DROP POLICY IF EXISTS "Authors can delete own evidence drafts" ON evidence_gallery;
+-- Public board only ever shows published, active items.
+CREATE POLICY "Public can view evidence gallery" ON evidence_gallery FOR SELECT USING (is_active = true AND status = 'published');
+-- Authors can read their own submissions (the manager lists them).
+CREATE POLICY "Authors can view own evidence submissions" ON evidence_gallery FOR SELECT USING (created_by = auth.uid());
+-- Gallery editors and approvers can read every item (the manager is the review queue).
+CREATE POLICY "Evidence editors can view evidence" ON evidence_gallery FOR SELECT USING (get_my_role() IN ('documentation_officer', 'admin', 'owner'));
+-- Insert: evidence editors (documentation/admin/owner) may publish directly;
+-- every other member except applicants may only insert drafts or submissions.
+CREATE POLICY "Evidence editors can insert evidence" ON evidence_gallery FOR INSERT WITH CHECK (get_my_role() IN ('documentation_officer', 'admin', 'owner'));
+CREATE POLICY "Members can submit evidence" ON evidence_gallery FOR INSERT WITH CHECK (
+  get_my_role() IS NOT NULL AND get_my_role() NOT IN ('applicant', 'documentation_officer', 'admin', 'owner')
+  AND status IN ('draft', 'pending_approval')
 );
+-- Update: approvers any row; evidence editors may only edit published rows and may
+-- not change their status; authors may edit their own rows but the new status must
+-- stay draft/pending.
+CREATE POLICY "Approvers can update evidence" ON evidence_gallery FOR UPDATE USING (get_my_role() IN ('owner', 'admin'));
+CREATE POLICY "Evidence editors can update published evidence" ON evidence_gallery FOR UPDATE
+  USING (get_my_role() = 'documentation_officer' AND status = 'published')
+  WITH CHECK (get_my_role() = 'documentation_officer' AND status = 'published');
+CREATE POLICY "Authors can update own evidence" ON evidence_gallery FOR UPDATE
+  USING (created_by = auth.uid())
+  WITH CHECK (created_by = auth.uid() AND status IN ('draft', 'pending_approval'));
+-- Delete: editors/approvers as before, plus authors may withdraw their own drafts/pending.
+CREATE POLICY "Evidence editors can delete evidence" ON evidence_gallery FOR DELETE USING (get_my_role() IN ('documentation_officer', 'admin', 'owner'));
+CREATE POLICY "Authors can delete own evidence drafts" ON evidence_gallery FOR DELETE USING (created_by = auth.uid() AND status IN ('draft', 'pending_approval'));
 
 -- Applications: Applicants can insert and read their own. Admins/Technical Officers can do everything.
 DROP POLICY IF EXISTS "Applicants can read own application" ON applications;
@@ -802,20 +838,32 @@ CREATE POLICY "Members can update own volunteer logs" ON volunteer_logs FOR UPDA
   auth.uid() = member_id OR get_my_role() IN ('admin', 'owner')
 );
 
--- Announcements: Public if marked public. Members view all. Admins/President/Advocacy can insert.
+-- Announcements: Public if marked public AND published. Members view all.
+-- Approvers publish directly; every other member submits for approval.
 DROP POLICY IF EXISTS "Public view public announcements" ON announcements;
 DROP POLICY IF EXISTS "Members view all announcements" ON announcements;
 DROP POLICY IF EXISTS "Authorized members can insert announcements" ON announcements;
+DROP POLICY IF EXISTS "Approvers can insert announcements" ON announcements;
+DROP POLICY IF EXISTS "Members can submit announcements" ON announcements;
 DROP POLICY IF EXISTS "Authorized members can update announcements" ON announcements;
+DROP POLICY IF EXISTS "Approvers can update announcements" ON announcements;
+DROP POLICY IF EXISTS "Content editors can update published announcements" ON announcements;
+DROP POLICY IF EXISTS "Authors can update own drafts and pending announcements" ON announcements;
 DROP POLICY IF EXISTS "Authorized members can delete announcements" ON announcements;
-CREATE POLICY "Public view public announcements" ON announcements FOR SELECT USING (visibility = 'public');
+CREATE POLICY "Public view public announcements" ON announcements FOR SELECT USING (visibility = 'public' AND status = 'published');
 CREATE POLICY "Members view all announcements" ON announcements FOR SELECT USING (auth.uid() IS NOT NULL);
-CREATE POLICY "Authorized members can insert announcements" ON announcements FOR INSERT WITH CHECK (
-  get_my_role() IN ('advocacy_officer', 'president', 'admin', 'owner')
+CREATE POLICY "Approvers can insert announcements" ON announcements FOR INSERT WITH CHECK (get_my_role() IN ('owner', 'admin'));
+CREATE POLICY "Members can submit announcements" ON announcements FOR INSERT WITH CHECK (
+  get_my_role() IS NOT NULL AND get_my_role() NOT IN ('applicant', 'owner', 'admin')
+  AND status IN ('draft', 'pending_approval')
 );
-CREATE POLICY "Authorized members can update announcements" ON announcements FOR UPDATE USING (
-  get_my_role() IN ('advocacy_officer', 'president', 'admin', 'owner')
-);
+CREATE POLICY "Approvers can update announcements" ON announcements FOR UPDATE USING (get_my_role() IN ('owner', 'admin'));
+CREATE POLICY "Content editors can update published announcements" ON announcements FOR UPDATE
+  USING (get_my_role() IN ('president', 'advocacy_officer') AND status = 'published')
+  WITH CHECK (get_my_role() IN ('president', 'advocacy_officer') AND status = 'published');
+CREATE POLICY "Authors can update own drafts and pending announcements" ON announcements FOR UPDATE
+  USING (author_id = auth.uid() AND status IN ('draft', 'pending_approval'))
+  WITH CHECK (author_id = auth.uid() AND status IN ('draft', 'pending_approval'));
 CREATE POLICY "Authorized members can delete announcements" ON announcements FOR DELETE USING (
   get_my_role() IN ('president', 'admin', 'owner')
 );
@@ -855,21 +903,37 @@ CREATE POLICY "Users can manage own push subscriptions" ON push_subscriptions FO
   auth.uid() = user_id
 );
 
--- Wiki pages: members can read; documentation/president/admin can write.
+-- Wiki pages: members can read published pages; wiki editors publish directly,
+-- every other member submits for approval.
 DROP POLICY IF EXISTS "Members can view wiki pages" ON wiki_pages;
 DROP POLICY IF EXISTS "Authorized members can insert wiki pages" ON wiki_pages;
+DROP POLICY IF EXISTS "Wiki editors can insert wiki pages" ON wiki_pages;
+DROP POLICY IF EXISTS "Members can submit wiki pages" ON wiki_pages;
 DROP POLICY IF EXISTS "Authorized members can update wiki pages" ON wiki_pages;
+DROP POLICY IF EXISTS "Approvers can update wiki pages" ON wiki_pages;
+DROP POLICY IF EXISTS "Wiki editors can update published wiki pages" ON wiki_pages;
+DROP POLICY IF EXISTS "Authors can update own wiki pages" ON wiki_pages;
 DROP POLICY IF EXISTS "Authorized members can delete wiki pages" ON wiki_pages;
-CREATE POLICY "Members can view wiki pages" ON wiki_pages FOR SELECT USING (auth.uid() IS NOT NULL);
-CREATE POLICY "Authorized members can insert wiki pages" ON wiki_pages FOR INSERT WITH CHECK (
-  get_my_role() IN ('documentation_officer', 'president', 'admin', 'owner')
+DROP POLICY IF EXISTS "Authors can delete own wiki drafts" ON wiki_pages;
+CREATE POLICY "Members can view wiki pages" ON wiki_pages FOR SELECT USING (
+  auth.uid() IS NOT NULL AND (status = 'published' OR author_id = auth.uid() OR get_my_role() IN ('owner', 'admin'))
 );
-CREATE POLICY "Authorized members can update wiki pages" ON wiki_pages FOR UPDATE USING (
-  get_my_role() IN ('documentation_officer', 'president', 'admin', 'owner')
+CREATE POLICY "Wiki editors can insert wiki pages" ON wiki_pages FOR INSERT WITH CHECK (get_my_role() IN ('documentation_officer', 'president', 'admin', 'owner'));
+CREATE POLICY "Members can submit wiki pages" ON wiki_pages FOR INSERT WITH CHECK (
+  get_my_role() IS NOT NULL AND get_my_role() NOT IN ('applicant', 'documentation_officer', 'president', 'admin', 'owner')
+  AND status IN ('draft', 'pending_approval')
 );
+CREATE POLICY "Approvers can update wiki pages" ON wiki_pages FOR UPDATE USING (get_my_role() IN ('owner', 'admin'));
+CREATE POLICY "Wiki editors can update published wiki pages" ON wiki_pages FOR UPDATE
+  USING (get_my_role() IN ('documentation_officer', 'president') AND status = 'published')
+  WITH CHECK (get_my_role() IN ('documentation_officer', 'president') AND status = 'published');
+CREATE POLICY "Authors can update own wiki pages" ON wiki_pages FOR UPDATE
+  USING (author_id = auth.uid())
+  WITH CHECK (author_id = auth.uid() AND status IN ('draft', 'pending_approval'));
 CREATE POLICY "Authorized members can delete wiki pages" ON wiki_pages FOR DELETE USING (
   get_my_role() IN ('president', 'admin', 'owner')
 );
+CREATE POLICY "Authors can delete own wiki drafts" ON wiki_pages FOR DELETE USING (author_id = auth.uid() AND status IN ('draft', 'pending_approval'));
 
 -- Activity logs: members read; authenticated users can write their own events.
 DROP POLICY IF EXISTS "Members can view activity logs" ON activity_logs;

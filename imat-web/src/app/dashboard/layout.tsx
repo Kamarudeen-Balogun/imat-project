@@ -10,7 +10,7 @@ import optimizeCloudinaryUrl from "@/lib/cloudinary";
 import { toast } from "react-hot-toast";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { AnimatePresence, motion } from "framer-motion";
-import { canEditContent, canEditEvidenceGallery, canManageSocialLinks } from "@/lib/access";
+import { canApproveContent, canManageSocialLinks, isMemberAuthor } from "@/lib/access";
 import { useTheme } from "@/components/ThemeProvider";
 
 type UserProfile = {
@@ -41,6 +41,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [pendingCounts, setPendingCounts] = useState({ news: 0, evidence: 0, wiki: 0 });
   const router = useRouter();
   const supabase = useMemo(() => createSupabaseClient(), []);
   const { theme, setTheme } = useTheme();
@@ -95,6 +96,30 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     };
   }, [router, supabase]);
 
+  // Pending-approval counts for approvers, so the review queues are findable.
+  // Refetched on navigation (the layout persists across dashboard pages).
+  useEffect(() => {
+    if (!profile || !canApproveContent(profile.role)) {
+      setPendingCounts({ news: 0, evidence: 0, wiki: 0 });
+      return;
+    }
+    let cancelled = false;
+    const loadCounts = async () => {
+      const [news, evidence, wiki] = await Promise.all([
+        supabase.from("announcements").select("id", { count: "exact", head: true }).eq("status", "pending_approval"),
+        supabase.from("evidence_gallery").select("id", { count: "exact", head: true }).eq("status", "pending_approval"),
+        supabase.from("wiki_pages").select("id", { count: "exact", head: true }).eq("status", "pending_approval"),
+      ]);
+      if (!cancelled) {
+        setPendingCounts({ news: news.count ?? 0, evidence: evidence.count ?? 0, wiki: wiki.count ?? 0 });
+      }
+    };
+    void loadCounts();
+    return () => {
+      cancelled = true;
+    };
+  }, [profile, pathname, supabase]);
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     toast.success("Logged out successfully");
@@ -132,8 +157,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { href: "/dashboard/defects", label: "Defect Masterlist", icon: Map, classes: "text-slate-300 hover:bg-white/5 hover:text-white" },
     { href: "/dashboard/reports", label: "Engineering Reports", icon: FileText, classes: "text-slate-300 hover:bg-white/5 hover:text-white" },
     { href: "/portal/analytics", label: "Analytics", icon: BarChart2, classes: "text-slate-300 hover:bg-white/5 hover:text-white" },
-    ...(canEditContent(profile?.role) ? [{ href: "/dashboard/news", label: "Newsroom Manager", icon: Megaphone, classes: "text-slate-300 hover:bg-white/5 hover:text-white" }] : []),
-    ...(canEditEvidenceGallery(profile?.role) ? [{ href: "/dashboard/evidence", label: "Evidence Gallery", icon: FileText, classes: "text-slate-300 hover:bg-white/5 hover:text-white" }] : []),
+    // Any member (except applicants) can submit news/evidence — the manager
+    // pages are their queue, so the links are open to all members. Approvers
+    // get a count badge for items waiting on them.
+    ...(isMemberAuthor(profile?.role) ? [{ href: "/dashboard/news", label: "Newsroom Manager", icon: Megaphone, classes: "text-slate-300 hover:bg-white/5 hover:text-white", badge: pendingCounts.news }] : []),
+    ...(isMemberAuthor(profile?.role) ? [{ href: "/dashboard/evidence", label: "Evidence Gallery", icon: FileText, classes: "text-slate-300 hover:bg-white/5 hover:text-white", badge: pendingCounts.evidence }] : []),
     ...(canManageSocialLinks(profile?.role) ? [{ href: "/dashboard/social-links", label: "Social Links", icon: Share2, classes: "text-slate-300 hover:bg-white/5 hover:text-white" }] : []),
     { href: "/dashboard/directory", label: "Member Directory", icon: Users, classes: "text-slate-300 hover:bg-white/5 hover:text-white" },
     { href: "/dashboard/contact-messages", label: "Contact Inbox", icon: Mail, classes: "text-slate-300 hover:bg-white/5 hover:text-white" },
@@ -141,7 +169,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     ...(["owner", "admin"].includes(profile?.role || "") ? [{ href: "/dashboard/invite", label: "Invite Member", icon: UserPlus, classes: "text-slate-300 hover:bg-white/5 hover:text-white" }] : []),
     ...(["owner", "admin"].includes(profile?.role || "") ? [{ href: "/dashboard/email-logs", label: "Mail Log", icon: Mail, classes: "text-slate-300 hover:bg-white/5 hover:text-white" }] : []),
     { href: "/dashboard/profile", label: "My Profile", icon: User, classes: "text-slate-300 hover:bg-white/5 hover:text-white" },
-    { href: "/dashboard/wiki", label: "Knowledge Base", icon: BookOpen, classes: "text-slate-300 hover:bg-white/5 hover:text-white" },
+    { href: "/dashboard/wiki", label: "Knowledge Base", icon: BookOpen, classes: "text-slate-300 hover:bg-white/5 hover:text-white", badge: pendingCounts.wiki },
     { href: "/dashboard/activity", label: "Activity Timeline", icon: Activity, classes: "text-slate-300 hover:bg-white/5 hover:text-white" },
     { href: "/dashboard/volunteer", label: "Volunteer Hours", icon: Clock, classes: "text-slate-300 hover:bg-white/5 hover:text-white" },
   ];
@@ -176,6 +204,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 className={navItemClassName(item.href, item.classes)}
               >
                 <item.icon size={18} /> {item.label}
+                {"badge" in item && item.badge ? (
+                  <span className="ml-auto inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-warning px-1.5 text-[11px] font-bold text-black">{item.badge}</span>
+                ) : null}
               </Link>
             ))}
             
@@ -187,7 +218,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                </Link>
             )}
 
-            {['admin', 'owner', 'advocacy_officer', 'president', 'vice_president'].includes(profile?.role || '') && (
+            {isMemberAuthor(profile?.role) && (
                <Link href="/dashboard/campaigns/new" className="flex items-center gap-3 rounded-md px-4 py-3 text-sm font-medium text-slate-300 transition-colors hover:bg-white/5 hover:text-white">
                  <Megaphone size={18} /> Broadcast & Campaigns
                </Link>
@@ -279,6 +310,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       className={navItemClassName(item.href, item.classes)}
                     >
                       <item.icon size={18} /> {item.label}
+                      {"badge" in item && item.badge ? (
+                        <span className="ml-auto inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-warning px-1.5 text-[11px] font-bold text-black">{item.badge}</span>
+                      ) : null}
                     </Link>
                   ))}
                   {['admin', 'owner', 'field_officer', 'technical_officer'].includes(profile?.role || '') && (
@@ -286,7 +320,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       + New Assessment
                     </Link>
                   )}
-                  {['admin', 'owner', 'advocacy_officer', 'president', 'vice_president'].includes(profile?.role || '') && (
+                  {isMemberAuthor(profile?.role) && (
                     <Link href="/dashboard/campaigns/new" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 rounded-md px-4 py-3 text-sm font-medium text-slate-300 transition-colors hover:bg-white/5 hover:text-white">
                       <Megaphone size={18} /> Broadcast & Campaigns
                     </Link>

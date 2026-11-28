@@ -33,6 +33,7 @@ export default function EvidencePage() {
         .from("evidence_gallery")
         .select("id, title, description, category, before_image_url, after_image_url, sort_order, is_active")
         .eq("is_active", true)
+        .eq("status", "published")
         .order("sort_order", { ascending: true })
         .order("created_at", { ascending: false });
 
