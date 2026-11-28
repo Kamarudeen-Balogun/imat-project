@@ -1,22 +1,21 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
-import { ImageOff, Link2 } from "lucide-react";
+import { Link2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import DefectStatusBadge from "@/components/defects/DefectStatusBadge";
-import optimizeCloudinaryUrl from "@/lib/cloudinary";
+import { EvidenceImageSlot } from "@/components/evidence/EvidenceGalleryGrid";
 import type { BoardChip } from "@/lib/defects";
 
+/** Homepage board is evidence only — one item per published repair record. */
 export type BoardItem = {
-  kind: "evidence" | "defect";
   key: string;
   title: string;
   description: string;
   chip: Exclude<BoardChip, "All"> | null;
-  zone: string | null;
   date: string;
-  image: string | null;
+  beforeImage: string | null;
+  afterImage: string | null;
   href: string;
   /** Raw defect status, or "resolved" / "assessed" for evidence items. */
   status: string;
@@ -31,41 +30,31 @@ export function evidenceTicketLabel(category: string, id: string): string {
   return `#${prefix}-${suffix}`;
 }
 
-function boardImageSrc(url: string): string {
-  return url.includes("res.cloudinary.com") ? optimizeCloudinaryUrl(url) : url;
-}
-
 function BoardCard({ item }: { item: BoardItem }) {
   return (
     <Link
       href={item.href}
       className="group ticket-card card-hover block overflow-hidden rounded-lg"
     >
-      <div className="relative aspect-[16/10] overflow-hidden bg-bg3">
-        {item.image ? (
-          <Image
-            src={boardImageSrc(item.image)}
-            alt={item.title}
-            fill
-            unoptimized
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+      {/* Before/after pair — the whole point of evidence. Both slots always
+          render side by side (with labels, and the "After image pending"
+          placeholder when no after image exists yet), so the pair stays
+          visible on phones too — never a single hero image. */}
+      <div className="p-4 pb-0">
+        <div className="grid grid-cols-2 gap-3">
+          <EvidenceImageSlot
+            label="Before"
+            src={item.beforeImage}
+            alt={`${item.title} before`}
+            placeholder="Before image missing"
           />
-        ) : (
-          <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-text3">
-            <ImageOff size={20} />
-            <span className="text-[11px] font-mono uppercase tracking-wider">No photo</span>
-          </div>
-        )}
-        <span
-          className={`absolute left-3 top-3 rounded border px-2.5 py-1 text-[10px] font-mono font-black uppercase tracking-wider ${
-            item.kind === "evidence"
-              ? "border-primary/40 bg-black/55 text-white"
-              : "border-accent/50 bg-black/55 text-white"
-          }`}
-        >
-          {item.kind === "evidence" ? "Evidence" : "Issue"}
-        </span>
+          <EvidenceImageSlot
+            label="After"
+            src={item.afterImage}
+            alt={`${item.title} after`}
+            placeholder="After image pending"
+          />
+        </div>
       </div>
 
       <div className="p-4">
@@ -81,7 +70,7 @@ function BoardCard({ item }: { item: BoardItem }) {
         </h3>
         <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-text2">{item.description}</p>
 
-        {item.kind === "evidence" && item.linkedDefect && (
+        {item.linkedDefect && (
           <p className="mt-3 flex items-center gap-1.5 text-xs font-semibold text-primary">
             <Link2 size={12} className="shrink-0" />
             <span className="min-w-0 truncate">Linked issue {item.linkedDefect.id}</span>
@@ -90,7 +79,6 @@ function BoardCard({ item }: { item: BoardItem }) {
 
         <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 border-t border-borderDark pt-3 text-[11px] font-mono uppercase tracking-wider text-text3">
           <span>{item.chip ?? "General"}</span>
-          <span className="min-w-0 truncate">{item.zone ?? "Unspecified zone"}</span>
           <span>{formatDistanceToNow(new Date(item.date), { addSuffix: true })}</span>
         </div>
       </div>

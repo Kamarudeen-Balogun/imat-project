@@ -91,21 +91,9 @@ type HomeEvidenceItem = {
   defect_id?: string | null;
 };
 
-type HomeDefect = {
-  id: string;
-  title: string;
-  description: string;
-  category: string;
-  status: string;
-  created_at: string;
-  photos: string[] | null;
-  campus_zones: { name: string } | null;
-};
-
 export default function Home() {
   const [filter, setFilter] = useState<BoardChip>("All");
   const [evidenceItems, setEvidenceItems] = useState<HomeEvidenceItem[]>([]);
-  const [defects, setDefects] = useState<HomeDefect[]>([]);
   const [linkedDefects, setLinkedDefects] = useState<Map<string, { id: string; title: string }>>(new Map());
   const [boardLoading, setBoardLoading] = useState(true);
   const [announcements, setAnnouncements] = useState<HomeAnnouncement[]>([]);
@@ -115,40 +103,31 @@ export default function Home() {
   useEffect(() => {
     const loadBoard = async () => {
       const supabase = createSupabaseClient();
-      const [evidenceResult, defectsResult] = await Promise.all([
-        supabase
-          .from("evidence_gallery")
-          .select("id, title, description, category, before_image_url, after_image_url, sort_order, is_active, created_at, defect_id")
-          .eq("is_active", true)
-          .eq("status", "published")
-          .order("sort_order", { ascending: true })
-          .order("created_at", { ascending: false })
-          .limit(6),
-        supabase
-          .from("defects")
-          .select("id, title, description, category, status, created_at, photos, campus_zones(name)")
-          .order("created_at", { ascending: false })
-          .limit(12),
-      ]);
+      const { data } = await supabase
+        .from("evidence_gallery")
+        .select("id, title, description, category, before_image_url, after_image_url, sort_order, is_active, created_at, defect_id")
+        .eq("is_active", true)
+        .eq("status", "published")
+        .order("sort_order", { ascending: true })
+        .order("created_at", { ascending: false })
+        .limit(6);
 
-      const evidence = (evidenceResult.data ?? []) as HomeEvidenceItem[];
-      const loadedDefects = (defectsResult.data ?? []) as unknown as HomeDefect[];
+      const evidence = (data ?? []) as HomeEvidenceItem[];
       setEvidenceItems(evidence);
-      setDefects(loadedDefects);
 
-      // Resolve the linked issue title for each evidence item (usually
-      // already among the loaded defects; fetch any stragglers by id).
-      const byId = new Map(loadedDefects.map((d) => [d.id, { id: d.id, title: d.title }]));
-      const missing = Array.from(
-        new Set(evidence.map((item) => item.defect_id).filter((id): id is string => Boolean(id && !byId.has(id))))
+      // Resolve the linked issue title for each evidence item, for the
+      // "Linked issue" line on its card.
+      const ids = Array.from(
+        new Set(evidence.map((item) => item.defect_id).filter((id): id is string => Boolean(id)))
       );
-      if (missing.length > 0) {
-        const { data: extra } = await supabase.from("defects").select("id, title").in("id", missing);
-        for (const d of (extra ?? []) as Array<{ id: string; title: string }>) {
-          byId.set(d.id, d);
-        }
+      if (ids.length > 0) {
+        const { data: linked } = await supabase.from("defects").select("id, title").in("id", ids);
+        setLinkedDefects(
+          new Map(((linked ?? []) as Array<{ id: string; title: string }>).map((d) => [d.id, d]))
+        );
+      } else {
+        setLinkedDefects(new Map());
       }
-      setLinkedDefects(byId);
       setBoardLoading(false);
     };
 
@@ -195,41 +174,26 @@ export default function Home() {
     void loadAnnouncements();
   }, []);
 
-  // One board, two sources: published evidence items and the latest reported
-  // defects, merged newest-first. Evidence keeps its before/after story and
-  // its linked issue; defects keep their public status and detail link.
+  // Evidence only: the board is the published before/after record. Issues
+  // live on the tracker (/issues) and are reached from the buttons in the
+  // section header; each evidence card still links to its own issue.
   const boardItems = useMemo<BoardItem[]>(() => {
-    const evidenceMapped: BoardItem[] = evidenceItems.map((item) => ({
-      kind: "evidence",
-      key: `evidence-${item.id}`,
-      title: item.title,
-      description: item.description,
-      chip: boardCategory(item.category),
-      zone: null,
-      date: item.created_at,
-      image: item.before_image_url,
-      href: item.defect_id ? `/issues/${item.defect_id}` : "/evidence",
-      status: item.after_image_url ? "resolved" : "assessed",
-      ticketLabel: evidenceTicketLabel(item.category, item.id),
-      linkedDefect: item.defect_id ? linkedDefects.get(item.defect_id) ?? null : null,
-    }));
-    const defectMapped: BoardItem[] = defects.map((d) => ({
-      kind: "defect",
-      key: `defect-${d.id}`,
-      title: d.title,
-      description: d.description,
-      chip: boardCategory(d.category),
-      zone: d.campus_zones?.name ?? null,
-      date: d.created_at,
-      image: d.photos?.[0] ?? null,
-      href: `/issues/${d.id}`,
-      status: d.status,
-      ticketLabel: d.id,
-    }));
-    return [...evidenceMapped, ...defectMapped].sort(
-      (a, b) => +new Date(b.date) - +new Date(a.date)
-    );
-  }, [evidenceItems, defects, linkedDefects]);
+    return evidenceItems
+      .map((item) => ({
+        key: `evidence-${item.id}`,
+        title: item.title,
+        description: item.description,
+        chip: boardCategory(item.category),
+        date: item.created_at,
+        beforeImage: item.before_image_url,
+        afterImage: item.after_image_url,
+        href: item.defect_id ? `/issues/${item.defect_id}` : "/evidence",
+        status: item.after_image_url ? "resolved" : "assessed",
+        ticketLabel: evidenceTicketLabel(item.category, item.id),
+        linkedDefect: item.defect_id ? linkedDefects.get(item.defect_id) ?? null : null,
+      }))
+      .sort((a, b) => +new Date(b.date) - +new Date(a.date));
+  }, [evidenceItems, linkedDefects]);
 
   const chipCounts = useMemo(() => {
     const counts: Record<string, number> = { All: boardItems.length };
@@ -354,7 +318,7 @@ export default function Home() {
               <p className="eyebrow">Field Intelligence</p>
               <h2 className="page-title">Evidence Ticket Board</h2>
               <p className="page-lede">
-                Published before-and-after evidence and the latest reported issues, side by side — proof that reports turn into repairs.
+                Published before-and-after proof that reported defects turn into verified repairs.
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -362,7 +326,10 @@ export default function Home() {
                 Full Board <ArrowRight size={15} />
               </Link>
               <Link href="/issues" className="btn-outline btn-sm">
-                View all issues <ArrowRight size={15} />
+                View issue tracker <ArrowRight size={15} />
+              </Link>
+              <Link href="/report" className="btn btn-accent btn-sm">
+                Record an issue <ArrowRight size={15} />
               </Link>
             </div>
           </div>
@@ -385,8 +352,8 @@ export default function Home() {
           ) : boardItems.length === 0 ? (
             <div className="empty-state">
               <Camera size={28} className="mx-auto mb-3 text-text3" />
-              <p className="font-bold text-textDefault">Nothing on the board yet.</p>
-              <p className="mt-1">Be the first to report a defect — your report starts the board.</p>
+              <p className="font-bold text-textDefault">No evidence items are published yet.</p>
+              <p className="mt-1">Evidence appears here once a repair is verified — report a defect to start one.</p>
               <Link href="/report" className="btn btn-accent btn-sm mt-4">
                 Report a defect
               </Link>

@@ -27,7 +27,7 @@ type EvidenceGalleryGridProps = {
   className?: string;
 };
 
-function EvidenceImageSlot({
+export function EvidenceImageSlot({
   label,
   src,
   alt,
