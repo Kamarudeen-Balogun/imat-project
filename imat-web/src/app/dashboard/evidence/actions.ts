@@ -6,7 +6,8 @@ import { createSupabaseClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { canApproveContent } from "@/lib/access";
 import { logActivityEvent } from "@/lib/activity/logEvent";
-import { notifyApproversOfSubmission, notifyAuthorOfDecision } from "@/lib/announcements/notify";
+import { notifyApproversOfSubmission } from "@/lib/announcements/notify";
+import { approvePendingItem, rejectPendingItem, requireApprover } from "@/lib/approvals/decide";
 
 /**
  * Approval workflow for evidence items (server actions — the enforcement point).
@@ -25,17 +26,6 @@ type EvidenceRow = {
   status: "draft" | "pending_approval" | "published" | null;
   created_by: string | null;
 };
-
-async function requireApprover() {
-  const supabase = await createSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-  const { data: profile } = await supabase.from("users").select("role").eq("id", user.id).single();
-  if (!canApproveContent(profile?.role)) redirect("/dashboard");
-  return { user, role: profile?.role ?? null };
-}
 
 async function loadEvidenceItem(id: string): Promise<EvidenceRow | null> {
   const admin = createSupabaseAdminClient();
@@ -91,36 +81,10 @@ export async function approveEvidence(formData: FormData) {
   const itemId = String(formData.get("evidence_id") ?? "").trim();
   if (!itemId) redirect("/dashboard/evidence");
 
-  const item = await loadEvidenceItem(itemId);
-  if (!item || item.status !== "pending_approval") redirect("/dashboard/evidence");
-
-  const admin = createSupabaseAdminClient();
-  const { error } = await admin
-    .from("evidence_gallery")
-    .update({ status: "published", reviewed_by: user.id, review_note: null, updated_at: new Date().toISOString() })
-    .eq("id", itemId);
-  if (error) redirect("/dashboard/evidence");
-
-  if (item.created_by && item.created_by !== user.id) {
-    await notifyAuthorOfDecision({
-      kind: "evidence",
-      itemId,
-      authorId: item.created_by,
-      actorId: user.id,
-      title: item.title,
-      approved: true,
-    });
-  }
-
-  await logActivityEvent(admin, {
-    eventType: "evidence_approved",
-    entityType: "evidence",
-    entityId: itemId,
-    title: `Approved evidence: ${item.title}`,
-    actorId: user.id,
-    details: {},
-    isRelevant: true,
-  });
+  // Decision logic lives in the shared module — same transition, author
+  // notification and activity log as before.
+  const { ok } = await approvePendingItem("evidence", itemId, user.id);
+  if (!ok) redirect("/dashboard/evidence");
 
   revalidatePath("/dashboard/evidence");
   redirect("/dashboard/evidence");
@@ -133,37 +97,8 @@ export async function rejectEvidence(formData: FormData) {
   const reviewNote = String(formData.get("review_note") ?? "").trim().slice(0, 500);
   if (!itemId || !reviewNote) redirect("/dashboard/evidence");
 
-  const item = await loadEvidenceItem(itemId);
-  if (!item || item.status !== "pending_approval") redirect("/dashboard/evidence");
-
-  const admin = createSupabaseAdminClient();
-  const { error } = await admin
-    .from("evidence_gallery")
-    .update({ status: "draft", reviewed_by: user.id, review_note: reviewNote, updated_at: new Date().toISOString() })
-    .eq("id", itemId);
-  if (error) redirect("/dashboard/evidence");
-
-  if (item.created_by && item.created_by !== user.id) {
-    await notifyAuthorOfDecision({
-      kind: "evidence",
-      itemId,
-      authorId: item.created_by,
-      actorId: user.id,
-      title: item.title,
-      approved: false,
-      reviewNote,
-    });
-  }
-
-  await logActivityEvent(admin, {
-    eventType: "evidence_rejected",
-    entityType: "evidence",
-    entityId: itemId,
-    title: `Returned evidence for changes: ${item.title}`,
-    actorId: user.id,
-    details: {},
-    isRelevant: true,
-  });
+  const { ok } = await rejectPendingItem("evidence", itemId, user.id, reviewNote);
+  if (!ok) redirect("/dashboard/evidence");
 
   revalidatePath("/dashboard/evidence");
   redirect("/dashboard/evidence");

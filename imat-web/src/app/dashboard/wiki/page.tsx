@@ -67,6 +67,11 @@ export default async function WikiIndexPage() {
             {pendingCount} page{pendingCount === 1 ? "" : "s"} awaiting review
           </p>
         )}
+        {isApprover && (
+          <Link href="/dashboard/approvals" className="block w-fit text-sm font-semibold text-primary hover:underline">
+            View all approvals →
+          </Link>
+        )}
         {canWrite && (
           <div>
             <Link href="/dashboard/wiki/new" className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary hover:brightness-110 text-white font-semibold text-sm transition-colors">

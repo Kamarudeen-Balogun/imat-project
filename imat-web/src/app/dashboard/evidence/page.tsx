@@ -349,6 +349,11 @@ export default function DashboardEvidencePage() {
             {pendingCount} item{pendingCount === 1 ? "" : "s"} awaiting review
           </p>
         )}
+        {isApprover && (
+          <Link href="/dashboard/approvals" className="block w-fit text-sm font-semibold text-primary hover:underline">
+            View all approvals →
+          </Link>
+        )}
       </div>
 
       <div className="glass-panel space-y-4 rounded-xl p-6 shadow-lg shadow-black/5">

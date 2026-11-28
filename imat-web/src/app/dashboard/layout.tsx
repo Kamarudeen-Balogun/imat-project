@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
-import { LayoutDashboard, Users, Map, BookOpen, LogOut, Loader2, FileText, BarChart2, Megaphone, Activity, Menu, X, User, Share2, ClipboardList, Mail, Clock, UserPlus } from "lucide-react";
+import { LayoutDashboard, Users, Map, BookOpen, LogOut, Loader2, FileText, BarChart2, Megaphone, Activity, Menu, X, User, Share2, ClipboardList, Mail, Clock, UserPlus, ClipboardCheck } from "lucide-react";
 import Image from "next/image";
 import optimizeCloudinaryUrl from "@/lib/cloudinary";
 import { toast } from "react-hot-toast";
@@ -157,6 +157,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     // get a count badge for items waiting on them.
     ...(isMemberAuthor(profile?.role) ? [{ href: "/dashboard/news", label: "Newsroom Manager", icon: Megaphone, classes: "text-slate-300 hover:bg-white/5 hover:text-white", badge: pendingCounts.news }] : []),
     ...(isMemberAuthor(profile?.role) ? [{ href: "/dashboard/evidence", label: "Evidence Gallery", icon: FileText, classes: "text-slate-300 hover:bg-white/5 hover:text-white", badge: pendingCounts.evidence }] : []),
+    ...(canApproveContent(profile?.role) ? [{ href: "/dashboard/approvals", label: "Approvals", icon: ClipboardCheck, classes: "text-slate-300 hover:bg-white/5 hover:text-white", badge: pendingCounts.news + pendingCounts.evidence + pendingCounts.wiki }] : []),
     ...(canManageSocialLinks(profile?.role) ? [{ href: "/dashboard/social-links", label: "Social Links", icon: Share2, classes: "text-slate-300 hover:bg-white/5 hover:text-white" }] : []),
     { href: "/dashboard/directory", label: "Member Directory", icon: Users, classes: "text-slate-300 hover:bg-white/5 hover:text-white" },
     { href: "/dashboard/contact-messages", label: "Contact Inbox", icon: Mail, classes: "text-slate-300 hover:bg-white/5 hover:text-white" },

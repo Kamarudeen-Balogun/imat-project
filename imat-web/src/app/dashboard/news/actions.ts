@@ -6,11 +6,8 @@ import { createSupabaseClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { canApproveContent } from "@/lib/access";
 import { logActivityEvent } from "@/lib/activity/logEvent";
-import {
-  notifyApproversOfSubmission,
-  notifyAuthorOfDecision,
-  runPublishSideEffects,
-} from "@/lib/announcements/notify";
+import { notifyApproversOfSubmission } from "@/lib/announcements/notify";
+import { approvePendingItem, rejectPendingItem, requireApprover } from "@/lib/approvals/decide";
 
 /**
  * Approval workflow for broadcasts (server actions — the enforcement point).
@@ -30,17 +27,6 @@ type AnnouncementRow = {
   author_id: string | null;
   visibility: "public" | "members_only";
 };
-
-async function requireApprover() {
-  const supabase = await createSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-  const { data: profile } = await supabase.from("users").select("role").eq("id", user.id).single();
-  if (!canApproveContent(profile?.role)) redirect("/dashboard");
-  return { user, role: profile?.role ?? null };
-}
 
 async function loadAnnouncement(id: string): Promise<AnnouncementRow | null> {
   const admin = createSupabaseAdminClient();
@@ -111,49 +97,12 @@ export async function approveAnnouncement(formData: FormData) {
   const announcementId = String(formData.get("announcement_id") ?? "").trim();
   if (!announcementId) redirect("/dashboard/news");
 
-  const announcement = await loadAnnouncement(announcementId);
-  if (!announcement || announcement.status !== "pending_approval") redirect("/dashboard/news");
-
-  const admin = createSupabaseAdminClient();
-  const now = new Date().toISOString();
-  const { error } = await admin
-    .from("announcements")
-    .update({
-      status: "published",
-      published_at: now,
-      reviewed_by: user.id,
-      review_note: null,
-      updated_at: now,
-    })
-    .eq("id", announcementId);
-  if (error) redirect("/dashboard/news");
-
-  // The existing publish path, verbatim: in-app fan-out + push + email.
-  await runPublishSideEffects(announcementId, user.id);
-
-  if (announcement.author_id && announcement.author_id !== user.id) {
-    await notifyAuthorOfDecision({
-      kind: "announcement",
-      itemId: announcementId,
-      authorId: announcement.author_id,
-      actorId: user.id,
-      title: announcement.title,
-      approved: true,
-    });
-  }
+  // Decision logic lives in the shared module — same transition, fan-out,
+  // author notification and activity log as before.
+  const { ok } = await approvePendingItem("announcement", announcementId, user.id);
+  if (!ok) redirect("/dashboard/news");
 
   revalidatePath("/dashboard/news");
-
-  await logActivityEvent(admin, {
-    eventType: "announcement_published",
-    entityType: "announcement",
-    entityId: announcementId,
-    title: `Approved and published broadcast: ${announcement.title}`,
-    actorId: user.id,
-    details: { slug: announcement.slug },
-    isRelevant: true,
-  });
-
   redirect("/dashboard/news");
 }
 
@@ -164,44 +113,9 @@ export async function rejectAnnouncement(formData: FormData) {
   const reviewNote = String(formData.get("review_note") ?? "").trim().slice(0, 500);
   if (!announcementId || !reviewNote) redirect("/dashboard/news");
 
-  const announcement = await loadAnnouncement(announcementId);
-  if (!announcement || announcement.status !== "pending_approval") redirect("/dashboard/news");
-
-  const admin = createSupabaseAdminClient();
-  const { error } = await admin
-    .from("announcements")
-    .update({
-      status: "draft",
-      reviewed_by: user.id,
-      review_note: reviewNote,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", announcementId);
-  if (error) redirect("/dashboard/news");
-
-  if (announcement.author_id && announcement.author_id !== user.id) {
-    await notifyAuthorOfDecision({
-      kind: "announcement",
-      itemId: announcementId,
-      authorId: announcement.author_id,
-      actorId: user.id,
-      title: announcement.title,
-      approved: false,
-      reviewNote,
-    });
-  }
+  const { ok } = await rejectPendingItem("announcement", announcementId, user.id, reviewNote);
+  if (!ok) redirect("/dashboard/news");
 
   revalidatePath("/dashboard/news");
-
-  await logActivityEvent(admin, {
-    eventType: "announcement_updated",
-    entityType: "announcement",
-    entityId: announcementId,
-    title: `Returned broadcast for changes: ${announcement.title}`,
-    actorId: user.id,
-    details: { slug: announcement.slug },
-    isRelevant: true,
-  });
-
   redirect("/dashboard/news");
 }

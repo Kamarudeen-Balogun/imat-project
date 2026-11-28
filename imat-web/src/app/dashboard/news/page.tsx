@@ -288,6 +288,11 @@ export default async function DashboardNewsPage() {
             {pendingCount} awaiting review
           </p>
         )}
+        {isApprover && (
+          <Link href="/dashboard/approvals" className="mt-3 block w-fit text-sm font-semibold text-primary hover:underline">
+            View all approvals →
+          </Link>
+        )}
         {!isApprover && (
           <p className="mt-3 text-sm text-text2">Your posts go to an owner or admin for approval before they publish. You see your own drafts and submissions, plus every published broadcast.</p>
         )}

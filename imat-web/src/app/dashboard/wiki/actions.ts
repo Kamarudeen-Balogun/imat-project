@@ -6,7 +6,8 @@ import { createSupabaseClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { canApproveContent } from "@/lib/access";
 import { logActivityEvent } from "@/lib/activity/logEvent";
-import { notifyApproversOfSubmission, notifyAuthorOfDecision } from "@/lib/announcements/notify";
+import { notifyApproversOfSubmission } from "@/lib/announcements/notify";
+import { approvePendingItem, rejectPendingItem, requireApprover } from "@/lib/approvals/decide";
 
 /**
  * Approval workflow for wiki pages (server actions — the enforcement point).
@@ -26,17 +27,6 @@ type WikiRow = {
   status: "draft" | "pending_approval" | "published" | null;
   author_id: string | null;
 };
-
-async function requireApprover() {
-  const supabase = await createSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-  const { data: profile } = await supabase.from("users").select("role").eq("id", user.id).single();
-  if (!canApproveContent(profile?.role)) redirect("/dashboard");
-  return { user, role: profile?.role ?? null };
-}
 
 async function loadWikiPage(id: string): Promise<WikiRow | null> {
   const admin = createSupabaseAdminClient();
@@ -92,36 +82,10 @@ export async function approveWikiPage(formData: FormData) {
   const pageId = String(formData.get("wiki_page_id") ?? "").trim();
   if (!pageId) redirect("/dashboard/wiki");
 
-  const page = await loadWikiPage(pageId);
-  if (!page || page.status !== "pending_approval") redirect("/dashboard/wiki");
-
-  const admin = createSupabaseAdminClient();
-  const { error } = await admin
-    .from("wiki_pages")
-    .update({ status: "published", reviewed_by: user.id, review_note: null, updated_at: new Date().toISOString() })
-    .eq("id", pageId);
-  if (error) redirect("/dashboard/wiki");
-
-  if (page.author_id && page.author_id !== user.id) {
-    await notifyAuthorOfDecision({
-      kind: "wiki",
-      itemId: pageId,
-      authorId: page.author_id,
-      actorId: user.id,
-      title: page.title,
-      approved: true,
-    });
-  }
-
-  await logActivityEvent(admin, {
-    eventType: "wiki_approved",
-    entityType: "wiki_page",
-    entityId: pageId,
-    title: `Approved wiki page: ${page.title}`,
-    actorId: user.id,
-    details: { slug: page.slug },
-    isRelevant: true,
-  });
+  // Decision logic lives in the shared module — same transition, author
+  // notification and activity log as before.
+  const { ok } = await approvePendingItem("wiki", pageId, user.id);
+  if (!ok) redirect("/dashboard/wiki");
 
   revalidatePath("/dashboard/wiki");
   redirect("/dashboard/wiki");
@@ -134,37 +98,8 @@ export async function rejectWikiPage(formData: FormData) {
   const reviewNote = String(formData.get("review_note") ?? "").trim().slice(0, 500);
   if (!pageId || !reviewNote) redirect("/dashboard/wiki");
 
-  const page = await loadWikiPage(pageId);
-  if (!page || page.status !== "pending_approval") redirect("/dashboard/wiki");
-
-  const admin = createSupabaseAdminClient();
-  const { error } = await admin
-    .from("wiki_pages")
-    .update({ status: "draft", reviewed_by: user.id, review_note: reviewNote, updated_at: new Date().toISOString() })
-    .eq("id", pageId);
-  if (error) redirect("/dashboard/wiki");
-
-  if (page.author_id && page.author_id !== user.id) {
-    await notifyAuthorOfDecision({
-      kind: "wiki",
-      itemId: pageId,
-      authorId: page.author_id,
-      actorId: user.id,
-      title: page.title,
-      approved: false,
-      reviewNote,
-    });
-  }
-
-  await logActivityEvent(admin, {
-    eventType: "wiki_rejected",
-    entityType: "wiki_page",
-    entityId: pageId,
-    title: `Returned wiki page for changes: ${page.title}`,
-    actorId: user.id,
-    details: { slug: page.slug },
-    isRelevant: true,
-  });
+  const { ok } = await rejectPendingItem("wiki", pageId, user.id, reviewNote);
+  if (!ok) redirect("/dashboard/wiki");
 
   revalidatePath("/dashboard/wiki");
   redirect("/dashboard/wiki");
