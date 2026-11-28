@@ -316,7 +316,7 @@ export default function Home() {
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.18 }}
-        className="py-12 lg:py-16"
+        className="pt-12 lg:pt-16 pb-8 lg:pb-10"
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="mb-8 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
@@ -390,7 +390,7 @@ export default function Home() {
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.18 }}
-        className="border-y border-borderDark bg-bg2/70 py-12 lg:py-16"
+        className="border-y border-borderDark bg-bg2/70 pt-8 lg:pt-10 pb-12 lg:pb-16"
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="mb-8 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
@@ -445,7 +445,7 @@ export default function Home() {
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.18 }}
-        className="py-12 lg:py-16"
+        className="pt-12 lg:pt-16 pb-8 lg:pb-10"
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="mb-8 max-w-3xl">

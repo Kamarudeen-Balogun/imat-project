@@ -91,7 +91,7 @@ export function Footer() {
   }, [socialLinks]);
 
   return (
-    <footer className="relative mt-20 border-t border-borderDark bg-asphalt py-14 text-white md:mt-24">
+    <footer className="relative mt-10 border-t border-borderDark bg-asphalt py-14 text-white md:mt-12">
       <div aria-hidden="true" className="absolute inset-x-0 top-0 h-0.5 bg-primary" />
       <div className="mx-auto grid max-w-6xl grid-cols-1 gap-10 px-4 sm:px-6 md:grid-cols-4">
         <div className="col-span-1 md:col-span-2">

@@ -16,7 +16,7 @@ export function Navbar() {
   const pathname = usePathname();
 
   const navLink = (href: string) =>
-    `rounded-md px-3 py-2 text-xs font-bold uppercase tracking-[0.16em] transition-all ${
+    `shrink-0 whitespace-nowrap rounded-md px-2 py-2 text-xs font-bold uppercase tracking-[0.12em] transition-all ${
       pathname === href ? "bg-bg3 text-textDefault" : "text-text2 hover:bg-bg3 hover:text-textDefault"
     }`;
 
@@ -51,7 +51,7 @@ export function Navbar() {
   return (
     <>
     <nav className="sticky top-0 z-50 border-b border-borderDark bg-surfaceStrong/95 backdrop-blur-xl">
-      <div className="mx-auto grid h-[4.5rem] max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-3 px-4 sm:px-6">
+      <div className="mx-auto grid h-[4.5rem] max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-2 px-4 sm:px-6">
         <div className="flex min-w-0 items-center">
           <Link href="/" className="group flex min-w-0 items-center gap-3 font-mono text-xl font-bold tracking-tight text-textDefault">
               <span className="relative inline-flex h-11 w-11 items-center justify-center rounded-lg border border-borderLit/40 bg-asphalt">
@@ -68,22 +68,22 @@ export function Navbar() {
               </span>
               <span className="hidden min-w-0 sm:block">
                 <span className="block text-sm leading-none tracking-[0.18em]">IMAT</span>
-                <span className="mt-1 block text-[10px] font-semibold uppercase tracking-[0.22em] text-text3">Infrastructure Ops</span>
+                <span className="mt-1 hidden text-[10px] font-semibold uppercase tracking-[0.22em] text-text3 xl:block">Infrastructure Ops</span>
               </span>
             </Link>
         </div>
 
-        <div className="hidden items-center justify-center gap-1 lg:flex">
+        <div className="hidden min-w-0 items-center justify-center gap-1 lg:flex">
           <Link href="/" className={navLink("/")}>Home</Link>
           <Link href="/issues" className={navLink("/issues")}>Tracker</Link>
           <Link href="/evidence" className={navLink("/evidence")}>Evidence</Link>
           <Link href="/newsroom" className={navLink("/newsroom")}>Newsroom</Link>
-          <Link href="/members" className={navLink("/members")}>Members</Link>
-          <Link href="/about" className={navLink("/about")}>About</Link>
+          <Link href="/members" className={`${navLink("/members")} hidden xl:inline-flex`}>Members</Link>
+          <Link href="/about" className={`${navLink("/about")} hidden xl:inline-flex`}>About</Link>
         </div>
 
         <div className="hidden items-center justify-end gap-2 lg:flex">
-          <ThemeToggle />
+          <ThemeToggle compact />
 
           {isLoggedIn ? (
             <Link href="/dashboard" className="btn-primary btn-sm">
