@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AlertCircle, ArrowLeft, Camera, CheckCircle, Clock, ImageOff, MapPin } from "lucide-react";
+import { ArrowLeft, Camera, Clock, ImageOff, MapPin } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import { formatDistanceToNow } from "date-fns";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
+import DefectStatusBadge from "@/components/defects/DefectStatusBadge";
 
 // Public read-only defect detail view. Shows only public information:
 // no severity numbers, no officer assignments, no internal notes.
@@ -24,25 +25,22 @@ type PublicDefect = {
 };
 
 function getStatusBadge(status: string) {
-  switch (status) {
-    case "reported":
-      return <span className="inline-flex items-center gap-1.5 rounded border border-danger/30 bg-danger/10 px-3 py-1 font-mono text-xs font-bold text-danger"><Clock size={12} /> Reported</span>;
-    case "assessed":
-    case "escalated":
-      return <span className="inline-flex items-center gap-1.5 rounded border border-warning/35 bg-warning/10 px-3 py-1 font-mono text-xs font-bold text-warning"><AlertCircle size={12} /> Under Assessment</span>;
-    case "acknowledged_by_works":
-      return <span className="inline-flex items-center gap-1.5 rounded border border-primary/35 bg-primary/10 px-3 py-1 font-mono text-xs font-bold text-primary"><AlertCircle size={12} /> Works Notified</span>;
-    case "resolved":
-      return <span className="inline-flex items-center gap-1.5 rounded border border-success/35 bg-success/10 px-3 py-1 font-mono text-xs font-bold text-success"><CheckCircle size={12} /> Resolved</span>;
-    default:
-      return <span className="inline-flex items-center gap-1.5 rounded border border-borderDark bg-bg3 px-3 py-1 font-mono text-xs font-bold uppercase text-text2">{status}</span>;
-  }
+  return <DefectStatusBadge status={status} />;
 }
+
+type LinkedEvidence = {
+  id: string;
+  title: string;
+  description: string;
+  before_image_url: string;
+  after_image_url: string | null;
+};
 
 export default function PublicDefectDetailPage() {
   const params = useParams<{ id: string }>();
   const defectId = params.id;
   const [defect, setDefect] = useState<PublicDefect | null>(null);
+  const [linkedEvidence, setLinkedEvidence] = useState<LinkedEvidence[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -59,6 +57,15 @@ export default function PublicDefectDetailPage() {
         .single();
       if (data && !error) {
         setDefect(data as unknown as PublicDefect);
+        const { data: evidence } = await supabase
+          .from("evidence_gallery")
+          .select("id, title, description, before_image_url, after_image_url")
+          .eq("defect_id", defectId)
+          .eq("status", "published")
+          .eq("is_active", true)
+          .order("sort_order", { ascending: true })
+          .order("created_at", { ascending: false });
+        setLinkedEvidence((evidence ?? []) as LinkedEvidence[]);
       }
       setLoading(false);
     };
@@ -149,6 +156,45 @@ export default function PublicDefectDetailPage() {
               </div>
             )}
           </div>
+
+          {linkedEvidence.length > 0 && (
+            <div>
+              <h2 className="mb-3 flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-text3">
+                <Camera size={14} /> Repair evidence
+              </h2>
+              <div className="space-y-4">
+                {linkedEvidence.map((item) => (
+                  <div key={item.id} className="rounded-lg border border-soft bg-bg p-4">
+                    <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                      <h3 className="text-sm font-bold text-textDefault">{item.title}</h3>
+                      <Link href="/evidence" className="text-xs font-semibold text-accent hover:text-accent2">
+                        View in the evidence gallery →
+                      </Link>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <span className="mb-1.5 block text-[10px] font-mono uppercase tracking-wider text-text3">Before</span>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={item.before_image_url} alt={`${item.title} before`} className="aspect-[4/3] w-full rounded-md border border-soft object-cover" />
+                      </div>
+                      <div>
+                        <span className="mb-1.5 block text-[10px] font-mono uppercase tracking-wider text-text3">After</span>
+                        {item.after_image_url ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={item.after_image_url} alt={`${item.title} after`} className="aspect-[4/3] w-full rounded-md border border-soft object-cover" />
+                        ) : (
+                          <div className="flex aspect-[4/3] w-full items-center justify-center rounded-md border border-dashed border-soft bg-bg3 text-xs text-text3">
+                            After photo pending
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <p className="mt-3 text-sm leading-relaxed text-text2">{item.description}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div>
             <h2 className="mb-3 text-xs font-mono uppercase tracking-wider text-text3">

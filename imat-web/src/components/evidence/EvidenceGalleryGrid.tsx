@@ -2,8 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import optimizeCloudinaryUrl from "../../lib/cloudinary";
-import { AlertTriangle, ArrowRight, Camera, CheckCircle, ChevronsLeftRight, Clock, ImageOff, X } from "lucide-react";
+import { AlertTriangle, ArrowRight, Camera, CheckCircle, ChevronsLeftRight, Clock, ImageOff, Link2, X } from "lucide-react";
 import { motion } from "framer-motion";
 
 export type EvidenceGalleryItem = {
@@ -15,6 +16,8 @@ export type EvidenceGalleryItem = {
   after_image_url: string | null;
   sort_order?: number;
   is_active?: boolean;
+  defect_id?: string | null;
+  defect?: { id: string; title: string } | null;
 };
 
 type EvidenceGalleryGridProps = {
@@ -222,6 +225,19 @@ export default function EvidenceGalleryGrid({
                     <p className={`text-text2 ${compact ? "text-sm line-clamp-2" : "text-sm line-clamp-3"}`}>
                       {item.description}
                     </p>
+                    {item.defect && (
+                      <Link
+                        href={`/issues/${item.defect.id}`}
+                        onClick={(event) => event.stopPropagation()}
+                        className="flex items-center gap-2 rounded-lg border border-primary/25 bg-primary/5 px-3 py-2 text-xs font-semibold text-primary transition-colors hover:bg-primary/10"
+                      >
+                        <Link2 size={13} className="shrink-0" />
+                        <span className="min-w-0 truncate">
+                          Linked issue {item.defect.id} — {item.defect.title}
+                        </span>
+                        <ArrowRight size={12} className="ml-auto shrink-0" />
+                      </Link>
+                    )}
                     <div className="grid grid-cols-3 gap-2 border-y border-borderDark py-3 text-[9px] font-mono uppercase tracking-[0.12em] text-text3">
                       <span className="flex items-center gap-1"><AlertTriangle size={11} className="text-danger" /> Reported</span>
                       <span className="flex items-center gap-1"><Camera size={11} className="text-warning" /> Verified</span>
@@ -306,6 +322,18 @@ export default function EvidenceGalleryGrid({
               <div className="mt-5 rounded-lg border border-borderDark bg-bg2/60 p-4">
                 <h4 className="mb-2 text-sm font-mono uppercase tracking-wider text-text3">Details</h4>
                 <p className="text-sm leading-relaxed text-text2 sm:text-base">{selectedItem.description}</p>
+                {selectedItem.defect && (
+                  <Link
+                    href={`/issues/${selectedItem.defect.id}`}
+                    className="mt-4 flex items-center gap-2 rounded-lg border border-primary/25 bg-primary/5 px-3 py-2 text-xs font-semibold text-primary transition-colors hover:bg-primary/10"
+                  >
+                    <Link2 size={13} className="shrink-0" />
+                    <span className="min-w-0 truncate">
+                      Linked issue {selectedItem.defect.id} — {selectedItem.defect.title}
+                    </span>
+                    <ArrowRight size={12} className="ml-auto shrink-0" />
+                  </Link>
+                )}
               </div>
             </div>
           </motion.div>

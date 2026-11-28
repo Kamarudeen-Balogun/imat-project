@@ -31,13 +31,24 @@ export default function EvidencePage() {
       const supabase = createSupabaseClient();
       const { data } = await supabase
         .from("evidence_gallery")
-        .select("id, title, description, category, before_image_url, after_image_url, sort_order, is_active")
+        .select("id, title, description, category, before_image_url, after_image_url, sort_order, is_active, defect_id")
         .eq("is_active", true)
         .eq("status", "published")
         .order("sort_order", { ascending: true })
         .order("created_at", { ascending: false });
 
       const rows = (data ?? []) as EvidenceGalleryItem[];
+      const defectIds = Array.from(new Set(rows.map((row) => row.defect_id).filter((id): id is string => Boolean(id))));
+      if (defectIds.length > 0) {
+        const { data: defects } = await supabase
+          .from("defects")
+          .select("id, title")
+          .in("id", defectIds);
+        const byId = new Map(((defects ?? []) as Array<{ id: string; title: string }>).map((d) => [d.id, d]));
+        for (const row of rows) {
+          row.defect = row.defect_id ? byId.get(row.defect_id) ?? null : null;
+        }
+      }
       setItems(rows);
       setLoading(false);
     };

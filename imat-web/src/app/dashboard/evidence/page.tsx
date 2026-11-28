@@ -21,7 +21,7 @@ type ManagerEvidenceItem = EvidenceGalleryItem & {
   created_by?: string | null;
 };
 
-const MANAGER_SELECT = "id, title, description, category, before_image_url, after_image_url, sort_order, is_active, status, review_note, created_by";
+const MANAGER_SELECT = "id, title, description, category, before_image_url, after_image_url, sort_order, is_active, status, review_note, created_by, defect_id";
 
 const emptyItem: ManagerEvidenceItem = {
   id: "new-item",
@@ -33,6 +33,7 @@ const emptyItem: ManagerEvidenceItem = {
   sort_order: undefined,
   is_active: true,
   status: "published",
+  defect_id: null,
 };
 
 export default function DashboardEvidencePage() {
@@ -46,10 +47,22 @@ export default function DashboardEvidencePage() {
   const [items, setItems] = useState<ManagerEvidenceItem[]>([]);
   const [newItem, setNewItem] = useState<ManagerEvidenceItem>(emptyItem);
   const [pendingDeleteItem, setPendingDeleteItem] = useState<ManagerEvidenceItem | null>(null);
+  const [defectOptions, setDefectOptions] = useState<Array<{ id: string; title: string }>>([]);
 
   const isEditor = canEditEvidenceGallery(role);
   const isApprover = canApproveContent(role);
   const pendingCount = items.filter((item) => item.status === "pending_approval").length;
+
+  // Attach the linked defect title to each item so the gallery preview can
+  // show which issue an evidence item documents.
+  const itemsWithDefects = useMemo(
+    () =>
+      items.map((item) => ({
+        ...item,
+        defect: item.defect_id ? defectOptions.find((d) => d.id === item.defect_id) ?? null : null,
+      })),
+    [items, defectOptions]
+  );
 
   // Editors and approvers can edit any item; other members can only edit
   // their own drafts and pending submissions — never a published item.
@@ -86,6 +99,13 @@ export default function DashboardEvidencePage() {
         .order("created_at", { ascending: false });
 
       setItems((data ?? []) as ManagerEvidenceItem[]);
+
+      const { data: defects } = await supabase
+        .from("defects")
+        .select("id, title")
+        .order("created_at", { ascending: false })
+        .limit(50);
+      setDefectOptions((defects ?? []) as Array<{ id: string; title: string }>);
       setLoading(false);
     };
 
@@ -183,6 +203,7 @@ export default function DashboardEvidencePage() {
       category: string;
       before_image_url: string;
       after_image_url: string | null;
+      defect_id: string | null;
       sort_order?: number;
       is_active: boolean;
       updated_at: string;
@@ -195,6 +216,7 @@ export default function DashboardEvidencePage() {
       category: item.category.trim() || "Other",
       before_image_url: safeBeforeImageUrl,
       after_image_url: safeAfterImageUrl,
+      defect_id: item.defect_id ?? null,
       is_active: Boolean(item.is_active),
       updated_at: new Date().toISOString(),
     };
@@ -353,6 +375,19 @@ export default function DashboardEvidencePage() {
               ))}
             </select>
           </label>
+          <label className="space-y-2">
+            <span className="text-xs font-mono uppercase tracking-wider text-text3">Related defect (optional)</span>
+            <select
+              value={newItem.defect_id ?? ""}
+              onChange={(event) => setNewItem((current) => ({ ...current, defect_id: event.target.value || null }))}
+              className="w-full rounded-lg border border-soft bg-bg px-3 py-2 text-sm text-textDefault focus:border-primary focus:outline-none"
+            >
+              <option value="">None — standalone evidence</option>
+              {defectOptions.map((defect) => (
+                <option key={defect.id} value={defect.id}>{defect.id} — {defect.title}</option>
+              ))}
+            </select>
+          </label>
           <label className="space-y-2 md:col-span-2">
             <span className="text-xs font-mono uppercase tracking-wider text-text3">Description</span>
             <textarea
@@ -433,7 +468,7 @@ export default function DashboardEvidencePage() {
         </div>
       ) : (
         <div className="space-y-6">
-          <EvidenceGalleryGrid items={items.filter((item) => item.status === "published")} mobileHorizontal compact className="md:overflow-visible" />
+          <EvidenceGalleryGrid items={itemsWithDefects.filter((item) => item.status === "published")} mobileHorizontal compact className="md:overflow-visible" />
 
           <div className="grid gap-6">
             {items.map((item) => (
@@ -549,6 +584,19 @@ export default function DashboardEvidencePage() {
                         Active in public gallery
                       </label>
                     </div>
+                    <label className="space-y-2">
+                      <span className="text-xs font-mono uppercase tracking-wider text-text3">Related defect (optional)</span>
+                      <select
+                        value={item.defect_id ?? ""}
+                        onChange={(event) => updateItem(item.id, { defect_id: event.target.value || null })}
+                        className="w-full rounded-lg border border-soft bg-bg px-3 py-2 text-sm text-textDefault focus:border-primary focus:outline-none"
+                      >
+                        <option value="">None — standalone evidence</option>
+                        {defectOptions.map((defect) => (
+                          <option key={defect.id} value={defect.id}>{defect.id} — {defect.title}</option>
+                        ))}
+                      </select>
+                    </label>
                   </div>
 
                   <div className="space-y-4">

@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { AlertCircle, Clock, CheckCircle, ImageOff } from "lucide-react";
+import { ImageOff } from "lucide-react";
 import Link from "next/link";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import { formatDistanceToNow } from "date-fns";
 import { ExpandableSearch } from "@/components/ExpandableSearch";
 import FilterChips from "@/components/list/FilterChips";
+import DefectStatusBadge from "@/components/defects/DefectStatusBadge";
+import { publicStatusGroup } from "@/lib/defects";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 import { motion } from "framer-motion";
 import { sectionReveal } from "@/lib/animations";
@@ -52,28 +54,7 @@ export default function IssuesTrackerPage() {
     fetchDefects();
   }, []);
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'reported':
-        return <span className="inline-flex items-center gap-1.5 rounded border border-danger/30 bg-danger/10 px-3 py-1 font-mono text-xs font-bold text-danger"><Clock size={12}/> Reported</span>;
-      case 'assessed':
-      case 'escalated':
-        return <span className="inline-flex items-center gap-1.5 rounded border border-warning/35 bg-warning/10 px-3 py-1 font-mono text-xs font-bold text-warning"><AlertCircle size={12}/> Under Assessment</span>;
-      case 'acknowledged_by_works':
-        return <span className="inline-flex items-center gap-1.5 rounded border border-primary/35 bg-primary/10 px-3 py-1 font-mono text-xs font-bold text-primary"><AlertCircle size={12}/> Works Notified</span>;
-      case 'resolved':
-        return <span className="inline-flex items-center gap-1.5 rounded border border-success/35 bg-success/10 px-3 py-1 font-mono text-xs font-bold text-success"><CheckCircle size={12}/> Resolved</span>;
-      default:
-        return <span className="inline-flex items-center gap-1.5 rounded border border-borderDark bg-bg3 px-3 py-1 font-mono text-xs font-bold uppercase text-text2">{status}</span>;
-    }
-  };
-
-  // Public labels group the internal stages: assessed and escalated both
-  // read as "Under Assessment" on this page, so the chips match the badges.
-  const publicStatusGroup = (status: string) => {
-    if (status === "assessed" || status === "escalated") return "under_assessment";
-    return status;
-  };
+  const getStatusBadge = (status: string) => <DefectStatusBadge status={status} />;
 
   const searchedDefects = useMemo(
     () =>

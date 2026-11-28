@@ -33,6 +33,7 @@ export default function DefectDetailsPage() {
   const params = useParams<{ id: string }>();
   const defectId = params.id;
   const [defect, setDefect] = useState<DetailedDefect | null>(null);
+  const [linkedEvidence, setLinkedEvidence] = useState<Array<{ id: string; title: string; description: string; before_image_url: string; after_image_url: string | null }>>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
 
@@ -57,6 +58,13 @@ export default function DefectDetailsPage() {
 
       if (data && !error) {
         setDefect(data as unknown as DetailedDefect);
+        const { data: evidence } = await supabase
+          .from("evidence_gallery")
+          .select("id, title, description, before_image_url, after_image_url")
+          .eq("defect_id", defectId)
+          .order("sort_order", { ascending: true })
+          .order("created_at", { ascending: false });
+        setLinkedEvidence((evidence ?? []) as Array<{ id: string; title: string; description: string; before_image_url: string; after_image_url: string | null }>);
       } else {
         console.error("Defect details load failed.");
       }
@@ -242,6 +250,47 @@ export default function DefectDetailsPage() {
                     </div>
                   )}
                </div>
+
+               {linkedEvidence.length > 0 && (
+                 <div>
+                   <h3 className="text-xs font-mono uppercase tracking-wider text-text3 mb-3 border-b border-soft pb-1 flex items-center gap-2">
+                     <Camera size={14} /> Linked Repair Evidence
+                   </h3>
+                   <div className="space-y-4">
+                     {linkedEvidence.map((item) => (
+                       <div key={item.id} className="rounded-lg border border-soft bg-bg p-4">
+                         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                           <h4 className="text-sm font-bold text-textDefault">{item.title}</h4>
+                           <a href="/evidence" className="text-xs font-semibold text-accent hover:text-accent2">
+                             View in the evidence gallery →
+                           </a>
+                         </div>
+                         <div className="grid grid-cols-2 gap-3">
+                           <div>
+                             <span className="mb-1.5 block text-[10px] font-mono uppercase tracking-wider text-text3">Before</span>
+                             <div className="relative aspect-[4/3] overflow-hidden rounded-md border border-soft bg-black">
+                               <Image src={item.before_image_url && item.before_image_url.includes('res.cloudinary.com') ? optimizeCloudinaryUrl(item.before_image_url) : item.before_image_url} alt={`${item.title} before`} fill className="object-cover" />
+                             </div>
+                           </div>
+                           <div>
+                             <span className="mb-1.5 block text-[10px] font-mono uppercase tracking-wider text-text3">After</span>
+                             {item.after_image_url ? (
+                               <div className="relative aspect-[4/3] overflow-hidden rounded-md border border-soft bg-black">
+                                 <Image src={item.after_image_url.includes('res.cloudinary.com') ? optimizeCloudinaryUrl(item.after_image_url) : item.after_image_url} alt={`${item.title} after`} fill className="object-cover" />
+                               </div>
+                             ) : (
+                               <div className="flex aspect-[4/3] w-full items-center justify-center rounded-md border border-dashed border-soft bg-bg3 text-xs text-text3">
+                                 After photo pending
+                               </div>
+                             )}
+                           </div>
+                         </div>
+                         <p className="mt-3 text-sm leading-relaxed text-text2">{item.description}</p>
+                       </div>
+                     ))}
+                   </div>
+                 </div>
+               )}
 
             </div>
          </div>

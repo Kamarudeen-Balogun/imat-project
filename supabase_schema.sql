@@ -383,6 +383,7 @@ CREATE TABLE IF NOT EXISTS evidence_gallery (
   is_active BOOLEAN NOT NULL DEFAULT true,
   created_by UUID REFERENCES users(id) ON DELETE SET NULL,
   updated_by UUID REFERENCES users(id) ON DELETE SET NULL,
+  defect_id TEXT REFERENCES defects(id) ON DELETE SET NULL,
   status TEXT NOT NULL DEFAULT 'published' CHECK (status IN ('draft', 'pending_approval', 'published')),
   review_note TEXT,
   submitted_by UUID REFERENCES users(id) ON DELETE SET NULL,
@@ -394,6 +395,7 @@ CREATE TABLE IF NOT EXISTS evidence_gallery (
 CREATE INDEX IF NOT EXISTS evidence_gallery_sort_order_idx ON evidence_gallery(sort_order ASC, created_at DESC);
 CREATE INDEX IF NOT EXISTS evidence_gallery_category_idx ON evidence_gallery(category);
 CREATE INDEX IF NOT EXISTS evidence_gallery_status_idx ON evidence_gallery(status);
+CREATE INDEX IF NOT EXISTS evidence_gallery_defect_id_idx ON evidence_gallery(defect_id);
 
 ALTER TABLE evidence_gallery
 ALTER COLUMN sort_order DROP NOT NULL;

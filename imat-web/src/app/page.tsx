@@ -26,7 +26,9 @@ import {
   isMissingPinnedColumn,
   normalizeAnnouncementAuthor,
 } from "@/lib/announcements";
-import EvidenceGalleryGrid, { type EvidenceGalleryItem } from "@/components/evidence/EvidenceGalleryGrid";
+import BoardGrid, { evidenceTicketLabel, type BoardItem } from "@/components/home/BoardGrid";
+import FilterChips from "@/components/list/FilterChips";
+import { BOARD_CHIPS, boardCategory, type BoardChip } from "@/lib/defects";
 import { getAnnouncementHref } from "@/lib/news";
 
 type HomeAnnouncement = {
@@ -76,28 +78,78 @@ function StatusStep({
   );
 }
 
+type HomeEvidenceItem = {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  before_image_url: string;
+  after_image_url: string | null;
+  sort_order?: number;
+  is_active?: boolean;
+  created_at: string;
+  defect_id?: string | null;
+};
+
+type HomeDefect = {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  status: string;
+  created_at: string;
+  photos: string[] | null;
+  campus_zones: { name: string } | null;
+};
+
 export default function Home() {
-  const [filter, setFilter] = useState("All");
-  const [evidenceItems, setEvidenceItems] = useState<EvidenceGalleryItem[]>([]);
-  const [evidenceLoading, setEvidenceLoading] = useState(true);
+  const [filter, setFilter] = useState<BoardChip>("All");
+  const [evidenceItems, setEvidenceItems] = useState<HomeEvidenceItem[]>([]);
+  const [defects, setDefects] = useState<HomeDefect[]>([]);
+  const [linkedDefects, setLinkedDefects] = useState<Map<string, { id: string; title: string }>>(new Map());
+  const [boardLoading, setBoardLoading] = useState(true);
   const [announcements, setAnnouncements] = useState<HomeAnnouncement[]>([]);
   const [newsLoading, setNewsLoading] = useState(true);
   const { stats, loading } = useSiteStats(60000);
 
   useEffect(() => {
-    const loadEvidence = async () => {
+    const loadBoard = async () => {
       const supabase = createSupabaseClient();
-      const { data } = await supabase
-        .from("evidence_gallery")
-        .select("id, title, description, category, before_image_url, after_image_url, sort_order, is_active")
-        .eq("is_active", true)
-        .eq("status", "published")
-        .order("sort_order", { ascending: true })
-        .order("created_at", { ascending: false })
-        .limit(6);
+      const [evidenceResult, defectsResult] = await Promise.all([
+        supabase
+          .from("evidence_gallery")
+          .select("id, title, description, category, before_image_url, after_image_url, sort_order, is_active, created_at, defect_id")
+          .eq("is_active", true)
+          .eq("status", "published")
+          .order("sort_order", { ascending: true })
+          .order("created_at", { ascending: false })
+          .limit(6),
+        supabase
+          .from("defects")
+          .select("id, title, description, category, status, created_at, photos, campus_zones(name)")
+          .order("created_at", { ascending: false })
+          .limit(12),
+      ]);
 
-      setEvidenceItems((data ?? []) as EvidenceGalleryItem[]);
-      setEvidenceLoading(false);
+      const evidence = (evidenceResult.data ?? []) as HomeEvidenceItem[];
+      const loadedDefects = (defectsResult.data ?? []) as unknown as HomeDefect[];
+      setEvidenceItems(evidence);
+      setDefects(loadedDefects);
+
+      // Resolve the linked issue title for each evidence item (usually
+      // already among the loaded defects; fetch any stragglers by id).
+      const byId = new Map(loadedDefects.map((d) => [d.id, { id: d.id, title: d.title }]));
+      const missing = Array.from(
+        new Set(evidence.map((item) => item.defect_id).filter((id): id is string => Boolean(id && !byId.has(id))))
+      );
+      if (missing.length > 0) {
+        const { data: extra } = await supabase.from("defects").select("id, title").in("id", missing);
+        for (const d of (extra ?? []) as Array<{ id: string; title: string }>) {
+          byId.set(d.id, d);
+        }
+      }
+      setLinkedDefects(byId);
+      setBoardLoading(false);
     };
 
     const loadAnnouncements = async () => {
@@ -139,17 +191,59 @@ export default function Home() {
       setNewsLoading(false);
     };
 
-    void loadEvidence();
+    void loadBoard();
     void loadAnnouncements();
   }, []);
 
-  const filteredEvidence = useMemo(
-    () =>
-      evidenceItems
-        .filter((item) => filter === "All" || item.category === filter)
-        .slice(0, 3),
-    [evidenceItems, filter]
+  // One board, two sources: published evidence items and the latest reported
+  // defects, merged newest-first. Evidence keeps its before/after story and
+  // its linked issue; defects keep their public status and detail link.
+  const boardItems = useMemo<BoardItem[]>(() => {
+    const evidenceMapped: BoardItem[] = evidenceItems.map((item) => ({
+      kind: "evidence",
+      key: `evidence-${item.id}`,
+      title: item.title,
+      description: item.description,
+      chip: boardCategory(item.category),
+      zone: null,
+      date: item.created_at,
+      image: item.before_image_url,
+      href: item.defect_id ? `/issues/${item.defect_id}` : "/evidence",
+      status: item.after_image_url ? "resolved" : "assessed",
+      ticketLabel: evidenceTicketLabel(item.category, item.id),
+      linkedDefect: item.defect_id ? linkedDefects.get(item.defect_id) ?? null : null,
+    }));
+    const defectMapped: BoardItem[] = defects.map((d) => ({
+      kind: "defect",
+      key: `defect-${d.id}`,
+      title: d.title,
+      description: d.description,
+      chip: boardCategory(d.category),
+      zone: d.campus_zones?.name ?? null,
+      date: d.created_at,
+      image: d.photos?.[0] ?? null,
+      href: `/issues/${d.id}`,
+      status: d.status,
+      ticketLabel: d.id,
+    }));
+    return [...evidenceMapped, ...defectMapped].sort(
+      (a, b) => +new Date(b.date) - +new Date(a.date)
+    );
+  }, [evidenceItems, defects, linkedDefects]);
+
+  const chipCounts = useMemo(() => {
+    const counts: Record<string, number> = { All: boardItems.length };
+    for (const chip of BOARD_CHIPS) {
+      if (chip !== "All") counts[chip] = boardItems.filter((item) => item.chip === chip).length;
+    }
+    return counts;
+  }, [boardItems]);
+
+  const filteredBoard = useMemo(
+    () => (filter === "All" ? boardItems : boardItems.filter((item) => item.chip === filter)),
+    [boardItems, filter]
   );
+  const visibleBoard = useMemo(() => filteredBoard.slice(0, 6), [filteredBoard]);
 
   const cards = useMemo(
     () => [
@@ -260,52 +354,60 @@ export default function Home() {
               <p className="eyebrow">Field Intelligence</p>
               <h2 className="page-title">Evidence Ticket Board</h2>
               <p className="page-lede">
-                Published records document defect conditions, categories, and before / after proof for accountable maintenance follow-through.
+                Published before-and-after evidence and the latest reported issues, side by side — proof that reports turn into repairs.
               </p>
             </div>
-            <Link href="/evidence" className="btn-outline btn-sm">
-              Full Board <ArrowRight size={15} />
-            </Link>
+            <div className="flex flex-wrap gap-2">
+              <Link href="/evidence" className="btn-outline btn-sm">
+                Full Board <ArrowRight size={15} />
+              </Link>
+              <Link href="/issues" className="btn-outline btn-sm">
+                View all issues <ArrowRight size={15} />
+              </Link>
+            </div>
           </div>
 
-          <div className="mb-7 flex flex-wrap gap-2">
-            {["All", "Drainage", "Roads", "Walkways", "Structures"].map((category) => (
-              <button
-                key={category}
-                onClick={() => setFilter(category)}
-                className={`chip ${filter === category ? "chip-active" : ""}`}
-              >
-                {category}
-              </button>
-            ))}
+          <div className="mb-7">
+            <FilterChips
+              chips={BOARD_CHIPS.map((chip) => ({ id: chip, label: chip, count: chipCounts[chip] ?? 0 }))}
+              activeId={filter}
+              onChange={(id) => setFilter(id as BoardChip)}
+              ariaLabel="Filter board by category"
+            />
           </div>
 
-          {evidenceLoading ? (
-            <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+          {boardLoading ? (
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {Array.from({ length: 3 }).map((_, index) => (
                 <div key={index} className="h-[420px] animate-pulse rounded-lg border border-borderDark bg-bg2" />
               ))}
             </div>
-          ) : evidenceItems.length === 0 ? (
+          ) : boardItems.length === 0 ? (
             <div className="empty-state">
               <Camera size={28} className="mx-auto mb-3 text-text3" />
-              <p className="font-bold text-textDefault">No evidence items are published yet.</p>
+              <p className="font-bold text-textDefault">Nothing on the board yet.</p>
               <p className="mt-1">Be the first to report a defect — your report starts the board.</p>
               <Link href="/report" className="btn btn-accent btn-sm mt-4">
                 Report a defect
               </Link>
             </div>
-          ) : filteredEvidence.length === 0 ? (
+          ) : filteredBoard.length === 0 ? (
             <div className="empty-state">
               Nothing in this category yet — try another filter.
             </div>
           ) : (
-            <EvidenceGalleryGrid
-              items={filteredEvidence}
-              mobileHorizontal
-              compact
-              className="md:overflow-visible"
-            />
+            <>
+              <BoardGrid items={visibleBoard} />
+              <div className="mt-7 flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
+                <p className="text-xs font-mono uppercase tracking-wider text-text3">
+                  Showing {visibleBoard.length} of {filteredBoard.length} record{filteredBoard.length === 1 ? "" : "s"}
+                  {filter !== "All" ? ` in ${filter}` : ""}
+                </p>
+                <Link href="/report" className="btn btn-accent btn-sm">
+                  Report a defect <ArrowRight size={15} />
+                </Link>
+              </div>
+            </>
           )}
         </div>
       </motion.section>
