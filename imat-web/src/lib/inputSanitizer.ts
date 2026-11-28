@@ -9,6 +9,17 @@ export function sanitizePlainText(value: string, maxLength = 255): string {
     .slice(0, maxLength);
 }
 
+// Markdown bodies need their line breaks: sanitizePlainText strips \n and
+// \r (they are control chars), which would flatten every heading, list and
+// paragraph into one line. This keeps newlines/tabs and strips the rest.
+export function sanitizeMarkdown(value: string, maxLength = 20000): string {
+  return value
+    .replace(/[^\n\r\t\x20-\uFFFF]/g, "")
+    .replace(ZERO_WIDTH_CHARS, "")
+    .trim()
+    .slice(0, maxLength);
+}
+
 export function sanitizeEmail(value: string): string {
   return sanitizePlainText(value, 254).toLowerCase();
 }

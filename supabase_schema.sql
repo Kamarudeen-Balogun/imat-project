@@ -318,7 +318,11 @@ CREATE TABLE IF NOT EXISTS announcements (
   visibility TEXT DEFAULT 'members_only' CHECK (visibility IN ('public', 'members_only')),
   published_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now(),
-  updated_by UUID REFERENCES users(id) ON DELETE SET NULL
+  updated_by UUID REFERENCES users(id) ON DELETE SET NULL,
+  topic TEXT,
+  excerpt TEXT,
+  status TEXT NOT NULL DEFAULT 'published' CHECK (status IN ('draft', 'published')),
+  video_url TEXT
 );
 
 CREATE INDEX IF NOT EXISTS announcements_published_at_idx ON announcements(published_at DESC);

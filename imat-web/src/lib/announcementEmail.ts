@@ -8,6 +8,8 @@
 
 import { announcementEmail, sendEmail } from "@/lib/email";
 import { getAnnouncementHref } from "@/lib/news";
+import { markdownToPlainText } from "@/lib/markdown";
+import { parseVideoUrl } from "@/lib/video";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export type AnnouncementEmailResult = {
@@ -34,7 +36,7 @@ function normalizeJoined<T>(value: T | T[] | null): T | null {
 }
 
 function buildExcerpt(body: string, fallback: string): string {
-  return body.trim().replace(/\s+/g, " ").slice(0, 180) || fallback;
+  return markdownToPlainText(body).slice(0, 180) || fallback;
 }
 
 /**
@@ -51,7 +53,7 @@ export async function sendAnnouncementEmails(announcementId: string): Promise<An
 
     const { data: announcement, error: announcementError } = await supabase
       .from("announcements")
-      .select("id, slug, title, body, visibility, author:users!announcements_author_id_fkey(full_name)")
+      .select("id, slug, title, body, visibility, excerpt, video_url, author:users!announcements_author_id_fkey(full_name)")
       .eq("id", announcementId)
       .single();
 
@@ -64,10 +66,13 @@ export async function sendAnnouncementEmails(announcementId: string): Promise<An
       announcement.author as { full_name: string | null } | { full_name: string | null }[] | null
     );
     const authorName = author?.full_name ?? "IMAT Official";
-    const excerpt = buildExcerpt(announcement.body ?? "", announcement.title);
+    // Prefer the standfirst the author wrote; fall back to the body.
+    const excerpt =
+      (announcement.excerpt as string | null)?.trim() || buildExcerpt(announcement.body ?? "", announcement.title);
+    const video = (announcement.video_url as string | null) ? parseVideoUrl(announcement.video_url as string) : null;
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://imat-futa.vercel.app";
     const url = `${siteUrl}${getAnnouncementHref(announcement.slug ?? announcement.id)}`;
-    const template = announcementEmail({ authorName, title: announcement.title, excerpt, url });
+    const template = announcementEmail({ authorName, title: announcement.title, excerpt, url, video });
 
     const { data: rows, error: rowsError } = await supabase
       .from("notifications")

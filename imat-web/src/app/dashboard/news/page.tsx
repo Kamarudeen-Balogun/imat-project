@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowRight, Calendar, Edit3, Megaphone, Plus, Star } from "lucide-react";
+import { ArrowRight, Calendar, Edit3, Megaphone, Play, Plus, Star } from "lucide-react";
 import { format } from "date-fns";
 import { createSupabaseClient } from "@/lib/supabase/server";
 import { canEditContent } from "@/lib/access";
 import { getAnnouncementHref } from "@/lib/news";
+import { markdownToPlainText } from "@/lib/markdown";
 import { sendAnnouncementPushNotifications } from "@/lib/push/server";
 import { sendAnnouncementEmails } from "@/lib/announcementEmail";
 import Image from "next/image";
@@ -24,10 +25,14 @@ type AnnouncementRow = {
   slug: string | null;
   title: string;
   visibility: "public" | "members_only";
-  published_at: string;
+  published_at: string | null;
   updated_at: string;
   image_url: string | null;
   is_pinned?: boolean | null;
+  topic: string | null;
+  excerpt: string | null;
+  status: "draft" | "published" | null;
+  video_url: string | null;
   author: { full_name: string | null } | null;
 };
 
@@ -62,7 +67,7 @@ async function toggleAnnouncementVisibility(formData: FormData) {
 
   const { data: existingAnnouncement } = await supabase
     .from("announcements")
-    .select("id, slug, title, body, visibility")
+    .select("id, slug, title, body, visibility, status")
     .eq("id", announcementId)
     .single();
 
@@ -71,13 +76,25 @@ async function toggleAnnouncementVisibility(formData: FormData) {
   }
 
   const previousVisibility = existingAnnouncement.visibility;
+  const isDraft = existingAnnouncement.status === "draft";
+
+  // Flipping a draft to public IS publishing it: it must leave draft
+  // status and get a real publish date, or the newsroom would still hide it.
+  const updates: { visibility: string; updated_at: string; status?: string; published_at?: string } = {
+    visibility,
+    updated_at: new Date().toISOString(),
+  };
+  if (visibility === "public" && isDraft) {
+    updates.status = "published";
+    updates.published_at = new Date().toISOString();
+  }
 
   await supabase
     .from("announcements")
-    .update({ visibility, updated_at: new Date().toISOString() })
+    .update(updates)
     .eq("id", announcementId);
 
-  if (previousVisibility === "members_only" && visibility === "public") {
+  if (visibility === "public" && (previousVisibility === "members_only" || isDraft)) {
     const { data: recipients } = await supabase
       .from("users")
       .select("id")
@@ -101,7 +118,7 @@ async function toggleAnnouncementVisibility(formData: FormData) {
           announcement_id: announcementId,
           type: "news_update",
           title: existingAnnouncement.title,
-          body: existingAnnouncement.body.trim().replace(/\s+/g, " ").slice(0, 180) || existingAnnouncement.title,
+          body: markdownToPlainText(existingAnnouncement.body).slice(0, 180) || existingAnnouncement.title,
           href: getAnnouncementHref(existingAnnouncement.slug ?? announcementId),
         }));
 
@@ -290,10 +307,30 @@ export default async function DashboardNewsPage() {
             <article key={item.id} className="glass-panel rounded-2xl p-6 shadow-lg shadow-black/5">
               <div className="flex items-start justify-between gap-4 mb-4">
                 <div>
-                  <div className="inline-flex items-center gap-2 rounded-full border border-soft bg-bg px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-text3 mb-3">
-                    {item.visibility === "public" ? "Public" : "Members Only"}
+                  <div className="mb-3 flex flex-wrap items-center gap-2">
+                    <div className="inline-flex items-center gap-2 rounded-full border border-soft bg-bg px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-text3">
+                      {item.visibility === "public" ? "Public" : "Members Only"}
+                    </div>
+                    {item.status === "draft" && (
+                      <div className="inline-flex items-center gap-2 rounded-full border border-warning/40 bg-warning/10 px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-warning">
+                        Draft
+                      </div>
+                    )}
+                    {item.topic && (
+                      <div className="inline-flex items-center gap-2 rounded-full border border-accent/40 bg-accent/10 px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-accent">
+                        {item.topic}
+                      </div>
+                    )}
+                    {item.video_url && (
+                      <div className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-primary">
+                        <Play size={12} /> Video
+                      </div>
+                    )}
                   </div>
                   <h2 className="text-xl font-bold text-textDefault">{item.title}</h2>
+                  {item.excerpt && (
+                    <p className="mt-2 line-clamp-2 text-sm text-text2">{item.excerpt}</p>
+                  )}
                 </div>
                 <div className="w-16 h-16 rounded-xl border border-soft overflow-hidden bg-bg shrink-0">
                   {item.image_url ? (
@@ -312,7 +349,7 @@ export default async function DashboardNewsPage() {
               </div>
 
               <div className="flex flex-wrap items-center gap-4 text-xs font-mono text-text3 border-t border-soft pt-4 mt-4">
-                <span className="inline-flex items-center gap-2"><Calendar size={14} /> Published {format(new Date(item.published_at), "MMM d, yyyy")}</span>
+                <span className="inline-flex items-center gap-2"><Calendar size={14} /> {item.published_at ? `Published ${format(new Date(item.published_at), "MMM d, yyyy")}` : "Not published yet"}</span>
                 <span>Updated {format(new Date(item.updated_at), "MMM d, yyyy")}</span>
               </div>
 
@@ -374,9 +411,11 @@ export default async function DashboardNewsPage() {
                 <Link href={`/dashboard/news/${item.slug ?? item.id}`} className="inline-flex items-center gap-2 rounded-lg border border-soft px-4 py-2 text-sm font-semibold text-textDefault hover:border-primary hover:text-primary transition-colors">
                   <Edit3 size={16} /> Edit
                 </Link>
-                <Link href={`/newsroom/${item.slug ?? item.id}`} className="inline-flex items-center gap-2 rounded-lg border border-soft px-4 py-2 text-sm font-semibold text-text3 hover:border-text3 hover:text-textDefault transition-colors">
-                  View public page <ArrowRight size={16} />
-                </Link>
+                {item.status !== "draft" && (
+                  <Link href={`/newsroom/${item.slug ?? item.id}`} className="inline-flex items-center gap-2 rounded-lg border border-soft px-4 py-2 text-sm font-semibold text-text3 hover:border-text3 hover:text-textDefault transition-colors">
+                    View public page <ArrowRight size={16} />
+                  </Link>
+                )}
                 <DeleteAnnouncementButton
                   announcementId={item.id}
                   title={item.title}

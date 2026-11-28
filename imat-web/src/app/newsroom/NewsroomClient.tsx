@@ -14,9 +14,10 @@ import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 import { format } from "date-fns";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Calendar, Megaphone } from "lucide-react";
+import { ArrowRight, Calendar, Megaphone, Play } from "lucide-react";
 import NewsroomNotificationSettings from "./NewsroomNotificationSettings";
 import NotificationsHistoryPanel from "./NotificationsHistoryPanel";
+import { markdownToPlainText } from "@/lib/markdown";
 
 type Announcement = {
   id: string;
@@ -27,6 +28,10 @@ type Announcement = {
   published_at: string;
   image_url: string | null;
   is_pinned?: boolean | null;
+  topic: string | null;
+  excerpt: string | null;
+  status: "draft" | "published" | null;
+  video_url: string | null;
   author: { full_name: string | null } | null;
 };
 
@@ -66,6 +71,7 @@ export default function NewsroomClient() {
       const announcementQuery = supabase
         .from("announcements")
         .select(ANNOUNCEMENT_CARD_SELECT_WITH_PIN)
+        .eq("status", "published")
         .order("is_pinned", { ascending: false })
         .order("published_at", { ascending: false });
 
@@ -79,6 +85,7 @@ export default function NewsroomClient() {
         const fallbackQuery = supabase
           .from("announcements")
           .select(ANNOUNCEMENT_CARD_SELECT)
+          .eq("status", "published")
           .order("published_at", { ascending: false });
 
         const fallback = session
@@ -154,8 +161,8 @@ export default function NewsroomClient() {
             <p className="mx-auto max-w-sm text-sm text-text3">{loadError}</p>
           </div>
         ) : newsItems.length === 0 ? (
-          <div className="glass-panel rounded-2xl border border-borderDark border-dashed py-20 text-center">
-            <Megaphone size={48} className="mx-auto mb-4 text-borderLit" />
+          <div className="glass-panel rounded-2xl border border-borderDark border-dashed py-12 text-center">
+            <Megaphone size={40} className="mx-auto mb-4 text-borderLit" />
             <h3 className="mb-2 text-xl font-bold text-textDefault">No active broadcasts</h3>
             <p className="mx-auto max-w-sm text-sm text-text3">Check back later for official announcements and structural health campaign updates.</p>
           </div>
@@ -195,6 +202,19 @@ export default function NewsroomClient() {
                       {item.title}
                     </h3>
 
+                    <div className="mb-4 flex flex-wrap items-center gap-2">
+                      {item.topic && (
+                        <div className="inline-flex w-fit items-center rounded-full border border-accent/40 bg-accent/10 px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider text-accent">
+                          {item.topic}
+                        </div>
+                      )}
+                      {item.video_url && (
+                        <div className="inline-flex w-fit items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider text-primary">
+                          <Play size={12} /> Video
+                        </div>
+                      )}
+                    </div>
+
                     {item.visibility === "members_only" && (
                       <div className="mb-4 inline-flex w-fit items-center rounded-full border border-warning/40 bg-warning/10 px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider text-warning">
                         Members Only
@@ -208,7 +228,7 @@ export default function NewsroomClient() {
                     )}
 
                     <p className="mb-8 line-clamp-3 flex-grow text-sm text-text2">
-                      {item.body}
+                      {item.excerpt?.trim() || markdownToPlainText(item.body).slice(0, 180) || item.title}
                     </p>
 
                     <div className="mt-auto flex items-center justify-between border-t border-borderDark pt-6">

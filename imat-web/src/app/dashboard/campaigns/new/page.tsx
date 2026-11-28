@@ -1,42 +1,41 @@
 import { createSupabaseClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { isAdminOrOwner } from "@/lib/access";
 import CampaignForm from "./CampaignForm";
 
 export default async function NewCampaignPage() {
   const supabase = await createSupabaseClient();
-  
+
   // Verify user is logged in
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
     redirect("/login");
   }
 
-  // Get user role for authorization
+  // Broadcasts are owner/admin only. (The old gate let advocacy_officer and
+  // president in but locked the owner out of his own composer.)
   const { data: profile } = await supabase
     .from("users")
-    .select("role")
+    .select("role, full_name")
     .eq("id", user.id)
     .single();
 
-  const allowedRoles = ["advocacy_officer", "president", "admin"];
-  
-  if (!profile || !allowedRoles.includes(profile.role)) {
-    redirect("/dashboard"); // Kick out unauthorized users
+  if (!profile || !isAdminOrOwner(profile.role)) {
+    redirect("/dashboard");
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-4 md:p-8 animate-in fade-in zoom-in-95 duration-500">
+    <div className="mx-auto w-full max-w-6xl animate-in fade-in zoom-in-95 duration-500 px-4 pb-16 pt-6 sm:px-6">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-textDefault">Broadcast & Campaigns</h1>
-        <p className="text-text2 mt-2">
-          Publish public news, university maintenance announcements, or internal member updates.
+        <h1 className="text-2xl font-bold text-textDefault sm:text-3xl">Broadcast Composer</h1>
+        <p className="text-text2 mt-2 max-w-2xl">
+          Write a proper news post for the newsroom — headline, topic, cover image,
+          rich body and video — then preview it exactly as members will see it
+          before you publish or save it as a draft.
         </p>
       </div>
 
-      <div className="bg-bg2 border border-soft rounded-2xl p-6 md:p-8">
-        <CampaignForm userId={user.id} />
-      </div>
+      <CampaignForm userId={user.id} authorName={profile.full_name ?? "IMAT Official"} />
     </div>
   );
 }
-

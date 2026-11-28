@@ -12,15 +12,19 @@ type Announcement = {
   body: string;
   image_url: string | null;
   visibility: "public" | "members_only";
-  published_at: string;
+  published_at: string | null;
   updated_at: string;
+  topic: string | null;
+  excerpt: string | null;
+  status: "draft" | "published" | null;
+  video_url: string | null;
   author: { full_name: string | null } | null;
 };
 
 async function loadAnnouncement(supabase: Awaited<ReturnType<typeof createSupabaseClient>>, idOrSlug: string) {
   const bySlug = await supabase
     .from("announcements")
-    .select("id, slug, title, body, image_url, visibility, published_at, updated_at, author:users!announcements_author_id_fkey(full_name)")
+    .select("id, slug, title, body, image_url, visibility, published_at, updated_at, topic, excerpt, status, video_url, author:users!announcements_author_id_fkey(full_name)")
     .eq("slug", idOrSlug)
     .maybeSingle();
 
@@ -28,7 +32,7 @@ async function loadAnnouncement(supabase: Awaited<ReturnType<typeof createSupaba
 
   const byId = await supabase
     .from("announcements")
-    .select("id, slug, title, body, image_url, visibility, published_at, updated_at, author:users!announcements_author_id_fkey(full_name)")
+    .select("id, slug, title, body, image_url, visibility, published_at, updated_at, topic, excerpt, status, video_url, author:users!announcements_author_id_fkey(full_name)")
     .eq("id", idOrSlug)
     .maybeSingle();
 

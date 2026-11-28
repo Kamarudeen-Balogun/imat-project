@@ -59,11 +59,12 @@ const nextConfig = {
               "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com",  // unsafe-eval needed for react-pdf
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
-              "img-src 'self' data: blob: https://res.cloudinary.com",
+              "img-src 'self' data: blob: https://res.cloudinary.com https://i.ytimg.com https://i.vimeocdn.com",
               "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.cloudinary.com https://res.cloudinary.com https://challenges.cloudflare.com",
               "worker-src 'self' blob:",
               // react-pdf PDFViewer renders preview via a blob iframe.
-              "frame-src 'self' blob: https://challenges.cloudflare.com",
+              // YouTube / Vimeo embeds for broadcast posts.
+              "frame-src 'self' blob: https://challenges.cloudflare.com https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com",
               "object-src 'none'",
               "base-uri 'self'",
             ].join('; '),

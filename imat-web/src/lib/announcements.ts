@@ -1,14 +1,23 @@
 export const ANNOUNCEMENT_CARD_SELECT =
-  "id, slug, title, body, visibility, published_at, image_url, author:users!announcements_author_id_fkey(full_name)";
+  "id, slug, title, body, visibility, published_at, image_url, topic, excerpt, status, video_url, author:users!announcements_author_id_fkey(full_name)";
 
 export const ANNOUNCEMENT_CARD_SELECT_WITH_PIN =
-  "id, slug, title, body, visibility, published_at, image_url, is_pinned, author:users!announcements_author_id_fkey(full_name)";
+  "id, slug, title, body, visibility, published_at, image_url, is_pinned, topic, excerpt, status, video_url, author:users!announcements_author_id_fkey(full_name)";
 
 export const ANNOUNCEMENT_MANAGER_SELECT =
-  "id, slug, title, visibility, published_at, updated_at, image_url, author:users!announcements_author_id_fkey(full_name)";
+  "id, slug, title, visibility, published_at, updated_at, image_url, topic, excerpt, status, video_url, author:users!announcements_author_id_fkey(full_name)";
 
 export const ANNOUNCEMENT_MANAGER_SELECT_WITH_PIN =
-  "id, slug, title, visibility, published_at, updated_at, image_url, is_pinned, author:users!announcements_author_id_fkey(full_name)";
+  "id, slug, title, visibility, published_at, updated_at, image_url, is_pinned, topic, excerpt, status, video_url, author:users!announcements_author_id_fkey(full_name)";
+
+export const ANNOUNCEMENT_TOPICS = [
+  "Convocation",
+  "Campus News",
+  "Maintenance Update",
+  "Advocacy",
+  "Event",
+  "General",
+] as const;
 
 export function isMissingPinnedColumn(error: { code?: string; message?: string } | null | undefined) {
   return Boolean(error && (error.code === "42703" || /is_pinned/i.test(error.message ?? "")));

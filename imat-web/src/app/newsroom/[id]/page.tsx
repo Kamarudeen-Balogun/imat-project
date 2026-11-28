@@ -2,11 +2,14 @@ import { createSupabaseClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
 import { format } from "date-fns";
 import Link from "next/link";
-import { ArrowLeft, Calendar, User } from "lucide-react";
+import { ArrowLeft, Calendar, Play, User } from "lucide-react";
 import Image from "next/image";
 import optimizeCloudinaryUrl from "@/lib/cloudinary";
 import { notFound, redirect } from "next/navigation";
 import { extractAnnouncementSuffix, getAnnouncementHref, toCompactAnnouncementSlug } from "@/lib/news";
+import { markdownToPlainText } from "@/lib/markdown";
+import { parseVideoUrl } from "@/lib/video";
+import ArticleBody from "@/components/news/ArticleBody";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 
 export const dynamic = "force-dynamic";
@@ -22,6 +25,10 @@ type Announcement = {
   published_at: string;
   updated_at: string;
   image_url: string | null;
+  topic: string | null;
+  excerpt: string | null;
+  status: "draft" | "published" | null;
+  video_url: string | null;
 };
 
 function normalizeSlug(value: string) {
@@ -43,7 +50,7 @@ function createNewsroomAdminClient() {
 
 async function loadAnnouncement(supabase: Awaited<ReturnType<typeof createSupabaseClient>>, idOrSlug: string) {
   const normalizedIncoming = idOrSlug.toLowerCase();
-  const selectColumns = "id, slug, author_id, title, body, visibility, published_at, updated_at, image_url";
+  const selectColumns = "id, slug, author_id, title, body, visibility, published_at, updated_at, image_url, topic, excerpt, status, video_url";
 
   const bySlug = await supabase
     .from("announcements")
@@ -153,20 +160,21 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const supabase = adminSupabase ?? (await createSupabaseClient());
   const data = await loadAnnouncement(supabase, id);
 
-  if (!data) return { title: "Not Found | IMAT FUTA" };
+  if (!data || data.status === "draft") return { title: "Not Found | IMAT FUTA" };
 
   const canonicalHref = getAnnouncementHref(data.slug ?? data.id);
+  const description = data.excerpt?.trim() || `${markdownToPlainText(data.body).substring(0, 160)}...`;
 
   return {
     title: `${data.title} | IMAT FUTA Newsroom`,
-    description: data.body.substring(0, 160) + "...",
+    description,
     alternates: {
       canonical: canonicalHref,
     },
     openGraph: {
       type: "article",
       title: data.title,
-      description: data.body.substring(0, 160) + "...",
+      description,
       url: canonicalHref,
       publishedTime: data.published_at,
       modifiedTime: data.updated_at,
@@ -189,7 +197,8 @@ export default async function NewsPostPage({ params }: { params: Promise<{ id: s
 
   const data = await loadAnnouncement(contentSupabase, id);
 
-  if (!data) notFound();
+  // Drafts are never served on the public post page.
+  if (!data || data.status === "draft") notFound();
 
   const post = data as unknown as Announcement;
   const canonicalHref = getAnnouncementHref(post.slug ?? post.id);
@@ -197,6 +206,7 @@ export default async function NewsPostPage({ params }: { params: Promise<{ id: s
   const canonicalUrl = `${siteUrl}${canonicalHref}`;
   const canonicalSegment = canonicalHref.split("/").pop() ?? "";
   const hasBeenUpdated = new Date(post.updated_at).getTime() > new Date(post.published_at).getTime();
+  const video = post.video_url ? parseVideoUrl(post.video_url) : null;
   const authorName = post.author_id
     ? (await contentSupabase.from("users").select("full_name").eq("id", post.author_id).maybeSingle()).data?.full_name ?? "IMAT Official"
     : "IMAT Official";
@@ -205,7 +215,7 @@ export default async function NewsPostPage({ params }: { params: Promise<{ id: s
     "@context": "https://schema.org",
     "@type": "Article",
     headline: post.title,
-    description: post.body.substring(0, 160),
+    description: post.excerpt?.trim() || markdownToPlainText(post.body).substring(0, 160),
     image: post.image_url ? [post.image_url] : [`${siteUrl}/images/logo.png`],
     datePublished: post.published_at,
     dateModified: post.updated_at,
@@ -246,13 +256,33 @@ export default async function NewsPostPage({ params }: { params: Promise<{ id: s
             <ArrowLeft size={16} /> Back to Newsroom
           </Link>
 
-          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-[10px] font-mono uppercase tracking-wider text-primary sm:mb-4 sm:text-xs">
-            {post.visibility === "public" ? "Public Broadcast" : "Members Only"}
+          <div className="mb-3 flex items-center gap-3 sm:mb-4">
+            <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-borderLit/40 bg-bg shadow-sm">
+              <Image src="/images/logo.png" alt="IMAT logo" width={24} height={24} className="h-6 w-6 object-contain" />
+            </span>
+            <span className="text-xs font-mono uppercase tracking-[0.18em] text-text3">IMAT FUTA · Newsroom</span>
+          </div>
+
+          <div className="mb-3 flex flex-wrap items-center gap-2 sm:mb-4">
+            <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-[10px] font-mono uppercase tracking-wider text-primary sm:text-xs">
+              {post.visibility === "public" ? "Public Broadcast" : "Members Only"}
+            </div>
+            {post.topic && (
+              <div className="inline-flex items-center gap-2 rounded-full border border-accent/40 bg-accent/10 px-3 py-1 text-[10px] font-mono uppercase tracking-wider text-accent sm:text-xs">
+                {post.topic}
+              </div>
+            )}
           </div>
 
           <h1 className="mb-5 text-2xl font-bold leading-tight text-textDefault sm:mb-7 sm:text-4xl lg:text-5xl">
             {post.title}
           </h1>
+
+          {post.excerpt && (
+            <p className="mb-5 text-base leading-relaxed text-text2 sm:mb-7 sm:text-lg">
+              {post.excerpt}
+            </p>
+          )}
 
           <div className="flex flex-col gap-3 border-y border-borderDark py-3 text-xs font-mono text-text3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-6 sm:py-4 sm:text-sm">
             <div className="flex items-center gap-2 truncate">
@@ -293,6 +323,29 @@ export default async function NewsPostPage({ params }: { params: Promise<{ id: s
             </div>
           )}
 
+          {video && (
+            <div className="mt-6 overflow-hidden rounded-xl border border-borderDark bg-black sm:mt-8 sm:rounded-2xl">
+              <div className="relative aspect-video w-full">
+                <iframe
+                  src={video.embedUrl}
+                  title={`${post.title} — video`}
+                  className="absolute inset-0 h-full w-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                />
+              </div>
+              <div className="flex items-center gap-2 bg-bg px-4 py-3 text-xs text-text3">
+                <Play size={14} className="shrink-0 text-primary" />
+                <span className="truncate">
+                  Watch on {video.provider === "youtube" ? "YouTube" : "Vimeo"} —{" "}
+                  <a href={video.watchUrl} target="_blank" rel="noopener noreferrer" className="font-semibold text-primary underline underline-offset-2">
+                    open the video
+                  </a>
+                </span>
+              </div>
+            </div>
+          )}
+
           <div className="mt-4 flex items-center gap-3 text-[10px] font-mono text-text3 sm:mt-6 sm:text-xs">
             <span className="max-w-full truncate rounded-full border border-borderDark bg-bg px-2.5 py-1 sm:px-3">{canonicalHref}</span>
           </div>
@@ -300,16 +353,8 @@ export default async function NewsPostPage({ params }: { params: Promise<{ id: s
       </div>
 
       {/* Body */}
-      <div className="mx-auto w-full max-w-3xl space-y-4 px-4 py-8 sm:space-y-5 sm:px-6 sm:py-12 lg:px-8">
-        {post.body.split("\n").map((paragraph, idx) =>
-          paragraph.trim() ? (
-            <p key={idx} className="text-base leading-7 text-text2 sm:text-lg sm:leading-relaxed break-words">
-              {paragraph}
-            </p>
-          ) : (
-            <br key={idx} />
-          )
-        )}
+      <div className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+        <ArticleBody markdown={post.body} />
       </div>
     </div>
   );

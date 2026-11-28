@@ -55,8 +55,10 @@ function configureWebPush() {
   pushConfigured = true;
 }
 
+import { markdownToPlainText } from "@/lib/markdown";
+
 function sanitizeNotificationBody(body: string, fallback: string) {
-  return body.trim().replace(/\s+/g, " ").slice(0, 180) || fallback;
+  return markdownToPlainText(body).slice(0, 180) || fallback;
 }
 
 function isSubscriptionExpiredError(error: unknown) {

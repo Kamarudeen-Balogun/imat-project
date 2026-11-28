@@ -150,16 +150,26 @@ export function announcementEmail(opts: {
   title: string;
   excerpt: string;
   url: string;
+  video?: { watchUrl: string; thumbnailUrl: string | null } | null;
 }): EmailTemplate {
   const subject = `IMAT News: ${opts.title}`;
+  // Emails cannot embed a player: a video shows as a linked thumbnail
+  // (YouTube) or a play button (Vimeo).
+  const videoHtml = opts.video
+    ? opts.video.thumbnailUrl
+      ? `<a href="${escapeHtml(opts.video.watchUrl)}"><img src="${escapeHtml(opts.video.thumbnailUrl)}" alt="Watch the video" style="width: 100%; border-radius: 8px; margin-bottom: 16px;" /></a>`
+      : `<p style="text-align: center;"><a href="${escapeHtml(opts.video.watchUrl)}" style="display: inline-block; background: #111820; color: #ffffff; padding: 12px 20px; border-radius: 8px; text-decoration: none; font-weight: bold;">▶ Watch the video</a></p>`
+    : "";
+  const videoText = opts.video ? `\n\nWatch the video: ${opts.video.watchUrl}` : "";
   const html = wrapEmail(
     opts.title,
     `<p style="color: #666; font-size: 13px;">Published by ${escapeHtml(opts.authorName)} &middot; IMAT Newsroom</p>
 <p>${escapeHtml(opts.excerpt)}</p>
+${videoHtml}
 ${buttonHtml("Read the full post", opts.url)}
 <p style="color: #666; font-size: 13px;">If the button does not work, copy and paste this link into your browser:<br /><a href="${escapeHtml(opts.url)}">${escapeHtml(opts.url)}</a></p>`
   );
-  const text = `${opts.title}\nPublished by ${opts.authorName} · IMAT Newsroom\n\n${opts.excerpt}\n\nRead the full post: ${opts.url}`;
+  const text = `${opts.title}\nPublished by ${opts.authorName} · IMAT Newsroom\n\n${opts.excerpt}${videoText}\n\nRead the full post: ${opts.url}`;
   return { subject, html, text };
 }
 
