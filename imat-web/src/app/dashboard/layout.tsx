@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
@@ -46,6 +46,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const router = useRouter();
   const supabase = useMemo(() => createSupabaseClient(), []);
   const pathname = usePathname();
+  const mainRef = useRef<HTMLElement | null>(null);
+
+  // On desktop the main column is its own scroll container (the window does
+  // not scroll), so reset it to the top when navigating between dashboard pages.
+  useEffect(() => {
+    mainRef.current?.scrollTo({ top: 0 });
+  }, [pathname]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -171,9 +178,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   ];
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row">
+    <div className="min-h-screen flex flex-col md:h-dvh md:flex-row md:overflow-hidden">
       <OfflineBanner />
-      <aside className="hidden w-72 flex-col border-r border-white/10 bg-asphalt text-white md:flex">
+      <aside className="hidden w-72 flex-col border-r border-white/10 bg-asphalt text-white md:sticky md:top-0 md:flex md:h-dvh md:shrink-0">
          <div className="flex items-center gap-3 border-b border-white/10 p-6">
             <span className="relative inline-flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 bg-black/30 shadow-[0_10px_24px_rgba(0,0,0,0.35)]">
               <Image
@@ -191,7 +198,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <div className="truncate font-mono text-[10px] uppercase tracking-[0.16em] text-slate-400">{profile?.role.replace("_", " ")}</div>
             </div>
          </div>
-         <nav className="flex-grow space-y-2 p-4">
+         <nav className="min-h-0 flex-grow space-y-2 overflow-y-auto p-4">
             {navItems.map((item) => (
               <Link
                 key={item.href}
@@ -240,7 +247,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
          </div>
       </aside>
 
-      <main className="flex-grow flex flex-col min-h-screen">
+      <main ref={mainRef} className="flex-grow flex flex-col min-h-screen md:h-dvh md:min-h-0 md:overflow-y-auto">
         <header className="sticky top-0 z-10 flex h-16 items-center justify-between gap-2 border-b border-borderDark bg-surfaceStrong px-4 backdrop-blur-md sm:px-6 md:px-8">
             <div className="flex items-center gap-3 min-w-0">
               <button
@@ -332,7 +339,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </>
           )}
         </AnimatePresence>
-        <div className="flex-grow overflow-y-auto p-4 md:p-8">
+        <div className="flex-grow p-4 md:p-8">
           {children}
         </div>
       </main>
