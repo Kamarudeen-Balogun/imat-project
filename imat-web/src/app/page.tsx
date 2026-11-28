@@ -235,11 +235,6 @@ export default function Home() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.55 }}
           >
-            <div className="mb-5 inline-flex items-center gap-2 rounded border border-accent/45 bg-accent/10 px-3 py-1.5 font-mono text-[10px] font-black uppercase tracking-[0.2em] text-accent">
-              <span className="h-2 w-2 animate-pulse rounded-full bg-accent" />
-              Live campus infrastructure hub
-            </div>
-
             <h1 className="max-w-4xl text-balance text-4xl font-black leading-[0.96] tracking-tight text-white sm:text-5xl lg:text-7xl">
               IMAT Infrastructure Command Center
             </h1>
