@@ -153,6 +153,7 @@ export async function POST(
         status: "accepted",
         review_notes: reviewNotes ?? null,
         reviewed_by: user.id,
+        reviewed_at: new Date().toISOString(),
       })
       .eq("id", applicationId);
 

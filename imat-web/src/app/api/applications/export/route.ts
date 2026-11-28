@@ -114,7 +114,7 @@ export async function GET(request: NextRequest) {
   let query = admin
     .from("applications")
     .select(
-      "applicant_name, email, phone, matric_no, level, department, cgpa_above_3, role_preference_1, role_preference_2, role_preference_3, motivation_statement, status, created_at, review_notes"
+      "applicant_name, email, phone, matric_no, level, department, cgpa_above_3, role_preference_1, role_preference_2, role_preference_3, motivation_statement, status, created_at, reviewed_at, review_notes"
     )
     .order("created_at", { ascending: false });
 
@@ -154,8 +154,6 @@ export async function GET(request: NextRequest) {
   ];
 
   const rows = (data ?? []).map((app) => {
-    // There is no reviewed_at column on applications, so the reviewed date
-    // is left blank rather than invented.
     const fields = [
       app.applicant_name,
       app.email,
@@ -170,7 +168,7 @@ export async function GET(request: NextRequest) {
       app.motivation_statement,
       app.status,
       formatDate(app.created_at),
-      "",
+      formatDate(app.reviewed_at),
       app.review_notes,
     ];
     return fields.map(csvField).join(",");

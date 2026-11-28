@@ -170,6 +170,7 @@ export async function POST(request: NextRequest) {
         status: "accepted",
         review_notes: "Direct invite by owner",
         reviewed_by: user.id,
+        reviewed_at: new Date().toISOString(),
       })
       .select("id")
       .single();

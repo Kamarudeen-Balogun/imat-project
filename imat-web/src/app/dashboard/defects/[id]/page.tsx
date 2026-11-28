@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createSupabaseClient } from "@/lib/supabase/client";
-import { Clock, MapPin, AlertTriangle, FileText, CheckCircle, Camera, Activity } from "lucide-react";
+import { Clock, MapPin, AlertTriangle, FileText, CheckCircle, Camera, Activity, ArrowUpCircle, Wrench } from "lucide-react";
 import Image from "next/image";
 import optimizeCloudinaryUrl from "@/lib/cloudinary";
 import { formatDistanceToNow } from "date-fns";
@@ -253,13 +253,27 @@ export default function DefectDetailsPage() {
              This structural data is confidential FUTA infrastructure data.
            </div>
            
-           <div className="flex gap-3">
+           <div className="flex flex-wrap gap-3">
              <button 
                onClick={() => handleUpdateStatus('assessed')}
                disabled={updating || defect.status === 'assessed'}
                className="px-4 py-2 bg-blue-500/10 border border-blue-500/20 hover:border-blue-400 hover:text-blue-400 text-blue-500 text-sm font-bold rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
              >
                <Activity size={16}/> Under Assessment
+             </button>
+             <button 
+               onClick={() => handleUpdateStatus('escalated')}
+               disabled={updating || defect.status === 'escalated'}
+               className="px-4 py-2 bg-danger/10 border border-danger/20 hover:border-danger hover:text-danger text-danger text-sm font-bold rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+             >
+               <ArrowUpCircle size={16}/> Escalate
+             </button>
+             <button 
+               onClick={() => handleUpdateStatus('acknowledged_by_works')}
+               disabled={updating || defect.status === 'acknowledged_by_works'}
+               className="px-4 py-2 bg-accent/10 border border-accent/20 hover:border-accent hover:text-accent text-accent text-sm font-bold rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+             >
+               <Wrench size={16}/> Acknowledge
              </button>
              <button 
                onClick={() => handleUpdateStatus('resolved')}

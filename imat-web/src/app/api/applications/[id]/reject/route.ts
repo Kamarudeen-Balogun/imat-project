@@ -97,9 +97,11 @@ export async function POST(
       return NextResponse.json({ error: "Application not found." }, { status: 404 });
     }
 
-    if (application.status !== "submitted") {
+    // Accept already allows under_review too: an application marked
+    // under review must be rejectable as well, or it would be a dead end.
+    if (application.status !== "submitted" && application.status !== "under_review") {
       return NextResponse.json(
-        { error: "Only submitted applications can be rejected." },
+        { error: "Only submitted or under-review applications can be rejected." },
         { status: 409 }
       );
     }
@@ -110,6 +112,7 @@ export async function POST(
         status: "rejected",
         review_notes: reviewNotes ?? null,
         reviewed_by: user.id,
+        reviewed_at: new Date().toISOString(),
       })
       .eq("id", applicationId);
 

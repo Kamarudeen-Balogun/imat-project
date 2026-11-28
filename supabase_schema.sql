@@ -200,6 +200,7 @@ CREATE TABLE IF NOT EXISTS applications (
   status TEXT NOT NULL DEFAULT 'submitted' CHECK (status IN ('submitted', 'under_review', 'accepted', 'waitlisted', 'rejected')),
   reviewed_by UUID REFERENCES users(id),
   review_notes TEXT,
+  reviewed_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ DEFAULT now()
 );
 

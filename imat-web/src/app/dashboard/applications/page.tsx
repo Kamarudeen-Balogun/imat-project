@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import { toast } from "react-hot-toast";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
-import { CheckCircle2, ChevronDown, Download, GraduationCap, Mail, User, XCircle } from "lucide-react";
+import { CheckCircle2, ChevronDown, Download, Eye, GraduationCap, Mail, User, XCircle } from "lucide-react";
 import { ROLE_LABELS } from "@/lib/roleHierarchy";
 
 // Only the owner and admins may accept/reject applications or download
@@ -243,6 +243,34 @@ export default function ApplicationsPage() {
     }
   };
 
+  const handleUnderReview = async (app: Application) => {
+    setSubmitting(true);
+    try {
+      const res = await fetch(`/api/applications/${app.id}/under-review`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notes: notes.trim() }),
+      });
+      const payload = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error(payload.error || "Could not mark this application under review.");
+      }
+
+      toast.success(`${app.applicant_name} marked as under review.`);
+      setApplications((current) =>
+        current.map((item) =>
+          item.id === app.id ? { ...item, status: "under_review" } : item
+        )
+      );
+      setReviewingId(null);
+    } catch (error) {
+      toast.error((error as Error).message || "Something went wrong. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const formatDate = (value: string) =>
     new Date(value).toLocaleDateString(undefined, {
       year: "numeric",
@@ -269,7 +297,7 @@ export default function ApplicationsPage() {
         </h1>
         <p className="text-text2">
           {canReview
-            ? "Review submitted applications, assign a role on accept, or reject with a note."
+            ? "Review submitted applications, mark one under review, assign a role on accept, or reject with a note."
             : "View membership applications. Only the owner and admins can accept or reject."}
         </p>
       </div>
@@ -531,6 +559,16 @@ export default function ApplicationsPage() {
                           </div>
 
                           <div className="flex flex-wrap gap-3">
+                            {app.status === "submitted" && (
+                              <button
+                                type="button"
+                                disabled={submitting}
+                                onClick={() => handleUnderReview(app)}
+                                className="flex items-center gap-2 rounded-lg bg-blue-500 px-4 py-2 text-sm font-bold text-white transition-colors hover:opacity-90 disabled:opacity-50"
+                              >
+                                <Eye size={16} /> Mark Under Review
+                              </button>
+                            )}
                             <button
                               type="button"
                               disabled={submitting}
